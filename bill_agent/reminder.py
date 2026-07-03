@@ -77,6 +77,8 @@ def build_reminder(store: Store, days_ahead: int) -> tuple[str, str, list[tuple[
             html_parts.append(
                 "<div style='border:1px solid #ddd;border-radius:8px;padding:12px;"
                 "margin:8px 0;max-width:560px'>"
+                f"<span style='background:#eee;border-radius:4px;padding:1px 7px;"
+                f"font-weight:bold'>č. {p.id}</span> &nbsp;"
                 f"<b>{escape(p.supplier or '(neznámy dodávateľ)')}</b> — "
                 f"<b>{escape(_fmt_amount(p))}</b><br>"
                 f"Splatnosť: <b>{escape(due)}</b><br>"
@@ -93,7 +95,8 @@ def build_reminder(store: Store, days_ahead: int) -> tuple[str, str, list[tuple[
                     "<br><small>Naskenujte v bankovej appke a platbu potvrďte.</small>"
                 )
             html_parts.append(
-                f"<br><small>Po zaplatení: <code>python -m bill_agent paid {p.id}</code></small>"
+                f"<br><small>Po zaplatení odpovedzte na tento e-mail: "
+                f"<b>zaplatené {p.id}</b></small>"
                 "</div>"
             )
 
@@ -103,7 +106,10 @@ def build_reminder(store: Store, days_ahead: int) -> tuple[str, str, list[tuple[
         for t in tasks:
             due = f" (do {t.due_date})" if t.due_date else ""
             text_lines.append(f"  [{t.id}] {t.description}{due}")
-            html_parts.append(f"<li>{escape(t.description)}{escape(due)}</li>")
+            html_parts.append(
+                f"<li><b>č. {t.id}</b> — {escape(t.description)}{escape(due)}"
+                f" &nbsp;<small>(hotovo? odpovedzte: <b>hotovo {t.id}</b>)</small></li>"
+            )
         html_parts.append("</ul>")
 
     html_parts.append(
