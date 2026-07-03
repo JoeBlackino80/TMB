@@ -1,5 +1,6 @@
 """SQLite úložisko platieb, úloh a spracovaných e-mailov."""
 
+import re
 import sqlite3
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
@@ -21,6 +22,7 @@ CREATE TABLE IF NOT EXISTS payments (
     source_message_id TEXT NOT NULL DEFAULT '',
     source_subject TEXT NOT NULL DEFAULT '',
     source_account TEXT NOT NULL DEFAULT '',
+    snoozed_until TEXT,                -- odložené do (YYYY-MM-DD) alebo NULL
     created_at TEXT NOT NULL,
     paid_at TEXT
 );
@@ -32,6 +34,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     status TEXT NOT NULL DEFAULT 'pending',  -- pending | done
     source_message_id TEXT NOT NULL DEFAULT '',
     source_account TEXT NOT NULL DEFAULT '',
+    snoozed_until TEXT,
     created_at TEXT NOT NULL
 );
 
@@ -56,6 +59,7 @@ class Payment:
     note: str
     status: str
     source_subject: str
+    snoozed_until: Optional[str] = None
 
 
 @dataclass
@@ -64,6 +68,37 @@ class Task:
     description: str
     due_date: Optional[str]
     status: str
+    snoozed_until: Optional[str] = None
+
+
+_LEGAL_SUFFIXES = sorted(
+    ("spol s r o", "s r o", "a s", "gmbh", "k s", "sro", "as", "se"),
+    key=len, reverse=True,
+)
+
+
+def normalize_supplier(name: str) -> str:
+    """Znormalizuje názov dodávateľa na porovnávanie.
+
+    'Alza.sk a.s.' aj 'Alza.sk, a. s.' → 'alza sk', aby sa dal ten istý
+    dodávateľ spoznať naprieč rôzne napísanými faktúrami.
+    """
+    n = re.sub(r"[.,]", " ", name.lower())
+    n = re.sub(r"\s+", " ", n).strip()
+    for suffix in _LEGAL_SUFFIXES:
+        if n.endswith(" " + suffix):
+            n = n[: -len(suffix) - 1].strip()
+            break
+    return n
+
+
+def _is_snoozed(snoozed_until: Optional[str]) -> bool:
+    if not snoozed_until:
+        return False
+    try:
+        return date.fromisoformat(snoozed_until) > date.today()
+    except ValueError:
+        return False
 
 
 class Store:
@@ -71,7 +106,15 @@ class Store:
         self.conn = sqlite3.connect(db_path)
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
+        # migrácia starších databáz — doplnenie nových stĺpcov
+        self._ensure_column("payments", "snoozed_until", "TEXT")
+        self._ensure_column("tasks", "snoozed_until", "TEXT")
         self.conn.commit()
+
+    def _ensure_column(self, table: str, column: str, decl: str) -> None:
+        cols = [r["name"] for r in self.conn.execute(f"PRAGMA table_info({table})")]
+        if column not in cols:
+            self.conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")
 
     def close(self) -> None:
         self.conn.close()
@@ -154,6 +197,7 @@ class Store:
             variable_symbol=row["variable_symbol"], specific_symbol=row["specific_symbol"],
             constant_symbol=row["constant_symbol"], due_date=row["due_date"],
             note=row["note"], status=row["status"], source_subject=row["source_subject"],
+            snoozed_until=row["snoozed_until"],
         )
 
     def pending_payments(self) -> list[Payment]:
@@ -171,6 +215,8 @@ class Store:
             "overdue": [], "today": [], "upcoming": [], "no_date": [],
         }
         for p in self.pending_payments():
+            if _is_snoozed(p.snoozed_until):
+                continue  # odložené — zatiaľ nepripomíname
             if not p.due_date:
                 result["no_date"].append(p)
                 continue
@@ -201,6 +247,29 @@ class Store:
         )
         self.conn.commit()
         return cur.rowcount > 0
+
+    def snooze_payment(self, payment_id: int, days: int) -> bool:
+        until = (date.today() + timedelta(days=days)).isoformat()
+        cur = self.conn.execute(
+            "UPDATE payments SET snoozed_until = ? WHERE id = ? AND status = 'pending'",
+            (until, payment_id),
+        )
+        self.conn.commit()
+        return cur.rowcount > 0
+
+    def known_ibans_for_supplier(self, supplier: str) -> set[str]:
+        """IBANy, na ktoré sa tomuto dodávateľovi platilo v minulosti.
+
+        Porovnáva znormalizované názvy — slúži na odhalenie faktúry
+        s podvodne zmeneným číslom účtu.
+        """
+        key = normalize_supplier(supplier)
+        if not key:
+            return set()
+        rows = self.conn.execute(
+            "SELECT supplier, iban FROM payments WHERE iban != ''"
+        ).fetchall()
+        return {r["iban"] for r in rows if normalize_supplier(r["supplier"]) == key}
 
     def match_bank_transaction(
         self, *, amount: float, variable_symbol: str = "", iban: str = ""
@@ -245,7 +314,21 @@ class Store:
             "ORDER BY due_date IS NULL, due_date, id"
         ).fetchall()
         return [Task(id=r["id"], description=r["description"],
-                     due_date=r["due_date"], status=r["status"]) for r in rows]
+                     due_date=r["due_date"], status=r["status"],
+                     snoozed_until=r["snoozed_until"]) for r in rows]
+
+    def active_tasks(self) -> list[Task]:
+        """Nezhotovené úlohy okrem odložených."""
+        return [t for t in self.pending_tasks() if not _is_snoozed(t.snoozed_until)]
+
+    def snooze_task(self, task_id: int, days: int) -> bool:
+        until = (date.today() + timedelta(days=days)).isoformat()
+        cur = self.conn.execute(
+            "UPDATE tasks SET snoozed_until = ? WHERE id = ? AND status = 'pending'",
+            (until, task_id),
+        )
+        self.conn.commit()
+        return cur.rowcount > 0
 
     def set_task_status(self, task_id: int, status: str) -> bool:
         cur = self.conn.execute(

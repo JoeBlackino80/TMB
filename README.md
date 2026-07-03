@@ -17,8 +17,9 @@ Okrem platieb si všíma aj úlohy a termíny spomenuté v e-mailoch a pripomeni
    a **splatných v najbližších dňoch** + nadchádzajúce úlohy. Ku každej platbe je priložený
    PAY by square QR kód — naskenujete a zaplatíte.
 3. **Ovládanie odpoveďou na e-mail** — na pripomienku stačí odpovedať `zaplatené 3`,
-   `zaplatené všetko`, `ignoruj 5` alebo `hotovo 2` a agent si to pri ďalšej kontrole
-   pošty odškrtne sám. Príkazy prijíma len z vlastných adries (schránky v accounts.ini
+   `zaplatené všetko`, `ignoruj 5`, `hotovo 2`, `odlož 4 o 5` (pripomenie o 5 dní,
+   predvolene o 3) alebo `odlož úlohu 2` a agent si to pri ďalšej kontrole pošty
+   vybaví sám. Príkazy prijíma len z vlastných adries (schránky v accounts.ini
    a REMINDER_TO); citovaný text pôvodnej správy sa ignoruje.
 4. **Automatické odškrtávanie z výpisov** — keď banka pošle výpis e-mailom (aj heslom
    chránené PDF — heslo nastavíte v `PDF_PASSWORDS`), agent z neho prečíta odchádzajúce
@@ -126,6 +127,9 @@ Pozri `crontab.example`.
 
 - Agent **nikdy sám neplatí** — len pripraví QR kód a pripomenie. Platbu vždy
   potvrdzujete vy v bankovej appke.
+- **Ochrana pred podvodnými faktúrami:** ak príde faktúra od známeho dodávateľa
+  s iným IBAN-om než pri minulých platbách, agent ju v prehľade červeno označí
+  ⚠️ — pred zaplatením si overte pravosť faktúry priamo u dodávateľa.
 - Prístup do banky nepotrebuje; párovanie platieb robí z CSV výpisu, ktorý mu dáte.
 - Údaje ostávajú lokálne v SQLite; do Claude API sa posiela len obsah e-mailov na extrakciu.
 

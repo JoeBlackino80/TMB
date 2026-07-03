@@ -51,7 +51,7 @@ def _payment_qr(p: Payment) -> bytes | None:
 def build_reminder(store: Store, days_ahead: int) -> tuple[str, str, list[tuple[str, bytes]]] | None:
     """Vráti (text, html, [(cid, png)]) alebo None, ak nie je čo pripomenúť."""
     groups = store.payments_due(days_ahead)
-    tasks = [t for t in store.pending_tasks()]
+    tasks = store.active_tasks()
     total_payments = sum(len(v) for v in groups.values())
     if total_payments == 0 and not tasks:
         return None
@@ -83,7 +83,11 @@ def build_reminder(store: Store, days_ahead: int) -> tuple[str, str, list[tuple[
                 f"<b>{escape(_fmt_amount(p))}</b><br>"
                 f"Splatnosť: <b>{escape(due)}</b><br>"
                 f"IBAN: {escape(p.iban or '—')} &nbsp; VS: {escape(p.variable_symbol or '—')}"
-                + (f"<br>{escape(p.note)}" if p.note else "")
+                + (
+                    (f"<br><span style='color:#c00;font-weight:bold'>{escape(p.note)}</span>"
+                     if "⚠️" in p.note else f"<br>{escape(p.note)}")
+                    if p.note else ""
+                )
             )
             png = _payment_qr(p)
             if png:
@@ -113,14 +117,15 @@ def build_reminder(store: Store, days_ahead: int) -> tuple[str, str, list[tuple[
         html_parts.append("</ul>")
 
     html_parts.append(
-        "<p style='color:#666'><small>Zaplatili ste niečo? Stačí na tento e-mail "
-        "odpovedať: <b>zaplatené 3</b> (číslo platby), <b>zaplatené všetko</b>, "
-        "<b>ignoruj 5</b> alebo <b>hotovo 2</b> (číslo úlohy) — agent si to pri "
-        "ďalšej kontrole pošty odškrtne sám.</small></p>"
+        "<p style='color:#666'><small>Ovládanie odpoveďou na tento e-mail: "
+        "<b>zaplatené 3</b> (číslo platby), <b>zaplatené všetko</b>, "
+        "<b>ignoruj 5</b>, <b>hotovo 2</b> (číslo úlohy), "
+        "<b>odlož 4 o 5</b> (pripomenie o 5 dní), <b>odlož úlohu 2</b> — "
+        "agent si to pri ďalšej kontrole pošty vybaví sám.</small></p>"
     )
     text_lines.append(
-        "\nZaplatili ste? Odpovedzte na tento e-mail: 'zaplatené 3', "
-        "'zaplatené všetko', 'ignoruj 5' alebo 'hotovo 2'."
+        "\nOvládanie odpoveďou: 'zaplatené 3', 'zaplatené všetko', 'ignoruj 5', "
+        "'hotovo 2', 'odlož 4 o 5', 'odlož úlohu 2'."
     )
 
     text = "Prehľad platieb a úloh\n" + "\n".join(text_lines) + "\n"

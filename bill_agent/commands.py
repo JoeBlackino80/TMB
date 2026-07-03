@@ -25,6 +25,12 @@ _REPLY_PREFIXES = ("re:", "odp:", "odp.:", "aw:", "sv:", "fwd:", "fw:")
 _PAID_RE = re.compile(r"^(?:zaplat|uhrad|paid)\S*\s+(\d+|v[sš]etko)[.!]?\s*$", re.I)
 _IGNORE_RE = re.compile(r"^ignor\S*\s+(\d+)[.!]?\s*$", re.I)
 _TASK_RE = re.compile(r"^(?:hotovo?|splnen)\S*\s+(\d+)[.!]?\s*$", re.I)
+# "odlož úlohu 2 o 5" pred všeobecným "odlož 4 o 5" (platba)
+_SNOOZE_TASK_RE = re.compile(
+    r"^odlo[zž]\S*\s+[uú]loh\S*\s+(\d+)(?:\s+o\s+(\d+))?[.!]?\s*$", re.I)
+_SNOOZE_RE = re.compile(r"^odlo[zž]\S*\s+(\d+)(?:\s+o\s+(\d+))?[.!]?\s*$", re.I)
+
+DEFAULT_SNOOZE_DAYS = 3
 
 
 def is_command_email(mail: Email, allowed_senders: list[str]) -> bool:
@@ -77,4 +83,24 @@ def apply(store: Store, mail: Email) -> list[str]:
                 actions.append(f"úloha [{tid}] → hotová")
             else:
                 actions.append(f"úloha [{tid}] neexistuje")
+            continue
+
+        m = _SNOOZE_TASK_RE.match(line)
+        if m:
+            tid = int(m.group(1))
+            days = int(m.group(2)) if m.group(2) else DEFAULT_SNOOZE_DAYS
+            if store.snooze_task(tid, days):
+                actions.append(f"úloha [{tid}] → odložená o {days} dní")
+            else:
+                actions.append(f"úloha [{tid}] neexistuje")
+            continue
+
+        m = _SNOOZE_RE.match(line)
+        if m:
+            pid = int(m.group(1))
+            days = int(m.group(2)) if m.group(2) else DEFAULT_SNOOZE_DAYS
+            if store.snooze_payment(pid, days):
+                actions.append(f"platba [{pid}] → odložená o {days} dní")
+            else:
+                actions.append(f"platba [{pid}] neexistuje")
     return actions

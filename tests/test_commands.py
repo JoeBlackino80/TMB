@@ -60,3 +60,26 @@ def test_diacritics_variants():
     pid = store.add_payment(supplier="A", amount=10, variable_symbol="1")
     actions = commands.apply(store, make_mail("Re: 💸 Platby a úlohy", f"uhradene {pid}"))
     assert actions == [f"platba [{pid}] → zaplatená"]
+
+
+def test_snooze_commands():
+    from datetime import date, timedelta
+
+    store = Store(":memory:")
+    pid = store.add_payment(supplier="A", amount=10, variable_symbol="1",
+                            due_date=str(date.today()))
+    tid = store.add_task(description="Úloha", due_date=str(date.today()))
+
+    mail = make_mail("Re: 💸 Platby a úlohy",
+                     f"odlož {pid} o 5\nodlož úlohu {tid}\n")
+    actions = commands.apply(store, mail)
+    assert actions == [
+        f"platba [{pid}] → odložená o 5 dní",
+        f"úloha [{tid}] → odložená o 3 dní",
+    ]
+    # odložená platba sa v pripomienke neukáže
+    groups = store.payments_due(7)
+    assert all(not v for v in groups.values())
+    # odložená úloha zmizne z aktívnych, ale ostáva nezhotovená
+    assert store.active_tasks() == []
+    assert len(store.pending_tasks()) == 1

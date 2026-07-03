@@ -67,3 +67,55 @@ def test_has_records_from():
     assert store.has_records_from("<msg2@x>")
     assert not store.has_records_from("<iny@x>")
     assert not store.has_records_from("")
+
+
+def test_known_ibans_and_supplier_normalization():
+    from bill_agent.store import normalize_supplier
+
+    assert normalize_supplier("Alza.sk a.s.") == normalize_supplier("Alza.sk, a. s.")
+    assert normalize_supplier("CreditCall, s.r.o") == normalize_supplier("CreditCall s. r. o.")
+
+    store = make_store()
+    store.add_payment(supplier="Alza.sk a.s.", amount=10, iban="SK29OLD", variable_symbol="1")
+    known = store.known_ibans_for_supplier("Alza.sk, a. s.")
+    assert known == {"SK29OLD"}
+    assert store.known_ibans_for_supplier("Nezname s.r.o.") == set()
+
+
+def test_snooze_payment_hides_until_date():
+    from datetime import date
+
+    store = make_store()
+    pid = store.add_payment(supplier="A", amount=10, due_date=str(date.today()))
+    assert store.payments_due(7)["today"]
+    assert store.snooze_payment(pid, 3)
+    assert all(not v for v in store.payments_due(7).values())
+
+
+def test_migration_adds_snoozed_column(tmp_path):
+    import sqlite3 as sq
+
+    db = tmp_path / "old.db"
+    conn = sq.connect(db)
+    # stará schéma bez snoozed_until
+    conn.executescript("""
+        CREATE TABLE payments (id INTEGER PRIMARY KEY AUTOINCREMENT,
+            supplier TEXT NOT NULL DEFAULT '', amount REAL NOT NULL,
+            currency TEXT NOT NULL DEFAULT 'EUR', iban TEXT NOT NULL DEFAULT '',
+            variable_symbol TEXT NOT NULL DEFAULT '', specific_symbol TEXT NOT NULL DEFAULT '',
+            constant_symbol TEXT NOT NULL DEFAULT '', due_date TEXT,
+            note TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'pending',
+            source_message_id TEXT NOT NULL DEFAULT '', source_subject TEXT NOT NULL DEFAULT '',
+            source_account TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, paid_at TEXT);
+        CREATE TABLE tasks (id INTEGER PRIMARY KEY AUTOINCREMENT,
+            description TEXT NOT NULL, due_date TEXT, status TEXT NOT NULL DEFAULT 'pending',
+            source_message_id TEXT NOT NULL DEFAULT '', source_account TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL);
+    """)
+    conn.execute("INSERT INTO payments (supplier, amount, created_at) VALUES ('X', 1, 'now')")
+    conn.commit()
+    conn.close()
+
+    store = Store(str(db))  # migrácia prebehne v konštruktore
+    assert store.pending_payments()[0].snoozed_until is None
+    assert store.snooze_payment(1, 2)

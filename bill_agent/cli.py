@@ -41,11 +41,22 @@ def cmd_fetch(cfg: Config, store: Store, args: argparse.Namespace) -> None:
                 print(f"  ⚠ {mail.subject!r}: extrakcia zlyhala ({exc})", file=sys.stderr)
                 continue
             for p in result.payments:
+                # ochrana pred podvodom: iný IBAN než pri minulých faktúrach
+                # toho istého dodávateľa
+                note = p.note
+                if p.iban:
+                    known = store.known_ibans_for_supplier(p.supplier)
+                    if known and p.iban not in known:
+                        warning = ("⚠️ POZOR: iný IBAN než pri predchádzajúcich "
+                                   "platbách tomuto dodávateľovi — overte pravosť faktúry!")
+                        note = f"{warning} {note}".strip()
+                        print(f"  ⚠️ {p.supplier}: IBAN sa líši od minulých faktúr "
+                              f"({p.iban} vs {', '.join(sorted(known))})")
                 pid = store.add_payment(
                     supplier=p.supplier, amount=p.amount, currency=p.currency,
                     iban=p.iban, variable_symbol=p.variable_symbol,
                     specific_symbol=p.specific_symbol, constant_symbol=p.constant_symbol,
-                    due_date=p.due_date or None, note=p.note,
+                    due_date=p.due_date or None, note=note,
                     source_message_id=mail.message_id, source_subject=mail.subject,
                     source_account=account.name,
                 )
