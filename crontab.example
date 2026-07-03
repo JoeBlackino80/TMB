@@ -1,0 +1,6 @@
+# Každý pracovný deň o 7:30 — stiahne poštu a pošle upozornenie na platby/úlohy.
+# E-mail príde len ak je čo pripomenúť.
+30 7 * * 1-5  cd /cesta/k/TMB && .venv/bin/python -m bill_agent run >> agent.log 2>&1
+
+# Voliteľne: druhá kontrola pošty poobede (bez upozornenia)
+0 15 * * 1-5  cd /cesta/k/TMB && .venv/bin/python -m bill_agent fetch >> agent.log 2>&1
