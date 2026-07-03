@@ -102,10 +102,30 @@ class Extraction:
     tasks: list[ExtractedTask] = field(default_factory=list)
 
 
+def _sniff_media_type(data: bytes) -> Optional[str]:
+    """Určí skutočný typ súboru z magických bajtov.
+
+    E-maily občas deklarujú nesprávny content-type (napr. PNG označené ako
+    image/jpeg) a API taký obsah odmietne — preto typ overujeme z obsahu.
+    """
+    if data.startswith(b"%PDF"):
+        return "application/pdf"
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if data.startswith(b"\xff\xd8"):
+        return "image/jpeg"
+    if data[:6] in (b"GIF87a", b"GIF89a"):
+        return "image/gif"
+    if data.startswith(b"RIFF") and data[8:12] == b"WEBP":
+        return "image/webp"
+    return None
+
+
 def _build_content(mail: Email) -> list[dict]:
     content: list[dict] = []
     for att in mail.attachments:
-        if att.content_type == "application/pdf" or att.filename.lower().endswith(".pdf"):
+        media_type = _sniff_media_type(att.data)
+        if media_type == "application/pdf":
             content.append({
                 "type": "document",
                 "source": {
@@ -114,12 +134,12 @@ def _build_content(mail: Email) -> list[dict]:
                     "data": base64.standard_b64encode(att.data).decode("ascii"),
                 },
             })
-        elif att.content_type in ("image/png", "image/jpeg", "image/webp", "image/gif"):
+        elif media_type and media_type.startswith("image/"):
             content.append({
                 "type": "image",
                 "source": {
                     "type": "base64",
-                    "media_type": att.content_type,
+                    "media_type": media_type,
                     "data": base64.standard_b64encode(att.data).decode("ascii"),
                 },
             })
@@ -141,13 +161,25 @@ def extract(cfg: Config, mail: Email, client: Optional[anthropic.Anthropic] = No
         cfg.require("anthropic_api_key")
         client = anthropic.Anthropic(api_key=cfg.anthropic_api_key)
 
-    response = client.messages.create(
-        model=cfg.claude_model,
-        max_tokens=16000,
-        system=SYSTEM_PROMPT,
-        output_config={"format": OUTPUT_SCHEMA},
-        messages=[{"role": "user", "content": _build_content(mail)}],
-    )
+    def _call(content: list[dict]):
+        return client.messages.create(
+            model=cfg.claude_model,
+            max_tokens=16000,
+            system=SYSTEM_PROMPT,
+            output_config={"format": OUTPUT_SCHEMA},
+            messages=[{"role": "user", "content": content}],
+        )
+
+    content = _build_content(mail)
+    try:
+        response = _call(content)
+    except anthropic.BadRequestError:
+        # napr. heslom chránené PDF alebo poškodená príloha — skúsime aspoň
+        # samotný text e-mailu, nech sa nezahodí celá správa
+        text_only = [b for b in content if b["type"] == "text"]
+        if len(text_only) == len(content):
+            raise
+        response = _call(text_only)
 
     if response.stop_reason == "refusal":
         return Extraction()
