@@ -8,11 +8,15 @@ from .store import Store
 
 
 def cmd_fetch(cfg: Config, store: Store, args: argparse.Namespace) -> None:
+    from . import commands
     from . import emails as email_mod
     from . import extractor
 
+    accounts = cfg.accounts()
+    own_addresses = [a.user.lower() for a in accounts] + [cfg.reminder_to.lower()]
+
     n_payments = n_tasks = 0
-    for account in cfg.accounts():
+    for account in accounts:
         try:
             mails = email_mod.fetch_recent(account, cfg.email_lookback_days)
         except Exception as exc:
@@ -21,6 +25,12 @@ def cmd_fetch(cfg: Config, store: Store, args: argparse.Namespace) -> None:
         new = [m for m in mails if m.message_id and not store.is_processed(m.message_id)]
         print(f"📬 {account.name}: {len(mails)} e-mailov, nových na spracovanie: {len(new)}")
         for mail in new:
+            # odpoveď na pripomienku ("zaplatené 3") — vybavíme bez AI
+            if commands.is_command_email(mail, own_addresses):
+                for action in commands.apply(store, mail):
+                    print(f"  ✉️ {action}")
+                store.mark_processed(mail.message_id)
+                continue
             try:
                 result = extractor.extract(cfg, mail)
             except Exception as exc:

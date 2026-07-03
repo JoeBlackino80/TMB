@@ -106,6 +106,17 @@ def build_reminder(store: Store, days_ahead: int) -> tuple[str, str, list[tuple[
             html_parts.append(f"<li>{escape(t.description)}{escape(due)}</li>")
         html_parts.append("</ul>")
 
+    html_parts.append(
+        "<p style='color:#666'><small>Zaplatili ste niečo? Stačí na tento e-mail "
+        "odpovedať: <b>zaplatené 3</b> (číslo platby), <b>zaplatené všetko</b>, "
+        "<b>ignoruj 5</b> alebo <b>hotovo 2</b> (číslo úlohy) — agent si to pri "
+        "ďalšej kontrole pošty odškrtne sám.</small></p>"
+    )
+    text_lines.append(
+        "\nZaplatili ste? Odpovedzte na tento e-mail: 'zaplatené 3', "
+        "'zaplatené všetko', 'ignoruj 5' alebo 'hotovo 2'."
+    )
+
     text = "Prehľad platieb a úloh\n" + "\n".join(text_lines) + "\n"
     return text, "".join(html_parts), images
 
@@ -119,11 +130,13 @@ def send_reminder(cfg: Config, store: Store) -> bool:
 
     cfg.require("smtp_host", "smtp_user", "smtp_password", "reminder_to")
 
+    # predmet musí obsahovať SUBJECT_MARKER z commands.py, aby fungovali
+    # odpovede typu "zaplatené 3"
     groups = store.payments_due(cfg.reminder_days_ahead)
     n_urgent = len(groups["overdue"]) + len(groups["today"])
     subject = "💸 Platby a úlohy"
     if n_urgent:
-        subject = f"💸 {n_urgent} platieb súrne — prehľad platieb a úloh"
+        subject = f"💸 Platby a úlohy — {n_urgent} súrne"
 
     msg = EmailMessage()
     msg["Subject"] = subject

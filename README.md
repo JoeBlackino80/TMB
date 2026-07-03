@@ -16,9 +16,13 @@ Okrem platieb si všíma aj úlohy a termíny spomenuté v e-mailoch a pripomeni
 2. **`remind`** — pošle vám e-mail so zoznamom platieb **po splatnosti**, **splatných dnes**
    a **splatných v najbližších dňoch** + nadchádzajúce úlohy. Ku každej platbe je priložený
    PAY by square QR kód — naskenujete a zaplatíte.
-3. **`import-bank`** — načíta výpis z banky (CSV) a automaticky spáruje zaplatené platby
+3. **Ovládanie odpoveďou na e-mail** — na pripomienku stačí odpovedať `zaplatené 3`,
+   `zaplatené všetko`, `ignoruj 5` alebo `hotovo 2` a agent si to pri ďalšej kontrole
+   pošty odškrtne sám. Príkazy prijíma len z vlastných adries (schránky v accounts.ini
+   a REMINDER_TO); citovaný text pôvodnej správy sa ignoruje.
+4. **`import-bank`** — načíta výpis z banky (CSV) a automaticky spáruje zaplatené platby
    podľa variabilného symbolu a sumy → označí ich ako zaplatené, takže vám ich už nepripomína.
-4. **`run`** — `fetch` + `remind` v jednom (ideálne do cronu).
+5. **`run`** — `fetch` + `remind` v jednom (ideálne do cronu).
 
 Ďalšie príkazy: `list` (prehľad platieb a úloh), `paid <id>` / `ignore <id>` (ručné označenie),
 `qr <id>` (uloží QR kód platby do PNG).
