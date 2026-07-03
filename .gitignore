@@ -1,4 +1,5 @@
 .env
+accounts.ini
 *.db
 *.db-journal
 __pycache__/

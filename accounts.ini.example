@@ -1,0 +1,34 @@
+# Viac e-mailových schránok — jedna sekcia = jedna schránka.
+# Skopírujte na accounts.ini a vyplňte. Agent pri `fetch` prejde všetky.
+#
+# security: ssl (predvolené, port 993) | starttls (napr. Proton Bridge, port 1143) | plain
+
+[firma-gmail]
+host = imap.gmail.com
+port = 993
+user = obchod@firma.sk
+password = heslo-aplikacie
+security = ssl
+folder = INBOX
+
+[firma-webhouse]
+host = imap.webhouse.sk
+port = 993
+user = info@mojadomena.sk
+password = tajneheslo
+security = ssl
+
+[websupport]
+host = imap.websupport.sk
+port = 993
+user = fakturacia@inafirma.sk
+password = tajneheslo
+
+# Proton Mail nemá priamy IMAP — treba lokálne spustený Proton Mail Bridge
+# (vyžaduje platený Proton plán). Bridge vypíše vlastné prihlasovacie údaje.
+[proton]
+host = 127.0.0.1
+port = 1143
+user = jan@proton.me
+password = heslo-z-bridge
+security = starttls

@@ -1,5 +1,6 @@
-"""Konfigurácia agenta načítaná z prostredia / .env súboru."""
+"""Konfigurácia agenta načítaná z prostredia / .env súboru a accounts.ini."""
 
+import configparser
 import os
 from dataclasses import dataclass, field
 
@@ -17,6 +18,20 @@ def _int_env(name: str, default: int) -> int:
         return int(raw) if raw else default
     except ValueError:
         return default
+
+
+@dataclass
+class MailAccount:
+    """Jedna e-mailová schránka (IMAP). Funguje s ľubovoľným poskytovateľom —
+    Gmail, Webhouse, Websupport, firemné servery, Proton Mail cez Bridge..."""
+
+    name: str
+    host: str
+    user: str
+    password: str
+    port: int = 993
+    folder: str = "INBOX"
+    security: str = "ssl"  # ssl | starttls | plain
 
 
 @dataclass
@@ -40,10 +55,56 @@ class Config:
     email_lookback_days: int = field(default_factory=lambda: _int_env("EMAIL_LOOKBACK_DAYS", 7))
 
     db_path: str = field(default_factory=lambda: os.environ.get("DB_PATH", "bill_agent.db"))
+    accounts_file: str = field(default_factory=lambda: os.environ.get("ACCOUNTS_FILE", "accounts.ini"))
 
     def __post_init__(self) -> None:
         if not self.reminder_to:
             self.reminder_to = self.imap_user
+
+    def accounts(self) -> list[MailAccount]:
+        """Vráti všetky nakonfigurované schránky.
+
+        Primárne z accounts.ini (viac schránok naraz); ak súbor neexistuje,
+        použije sa jedna schránka z IMAP_* premenných v .env.
+        """
+        if os.path.exists(self.accounts_file):
+            parser = configparser.ConfigParser()
+            parser.read(self.accounts_file, encoding="utf-8")
+            accounts = []
+            for section in parser.sections():
+                sec = parser[section]
+                missing = [k for k in ("host", "user", "password") if not sec.get(k)]
+                if missing:
+                    raise SystemExit(
+                        f"accounts.ini [{section}]: chýba {', '.join(missing)}"
+                    )
+                security = sec.get("security", "ssl").strip().lower()
+                if security not in ("ssl", "starttls", "plain"):
+                    raise SystemExit(
+                        f"accounts.ini [{section}]: security musí byť ssl, starttls alebo plain"
+                    )
+                accounts.append(MailAccount(
+                    name=section,
+                    host=sec.get("host").strip(),
+                    port=sec.getint("port", fallback=993),
+                    user=sec.get("user").strip(),
+                    password=sec.get("password"),
+                    folder=sec.get("folder", "INBOX").strip(),
+                    security=security,
+                ))
+            if not accounts:
+                raise SystemExit(f"{self.accounts_file} neobsahuje žiadnu schránku.")
+            return accounts
+
+        self.require("imap_host", "imap_user", "imap_password")
+        return [MailAccount(
+            name=self.imap_user,
+            host=self.imap_host,
+            port=self.imap_port,
+            user=self.imap_user,
+            password=self.imap_password,
+            folder=self.imap_folder,
+        )]
 
     def require(self, *names: str) -> None:
         missing = [n for n in names if not getattr(self, n)]

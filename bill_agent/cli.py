@@ -11,35 +11,41 @@ def cmd_fetch(cfg: Config, store: Store, args: argparse.Namespace) -> None:
     from . import emails as email_mod
     from . import extractor
 
-    mails = email_mod.fetch_recent(cfg)
-    new = [m for m in mails if m.message_id and not store.is_processed(m.message_id)]
-    print(f"Stiahnutých e-mailov: {len(mails)}, nových na spracovanie: {len(new)}")
     n_payments = n_tasks = 0
-    for mail in new:
+    for account in cfg.accounts():
         try:
-            result = extractor.extract(cfg, mail)
+            mails = email_mod.fetch_recent(account, cfg.email_lookback_days)
         except Exception as exc:
-            print(f"  ⚠ {mail.subject!r}: extrakcia zlyhala ({exc})", file=sys.stderr)
+            print(f"⚠ Schránka {account.name}: pripojenie zlyhalo ({exc})", file=sys.stderr)
             continue
-        for p in result.payments:
-            pid = store.add_payment(
-                supplier=p.supplier, amount=p.amount, currency=p.currency,
-                iban=p.iban, variable_symbol=p.variable_symbol,
-                specific_symbol=p.specific_symbol, constant_symbol=p.constant_symbol,
-                due_date=p.due_date or None, note=p.note,
-                source_message_id=mail.message_id, source_subject=mail.subject,
-            )
-            n_payments += 1
-            print(f"  💸 [{pid}] {p.supplier} {p.amount:.2f} {p.currency}, "
-                  f"splatnosť {p.due_date or '—'} (z: {mail.subject!r})")
-        for t in result.tasks:
-            tid = store.add_task(
-                description=t.description, due_date=t.due_date or None,
-                source_message_id=mail.message_id,
-            )
-            n_tasks += 1
-            print(f"  📋 [{tid}] {t.description} (do {t.due_date or '—'})")
-        store.mark_processed(mail.message_id)
+        new = [m for m in mails if m.message_id and not store.is_processed(m.message_id)]
+        print(f"📬 {account.name}: {len(mails)} e-mailov, nových na spracovanie: {len(new)}")
+        for mail in new:
+            try:
+                result = extractor.extract(cfg, mail)
+            except Exception as exc:
+                print(f"  ⚠ {mail.subject!r}: extrakcia zlyhala ({exc})", file=sys.stderr)
+                continue
+            for p in result.payments:
+                pid = store.add_payment(
+                    supplier=p.supplier, amount=p.amount, currency=p.currency,
+                    iban=p.iban, variable_symbol=p.variable_symbol,
+                    specific_symbol=p.specific_symbol, constant_symbol=p.constant_symbol,
+                    due_date=p.due_date or None, note=p.note,
+                    source_message_id=mail.message_id, source_subject=mail.subject,
+                    source_account=account.name,
+                )
+                n_payments += 1
+                print(f"  💸 [{pid}] {p.supplier} {p.amount:.2f} {p.currency}, "
+                      f"splatnosť {p.due_date or '—'} (z: {mail.subject!r})")
+            for t in result.tasks:
+                tid = store.add_task(
+                    description=t.description, due_date=t.due_date or None,
+                    source_message_id=mail.message_id, source_account=account.name,
+                )
+                n_tasks += 1
+                print(f"  📋 [{tid}] {t.description} (do {t.due_date or '—'})")
+            store.mark_processed(mail.message_id)
     print(f"Hotovo: {n_payments} platieb, {n_tasks} úloh.")
 
 

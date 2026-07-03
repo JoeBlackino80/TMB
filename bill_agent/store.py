@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS payments (
     status TEXT NOT NULL DEFAULT 'pending',  -- pending | paid | ignored
     source_message_id TEXT NOT NULL DEFAULT '',
     source_subject TEXT NOT NULL DEFAULT '',
+    source_account TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL,
     paid_at TEXT
 );
@@ -30,6 +31,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     due_date TEXT,
     status TEXT NOT NULL DEFAULT 'pending',  -- pending | done
     source_message_id TEXT NOT NULL DEFAULT '',
+    source_account TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL
 );
 
@@ -105,6 +107,7 @@ class Store:
         note: str = "",
         source_message_id: str = "",
         source_subject: str = "",
+        source_account: str = "",
     ) -> int:
         # deduplikácia: rovnaký IBAN+VS+suma, stále nezaplatené → neevidovať znova
         dup = self.conn.execute(
@@ -117,11 +120,12 @@ class Store:
         cur = self.conn.execute(
             "INSERT INTO payments (supplier, amount, currency, iban, variable_symbol, "
             "specific_symbol, constant_symbol, due_date, note, source_message_id, "
-            "source_subject, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "source_subject, source_account, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 supplier, amount, currency, iban, variable_symbol, specific_symbol,
                 constant_symbol, due_date or None, note, source_message_id,
-                source_subject, datetime.now().isoformat(timespec="seconds"),
+                source_subject, source_account, datetime.now().isoformat(timespec="seconds"),
             ),
         )
         self.conn.commit()
@@ -202,7 +206,7 @@ class Store:
 
     def add_task(
         self, *, description: str, due_date: Optional[str] = None,
-        source_message_id: str = "",
+        source_message_id: str = "", source_account: str = "",
     ) -> int:
         dup = self.conn.execute(
             "SELECT id FROM tasks WHERE status = 'pending' AND description = ?",
@@ -211,9 +215,9 @@ class Store:
         if dup:
             return dup["id"]
         cur = self.conn.execute(
-            "INSERT INTO tasks (description, due_date, source_message_id, created_at) "
-            "VALUES (?, ?, ?, ?)",
-            (description, due_date or None, source_message_id,
+            "INSERT INTO tasks (description, due_date, source_message_id, source_account, created_at) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (description, due_date or None, source_message_id, source_account,
              datetime.now().isoformat(timespec="seconds")),
         )
         self.conn.commit()

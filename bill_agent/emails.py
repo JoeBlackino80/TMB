@@ -8,7 +8,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 
-from .config import Config
+from .config import MailAccount
 
 # PDF prílohy väčšie ako toto sa do Claude neposielajú (limit veľkosti requestu)
 MAX_ATTACHMENT_BYTES = 9 * 1024 * 1024
@@ -99,15 +99,29 @@ def parse_message(raw: bytes) -> Email:
     )
 
 
-def fetch_recent(cfg: Config) -> list[Email]:
-    """Stiahne e-maily za posledných `email_lookback_days` dní."""
-    cfg.require("imap_host", "imap_user", "imap_password")
-    since = (date.today() - timedelta(days=cfg.email_lookback_days)).strftime("%d-%b-%Y")
+def _connect(account: MailAccount) -> imaplib.IMAP4:
+    """Pripojí sa podľa typu zabezpečenia schránky.
 
-    conn = imaplib.IMAP4_SSL(cfg.imap_host, cfg.imap_port)
+    ssl      — bežné IMAPS (Gmail, Webhouse, Websupport..., port 993)
+    starttls — nešifrovaný port + STARTTLS (napr. Proton Mail Bridge na 127.0.0.1:1143)
+    plain    — bez šifrovania (len na testovanie)
+    """
+    if account.security == "ssl":
+        return imaplib.IMAP4_SSL(account.host, account.port)
+    conn = imaplib.IMAP4(account.host, account.port)
+    if account.security == "starttls":
+        conn.starttls()
+    return conn
+
+
+def fetch_recent(account: MailAccount, lookback_days: int) -> list[Email]:
+    """Stiahne e-maily z jednej schránky za posledných `lookback_days` dní."""
+    since = (date.today() - timedelta(days=lookback_days)).strftime("%d-%b-%Y")
+
+    conn = _connect(account)
     try:
-        conn.login(cfg.imap_user, cfg.imap_password)
-        conn.select(cfg.imap_folder, readonly=True)
+        conn.login(account.user, account.password)
+        conn.select(account.folder, readonly=True)
         status, data = conn.search(None, f"(SINCE {since})")
         if status != "OK":
             return []

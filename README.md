@@ -33,10 +33,48 @@ cp .env.example .env
 # vyplňte .env (IMAP, SMTP, ANTHROPIC_API_KEY)
 ```
 
-### Gmail
+## Viac schránok naraz (Gmail, Webhouse, Websupport, Proton, firemné…)
 
-Pre Gmail si vytvorte **App Password** (Google účet → Zabezpečenie → Heslá aplikácií)
-a použite ho ako `IMAP_PASSWORD` / `SMTP_PASSWORD`.
+Agent funguje s **ľubovoľným poskytovateľom s IMAP** a vie sledovať **viac schránok
+súčasne** — napr. viacero firiem, každá s vlastnou doménou. Stačí vytvoriť
+`accounts.ini` (pozri `accounts.ini.example`); jedna sekcia = jedna schránka:
+
+```ini
+[firma-gmail]
+host = imap.gmail.com
+user = obchod@firma.sk
+password = heslo-aplikacie
+
+[firma-webhouse]
+host = imap.webhouse.sk
+user = info@mojadomena.sk
+password = tajneheslo
+
+[proton]
+host = 127.0.0.1
+port = 1143
+user = jan@proton.me
+password = heslo-z-bridge
+security = starttls
+```
+
+Pri `fetch` agent prejde všetky schránky a všetko eviduje v jednej databáze
+(pri každej platbe si pamätá, z ktorej schránky prišla). Ak `accounts.ini`
+neexistuje, použije sa jedna schránka z `IMAP_*` premenných v `.env`.
+
+Nastavenia bežných poskytovateľov:
+
+| Poskytovateľ | host | port | poznámka |
+|---|---|---|---|
+| Gmail / Google Workspace | `imap.gmail.com` | 993 | treba **App Password** (Google účet → Zabezpečenie → Heslá aplikácií) |
+| Webhouse.sk | `imap.webhouse.sk` | 993 | bežné heslo schránky |
+| Websupport.sk | `imap.websupport.sk` | 993 | bežné heslo schránky |
+| Proton Mail | `127.0.0.1` | 1143 | cez lokálny **Proton Mail Bridge** (platený plán), `security = starttls`, heslo vygeneruje Bridge |
+| Outlook / M365 | `outlook.office365.com` | 993 | app password / povolený IMAP |
+| iný firemný server | podľa poskytovateľa | 993 | `security = ssl` (predvolené) |
+
+> Proton Mail nemá priamy IMAP — Bridge je oficiálna aplikácia od Protonu,
+> ktorá beží na vašom počítači/serveri a sprístupní schránku cez lokálny IMAP.
 
 ## Použitie
 
