@@ -55,6 +55,16 @@ def cmd_fetch(cfg: Config, store: Store, args: argparse.Namespace) -> None:
                 )
                 n_tasks += 1
                 print(f"  📋 [{tid}] {t.description} (do {t.due_date or '—'})")
+            # z výpisov a potvrdení o platbe automaticky odškrtávame zaplatené
+            for tr in result.paid_transactions:
+                match = store.match_bank_transaction(
+                    amount=tr.amount, variable_symbol=tr.variable_symbol,
+                    iban=tr.counterparty_iban,
+                )
+                if match:
+                    store.set_payment_status(match.id, "paid")
+                    print(f"  ✅ [{match.id}] {match.supplier} {match.amount:.2f} "
+                          f"{match.currency} — nájdené vo výpise, označené ako zaplatené")
             store.mark_processed(mail.message_id)
     print(f"Hotovo: {n_payments} platieb, {n_tasks} úloh.")
 

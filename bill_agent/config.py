@@ -56,6 +56,10 @@ class Config:
 
     db_path: str = field(default_factory=lambda: os.environ.get("DB_PATH", "bill_agent.db"))
     accounts_file: str = field(default_factory=lambda: os.environ.get("ACCOUNTS_FILE", "accounts.ini"))
+    # heslá na odomknutie chránených PDF (bankové výpisy, poistky...) — skúšajú sa postupne
+    pdf_passwords: list = field(default_factory=lambda: [
+        p.strip() for p in os.environ.get("PDF_PASSWORDS", "").split(",") if p.strip()
+    ])
 
     def __post_init__(self) -> None:
         if not self.reminder_to:

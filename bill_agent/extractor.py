@@ -28,6 +28,12 @@ extrahuješ z nich:
    zmluvu, dostaviť sa na termín, obnoviť certifikát...). Krátky popis po slovensky
    + termín, ak je uvedený.
 
+3. UŽ VYKONANÉ PLATBY (paid_transactions): z bankových výpisov a potvrdení
+   o vykonanej platbe extrahuj ODCHÁDZAJÚCE platby — suma (kladné číslo),
+   variabilný symbol, IBAN protistrany, dátum, krátky popis. Použijú sa na
+   automatické odškrtnutie už zaplatených záväzkov. Prijaté (kreditné) platby
+   a poplatky banky neuvádzaj.
+
 Ak e-mail neobsahuje nič relevantné (newsletter, spam, bežná konverzácia),
 vráť prázdne zoznamy."""
 
@@ -70,8 +76,23 @@ OUTPUT_SCHEMA = {
                     "additionalProperties": False,
                 },
             },
+            "paid_transactions": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "amount": {"type": "number", "description": "Kladná suma odchádzajúcej platby"},
+                        "variable_symbol": {"type": "string"},
+                        "counterparty_iban": {"type": "string"},
+                        "date": {"type": "string", "description": "YYYY-MM-DD alebo prázdny reťazec"},
+                        "description": {"type": "string"},
+                    },
+                    "required": ["amount", "variable_symbol", "counterparty_iban", "date", "description"],
+                    "additionalProperties": False,
+                },
+            },
         },
-        "required": ["payments", "tasks"],
+        "required": ["payments", "tasks", "paid_transactions"],
         "additionalProperties": False,
     },
 }
@@ -97,9 +118,51 @@ class ExtractedTask:
 
 
 @dataclass
+class ExtractedPaid:
+    amount: float
+    variable_symbol: str = ""
+    counterparty_iban: str = ""
+    date: str = ""
+    description: str = ""
+
+
+@dataclass
 class Extraction:
     payments: list[ExtractedPayment] = field(default_factory=list)
     tasks: list[ExtractedTask] = field(default_factory=list)
+    paid_transactions: list[ExtractedPaid] = field(default_factory=list)
+
+
+def _maybe_decrypt_pdf(data: bytes, passwords: list[str]) -> Optional[bytes]:
+    """Odomkne heslom chránené PDF (bankové výpisy, poistky...).
+
+    Vráti pôvodné dáta, ak PDF nie je šifrované; odomknuté PDF, ak sadlo
+    niektoré z hesiel; None, ak sa PDF nepodarilo otvoriť.
+    """
+    try:
+        from pypdf import PdfReader, PdfWriter
+    except ImportError:
+        return data  # bez pypdf necháme PDF tak, ako je
+    import io
+
+    try:
+        reader = PdfReader(io.BytesIO(data))
+        if not reader.is_encrypted:
+            return data
+        for password in passwords:
+            try:
+                if reader.decrypt(password):
+                    writer = PdfWriter()
+                    for page in reader.pages:
+                        writer.add_page(page)
+                    out = io.BytesIO()
+                    writer.write(out)
+                    return out.getvalue()
+            except Exception:
+                continue
+    except Exception:
+        return None
+    return None
 
 
 def _sniff_media_type(data: bytes) -> Optional[str]:
@@ -121,17 +184,20 @@ def _sniff_media_type(data: bytes) -> Optional[str]:
     return None
 
 
-def _build_content(mail: Email) -> list[dict]:
+def _build_content(mail: Email, pdf_passwords: Optional[list[str]] = None) -> list[dict]:
     content: list[dict] = []
     for att in mail.attachments:
         media_type = _sniff_media_type(att.data)
         if media_type == "application/pdf":
+            data = _maybe_decrypt_pdf(att.data, pdf_passwords or [])
+            if data is None:
+                continue  # šifrované PDF, na ktoré nesadlo žiadne heslo
             content.append({
                 "type": "document",
                 "source": {
                     "type": "base64",
                     "media_type": "application/pdf",
-                    "data": base64.standard_b64encode(att.data).decode("ascii"),
+                    "data": base64.standard_b64encode(data).decode("ascii"),
                 },
             })
         elif media_type and media_type.startswith("image/"):
@@ -170,7 +236,7 @@ def extract(cfg: Config, mail: Email, client: Optional[anthropic.Anthropic] = No
             messages=[{"role": "user", "content": content}],
         )
 
-    content = _build_content(mail)
+    content = _build_content(mail, cfg.pdf_passwords)
     try:
         response = _call(content)
     except anthropic.BadRequestError:
@@ -214,4 +280,19 @@ def parse_extraction(data: dict) -> Extraction:
         for t in data.get("tasks", [])
         if t.get("description", "").strip()
     ]
-    return Extraction(payments=payments, tasks=tasks)
+    paid = []
+    for tr in data.get("paid_transactions", []):
+        try:
+            amount = abs(float(tr.get("amount", 0)))
+        except (TypeError, ValueError):
+            continue
+        if amount <= 0:
+            continue
+        paid.append(ExtractedPaid(
+            amount=round(amount, 2),
+            variable_symbol=tr.get("variable_symbol", "").strip(),
+            counterparty_iban=tr.get("counterparty_iban", "").replace(" ", "").upper(),
+            date=tr.get("date", "").strip(),
+            description=tr.get("description", "").strip(),
+        ))
+    return Extraction(payments=payments, tasks=tasks, paid_transactions=paid)
