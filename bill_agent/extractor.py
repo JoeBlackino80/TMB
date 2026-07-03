@@ -2,6 +2,7 @@
 
 import base64
 import json
+import sys
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -191,7 +192,12 @@ def _build_content(mail: Email, pdf_passwords: Optional[list[str]] = None) -> li
         if media_type == "application/pdf":
             data = _maybe_decrypt_pdf(att.data, pdf_passwords or [])
             if data is None:
-                continue  # šifrované PDF, na ktoré nesadlo žiadne heslo
+                print(
+                    f"  🔒 príloha {att.filename!r} je zaheslované PDF a nesedí "
+                    "žiadne heslo z PDF_PASSWORDS — preskakujem",
+                    file=sys.stderr,
+                )
+                continue
             content.append({
                 "type": "document",
                 "source": {

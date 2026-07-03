@@ -84,6 +84,22 @@ class Store:
         ).fetchone()
         return row is not None
 
+    def has_records_from(self, message_id: str) -> bool:
+        """Vytvoril už tento e-mail nejaké platby/úlohy?
+
+        Chráni pred duplicitami, keď sa e-mail spracuje opakovane (napr. po
+        vyčistení processed_emails) — AI text zakaždým sformuluje trochu inak,
+        takže dedup podľa presného znenia nestačí.
+        """
+        if not message_id:
+            return False
+        row = self.conn.execute(
+            "SELECT 1 FROM payments WHERE source_message_id = ? "
+            "UNION SELECT 1 FROM tasks WHERE source_message_id = ? LIMIT 1",
+            (message_id, message_id),
+        ).fetchone()
+        return row is not None
+
     def mark_processed(self, message_id: str) -> None:
         self.conn.execute(
             "INSERT OR IGNORE INTO processed_emails (message_id, processed_at) VALUES (?, ?)",

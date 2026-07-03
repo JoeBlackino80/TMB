@@ -56,3 +56,14 @@ def test_processed_emails():
     assert not store.is_processed("<abc@x>")
     store.mark_processed("<abc@x>")
     assert store.is_processed("<abc@x>")
+
+
+def test_has_records_from():
+    store = make_store()
+    assert not store.has_records_from("<msg1@x>")
+    store.add_payment(supplier="A", amount=10, source_message_id="<msg1@x>")
+    assert store.has_records_from("<msg1@x>")
+    store.add_task(description="Úloha", source_message_id="<msg2@x>")
+    assert store.has_records_from("<msg2@x>")
+    assert not store.has_records_from("<iny@x>")
+    assert not store.has_records_from("")

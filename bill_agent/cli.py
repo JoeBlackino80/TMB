@@ -31,6 +31,10 @@ def cmd_fetch(cfg: Config, store: Store, args: argparse.Namespace) -> None:
                     print(f"  ✉️ {action}")
                 store.mark_processed(mail.message_id)
                 continue
+            # e-mail už v minulosti niečo vytvoril → nespracúvame druhýkrát
+            if store.has_records_from(mail.message_id):
+                store.mark_processed(mail.message_id)
+                continue
             try:
                 result = extractor.extract(cfg, mail)
             except Exception as exc:
