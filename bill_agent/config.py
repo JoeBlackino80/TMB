@@ -7,7 +7,10 @@ from dataclasses import dataclass, field
 try:
     from dotenv import load_dotenv
 
-    load_dotenv()
+    # explicitne .env z aktuálneho adresára — v multi-klientskom režime (run-all)
+    # beží každý klient s cwd vo svojom priečinku a musí sa načítať jeho .env,
+    # nie .env z koreňa repozitára
+    load_dotenv(os.path.join(os.getcwd(), ".env"))
 except ImportError:  # dotenv je voliteľné — env premenné fungujú aj bez neho
     pass
 

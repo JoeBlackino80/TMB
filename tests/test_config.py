@@ -33,3 +33,23 @@ def test_fallback_to_env(tmp_path, monkeypatch):
     assert len(accounts) == 1
     assert accounts[0].host == "imap.webhouse.sk"
     assert accounts[0].name == "info@firma.sk"
+
+
+def test_env_loaded_from_cwd(tmp_path):
+    # .env v pracovnom adresári klienta sa musí načítať (režim run-all)
+    import subprocess
+    import sys
+
+    client = tmp_path / "klient"
+    client.mkdir()
+    (client / ".env").write_text("REMINDER_DAYS_AHEAD=42\n")
+    repo_root = __import__("os").path.dirname(
+        __import__("os").path.dirname(__import__("os").path.abspath(__file__)))
+    result = subprocess.run(
+        [sys.executable, "-c",
+         "from bill_agent.config import Config; print(Config().reminder_days_ahead)"],
+        cwd=client, capture_output=True, text=True,
+        env={**__import__("os").environ, "PYTHONPATH": repo_root},
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "42"
