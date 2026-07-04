@@ -145,10 +145,16 @@ def cmd_run_all(args: argparse.Namespace) -> None:
     if args.subcommand == "digest":
         command += ["--days", str(args.days)]
 
+    # podproces beží v adresári klienta — balík bill_agent mu sprístupníme
+    # cez PYTHONPATH (koreň repozitára)
+    package_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    env = dict(os.environ)
+    env["PYTHONPATH"] = package_root + os.pathsep + env.get("PYTHONPATH", "")
+
     failed = []
     for name in client_dirs:
         print(f"\n=== 👤 {name} ===")
-        result = subprocess.run(command, cwd=os.path.join(base, name))
+        result = subprocess.run(command, cwd=os.path.join(base, name), env=env)
         if result.returncode != 0:
             failed.append(name)
     if failed:
