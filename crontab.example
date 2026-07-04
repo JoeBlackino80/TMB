@@ -1,10 +1,24 @@
-# Každý pracovný deň o 7:30 — stiahne poštu a pošle upozornenie na platby/úlohy.
-# E-mail príde len ak je čo pripomenúť.
-30 7 * * 1-5  cd /cesta/k/TMB && .venv/bin/python -m bill_agent run >> agent.log 2>&1
+# Odporúčaný cron pre server so SaaS režimom (run-all + web).
+# Časy sú v CRON_TZ — nastavte na začiatok crontabu:
+# CRON_TZ=Europe/Bratislava
 
-# Voliteľne: druhá kontrola pošty poobede (bez upozornenia)
-0 15 * * 1-5  cd /cesta/k/TMB && .venv/bin/python -m bill_agent fetch >> agent.log 2>&1
+# Ranný beh: stiahne poštu všetkých klientov a pošle upozornenia s QR kódmi
+30 7 * * 1-5  cd /root/TMB && .venv/bin/python -m bill_agent run-all run >> agent.log 2>&1
 
-# Zhrnutie dňa o 17:30 (čo prišlo, čo treba riešiť) a zhrnutie týždňa v piatok
-30 17 * * 1-5 cd /cesta/k/TMB && .venv/bin/python -m bill_agent digest --days 1 >> agent.log 2>&1
-0 17 * * 5    cd /cesta/k/TMB && .venv/bin/python -m bill_agent digest --days 7 >> agent.log 2>&1
+# Každých 30 minút cez deň: spracuje odpovede ("zaplatené 3") a nové faktúry
+# — bez posielania pripomienky, tá chodí len ráno
+*/30 8-18 * * 1-5  cd /root/TMB && .venv/bin/python -m bill_agent run-all fetch >> agent.log 2>&1
+
+# Zhrnutie dňa o 17:30 a zhrnutie týždňa v piatok o 17:00
+30 17 * * 1-5 cd /root/TMB && .venv/bin/python -m bill_agent run-all digest >> agent.log 2>&1
+0 17 * * 5    cd /root/TMB && .venv/bin/python -m bill_agent run-all digest --days 7 >> agent.log 2>&1
+
+# Vypnutie klientov s vypršaným trialom
+15 7 * * *    cd /root/TMB && .venv/bin/python -m webapp.expire >> agent.log 2>&1
+
+# Denná záloha dát (clients/, webapp.db, .env.master) do /root/backups
+45 3 * * *    /root/TMB/scripts/backup.sh >> /root/TMB/agent.log 2>&1
+
+# --- Jednoduchý režim bez SaaS (jeden používateľ, bez clients/) ---
+# 30 7 * * 1-5  cd /cesta/k/TMB && .venv/bin/python -m bill_agent run >> agent.log 2>&1
+# 30 17 * * 1-5 cd /cesta/k/TMB && .venv/bin/python -m bill_agent digest --days 1 >> agent.log 2>&1

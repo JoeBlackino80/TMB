@@ -6,12 +6,14 @@ robí existujúci engine cez cron (`bill_agent run-all`). Platby cez Stripe
 Payment Links + webhook; 14-dňová skúšobná doba zadarmo.
 """
 
+import base64
 import hashlib
 import hmac
 import imaplib
 import json
 import os
 import time
+from datetime import date
 from urllib.parse import quote
 
 from fastapi import Depends, FastAPI, Form, Request
@@ -22,7 +24,7 @@ from fastapi.templating import Jinja2Templates
 from bill_agent.reminder import action_sig
 from bill_agent.store import Store
 
-from . import clientfs
+from . import clientfs, mailer
 from .auth import Users, verify_password
 
 SECRET = os.environ.get("WEBAPP_SECRET", "")
@@ -60,6 +62,65 @@ def _redirect(url: str) -> RedirectResponse:
     return RedirectResponse(url, status_code=303)
 
 
+# -- podpísané tokeny (overenie e-mailu, reset hesla) ----------------------------
+
+def _make_token(purpose: str, user_id: int, hours: int = 48) -> str:
+    payload = f"{purpose}|{user_id}|{int(time.time()) + hours * 3600}"
+    sig = hmac.new(SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()[:40]
+    return base64.urlsafe_b64encode(f"{payload}|{sig}".encode()).decode()
+
+
+def _check_token(purpose: str, token: str):
+    """Vráti user_id alebo None (zlý podpis / iný účel / vypršané)."""
+    try:
+        payload = base64.urlsafe_b64decode(token.encode()).decode()
+        p, uid, exp, sig = payload.split("|")
+        expected = hmac.new(SECRET.encode(), f"{p}|{uid}|{exp}".encode(),
+                            hashlib.sha256).hexdigest()[:40]
+        if p != purpose or not hmac.compare_digest(expected, sig):
+            return None
+        if int(exp) < time.time():
+            return None
+        return int(uid)
+    except Exception:
+        return None
+
+
+def _base_url(request: Request) -> str:
+    configured = os.environ.get("ACTION_BASE_URL", "").rstrip("/")
+    return configured or str(request.base_url).rstrip("/")
+
+
+def _send_welcome(request: Request, user) -> None:
+    verify_url = f"{_base_url(request)}/verify?t={_make_token('verify', user['id'])}"
+    text = (
+        "Vitajte v Romariu!\n\n"
+        f"Potvrďte prosím svoju adresu kliknutím: {verify_url}\n\n"
+        "Ako začať:\n"
+        "1. Prihláste sa a v sekcii Schránky pridajte e-mail, kam vám chodia faktúry.\n"
+        "   Pre Gmail použite App Password (Google účet → Zabezpečenie → Heslá aplikácií).\n"
+        "2. V Nastaveniach môžete doplniť heslo k PDF výpisom z banky —\n"
+        "   Romarium potom samo odškrtáva zaplatené platby.\n"
+        "3. Prehľady s QR kódmi vám budú chodiť e-mailom každé ráno.\n\n"
+        "Otázky? Odpovedzte na tento e-mail.\n"
+    )
+    html = (
+        "<h2>Vitajte v Romariu!</h2>"
+        f"<p><a href='{verify_url}' style='display:inline-block;padding:10px 20px;"
+        "background:#0b7a51;color:#fff;border-radius:8px;text-decoration:none;"
+        "font-weight:bold'>Potvrdiť e-mailovú adresu</a></p>"
+        "<p><b>Ako začať:</b></p><ol>"
+        "<li>Prihláste sa a v sekcii <b>Schránky</b> pridajte e-mail, kam vám chodia "
+        "faktúry. Pre Gmail použite App Password (Google účet → Zabezpečenie → "
+        "Heslá aplikácií).</li>"
+        "<li>V <b>Nastaveniach</b> môžete doplniť heslo k PDF výpisom z banky — "
+        "Romarium potom samo odškrtáva zaplatené platby.</li>"
+        "<li>Prehľady s QR kódmi vám budú chodiť e-mailom každé ráno.</li></ol>"
+        "<p>Otázky? Odpovedzte na tento e-mail.</p>"
+    )
+    mailer.send(user["email"], "Vitajte v Romariu — potvrďte svoju adresu", text, html)
+
+
 def _render(request: Request, template: str, **ctx) -> HTMLResponse:
     ctx.setdefault("user", None)
     return templates.TemplateResponse(request, template, ctx)
@@ -82,10 +143,13 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
     try:
         if users.by_email(email):
             return _render(request, "register.html", error="Účet už existuje — prihláste sa.")
-        user = users.create(email, password)
+        # bez SMTP sa overovací e-mail nedá poslať — účet je overený rovno
+        user = users.create(email, password, verified=not mailer.smtp_configured())
     finally:
         users.close()
     clientfs.ensure_client(user["client_dir"], reminder_to=email)
+    if not user["verified"]:
+        _send_welcome(request, user)
     response = _redirect("/")
     response.set_cookie("session", _session_cookie(user["id"]),
                         httponly=True, max_age=30 * 86400, samesite="lax")
@@ -119,6 +183,81 @@ def logout():
     return response
 
 
+# -- overenie e-mailu a zabudnuté heslo -------------------------------------------
+
+@app.get("/verify", response_class=HTMLResponse)
+def verify_email(request: Request, t: str = "", user=Depends(current_user)):
+    uid = _check_token("verify", t)
+    if uid is None:
+        return _render(request, "message.html", user=user, title="Neplatný odkaz",
+                       body="Overovací odkaz je poškodený alebo vypršal. "
+                            "Prihláste sa a nechajte si poslať nový.")
+    users = Users()
+    try:
+        users.mark_verified(uid)
+    finally:
+        users.close()
+    return _render(request, "message.html", user=user, title="E-mail overený",
+                   body="Ďakujeme, vaša adresa je potvrdená.", cta="/", cta_label="Prejsť na prehľad")
+
+
+@app.post("/verify/resend")
+def verify_resend(request: Request, user=Depends(current_user)):
+    if user and not user["verified"]:
+        _send_welcome(request, user)
+    return _redirect("/")
+
+
+@app.get("/forgot", response_class=HTMLResponse)
+def forgot_form(request: Request):
+    return _render(request, "forgot.html")
+
+
+@app.post("/forgot", response_class=HTMLResponse)
+def forgot(request: Request, email: str = Form(...)):
+    users = Users()
+    try:
+        user = users.by_email(email)
+    finally:
+        users.close()
+    if user:
+        url = f"{_base_url(request)}/reset?t={_make_token('reset', user['id'], hours=2)}"
+        mailer.send(user["email"], "Romarium — obnova hesla",
+                    f"Nové heslo si nastavíte tu (odkaz platí 2 hodiny): {url}\n\n"
+                    "Ak ste o obnovu nežiadali, e-mail ignorujte.",
+                    f"<p>Nové heslo si nastavíte tu (odkaz platí 2 hodiny):</p>"
+                    f"<p><a href='{url}'>{url}</a></p>"
+                    "<p>Ak ste o obnovu nežiadali, e-mail ignorujte.</p>")
+    # rovnaká odpoveď bez ohľadu na existenciu účtu — neprezrádzame registrácie
+    return _render(request, "message.html", title="E-mail odoslaný",
+                   body="Ak účet existuje, poslali sme naň odkaz na obnovu hesla. "
+                        "Skontrolujte si schránku (aj spam).")
+
+
+@app.get("/reset", response_class=HTMLResponse)
+def reset_form(request: Request, t: str = ""):
+    if _check_token("reset", t) is None:
+        return _render(request, "message.html", title="Neplatný odkaz",
+                       body="Odkaz na obnovu hesla je poškodený alebo vypršal — "
+                            "vyžiadajte si nový.", cta="/forgot", cta_label="Vyžiadať nový")
+    return _render(request, "reset.html", t=t)
+
+
+@app.post("/reset", response_class=HTMLResponse)
+def reset(request: Request, t: str = Form(...), password: str = Form(...)):
+    uid = _check_token("reset", t)
+    if uid is None or len(password) < 8:
+        return _render(request, "reset.html", t=t,
+                       error="Odkaz vypršal alebo je heslo kratšie než 8 znakov.")
+    users = Users()
+    try:
+        users.set_password(uid, password)
+    finally:
+        users.close()
+    return _render(request, "message.html", title="Heslo zmenené",
+                   body="Prihláste sa novým heslom.", cta="/login", cta_label="Prihlásiť sa")
+
+
 # -- landing + dashboard --------------------------------------------------------
 
 def _client_db(user) -> str:
@@ -130,7 +269,7 @@ def dashboard(request: Request, user=Depends(current_user)):
     if not user:
         return _render(request, "landing.html")
     db_path = _client_db(user)
-    payments, tasks = [], []
+    payments, tasks, missing = [], [], []
     stats = {"overdue": 0, "pending": 0, "total": 0.0}
     if os.path.exists(db_path):
         store = Store(db_path)
@@ -140,6 +279,7 @@ def dashboard(request: Request, user=Depends(current_user)):
                 for p in groups[key]:
                     payments.append({**vars(p), "group": key})
             tasks = store.active_tasks()
+            missing = store.missing_recurring()
         finally:
             store.close()
         stats["overdue"] = len(groups["overdue"])
@@ -151,8 +291,15 @@ def dashboard(request: Request, user=Depends(current_user)):
         enabled = users.is_service_enabled(user)
     finally:
         users.close()
+    today = date.today()
+    months = []
+    y, m = today.year, today.month
+    for _ in range(3):
+        months.append(f"{y:04d}-{m:02d}")
+        y, m = (y, m - 1) if m > 1 else (y - 1, 12)
     return _render(request, "dashboard.html", user=user, payments=payments,
-                   tasks=tasks, enabled=enabled, stats=stats,
+                   tasks=tasks, enabled=enabled, stats=stats, missing=missing,
+                   months=months,
                    mailboxes=clientfs.list_mailboxes(user["client_dir"]))
 
 
@@ -182,6 +329,53 @@ def task_done(request: Request, user=Depends(current_user),
         finally:
             store.close()
     return _redirect("/")
+
+
+# -- balík pre účtovníčku ----------------------------------------------------------
+
+@app.get("/bundle")
+def bundle(request: Request, month: str = "", user=Depends(current_user)):
+    """ZIP s faktúrami (PDF prílohy) a CSV prehľadom platieb za mesiac."""
+    import csv
+    import io
+    import re as re_mod
+    import zipfile
+
+    if not user:
+        return _redirect("/login")
+    if not re_mod.fullmatch(r"\d{4}-\d{2}", month):
+        return _redirect("/")
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        att_dir = os.path.join(clientfs.client_path(user["client_dir"]),
+                               "attachments", month)
+        if os.path.isdir(att_dir):
+            for name in sorted(os.listdir(att_dir)):
+                zf.write(os.path.join(att_dir, name), arcname=f"faktury/{name}")
+        rows = []
+        if os.path.exists(_client_db(user)):
+            store = Store(_client_db(user))
+            try:
+                rows = store.payments_in_month(month)
+            finally:
+                store.close()
+        out = io.StringIO()
+        writer = csv.writer(out, delimiter=";")
+        writer.writerow(["dodávateľ", "suma", "mena", "IBAN", "VS",
+                         "splatnosť", "stav", "zaplatené", "poznámka"])
+        for r in rows:
+            writer.writerow([r["supplier"], f"{r['amount']:.2f}".replace(".", ","),
+                             r["currency"], r["iban"], r["variable_symbol"],
+                             r["due_date"] or "", r["status"], r["paid_at"] or "",
+                             r["note"]])
+        zf.writestr(f"platby-{month}.csv", "﻿" + out.getvalue())
+
+    return Response(
+        content=buf.getvalue(), media_type="application/zip",
+        headers={"Content-Disposition":
+                 f'attachment; filename="romarium-{month}.zip"'},
+    )
 
 
 # -- jednoklikové akcie z e-mailu -------------------------------------------------
@@ -251,6 +445,18 @@ def action_execute(request: Request, c: str = Form(...), k: str = Form(...),
             store.close()
     return _render(request, "action.html", done=True, ok=ok,
                    label=_ACTION_LABELS[(k, do)])
+
+
+# -- právne stránky ----------------------------------------------------------------
+
+@app.get("/podmienky", response_class=HTMLResponse)
+def terms(request: Request, user=Depends(current_user)):
+    return _render(request, "terms.html", user=user)
+
+
+@app.get("/gdpr", response_class=HTMLResponse)
+def gdpr(request: Request, user=Depends(current_user)):
+    return _render(request, "gdpr.html", user=user)
 
 
 # -- SEO ------------------------------------------------------------------------

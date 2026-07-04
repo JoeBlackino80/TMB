@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Zabudnuté heslo — Romarium{% endblock %}
+{% block content %}
+<div class="card" style="max-width:440px;margin:48px auto">
+  <h1 style="margin-top:0">Zabudnuté heslo</h1>
+  <p class="muted">Pošleme vám e-mail s odkazom na nastavenie nového hesla.</p>
+  <form method="post" action="/forgot">
+    <label>E-mail účtu</label>
+    <input type="email" name="email" required autocomplete="email">
+    <button type="submit">Poslať odkaz</button>
+  </form>
+  <p class="muted" style="margin-top:18px"><a href="/login">Späť na prihlásenie</a></p>
+</div>
+{% endblock %}

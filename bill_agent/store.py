@@ -291,6 +291,57 @@ class Store:
         ).fetchall()
         return {r["iban"] for r in rows if normalize_supplier(r["supplier"]) == key}
 
+    def payments_in_month(self, month: str) -> list[sqlite3.Row]:
+        """Platby evidované alebo zaplatené v mesiaci RRRR-MM (podklady pre účtovníctvo)."""
+        return self.conn.execute(
+            "SELECT * FROM payments WHERE substr(created_at, 1, 7) = ? "
+            "OR substr(COALESCE(paid_at, ''), 1, 7) = ? ORDER BY created_at",
+            (month, month),
+        ).fetchall()
+
+    def missing_recurring(self, today: Optional[date] = None) -> list[dict]:
+        """Dodávatelia s mesačnou kadenciou, ktorých faktúra tento cyklus neprišla.
+
+        Heuristika: aspoň 3 faktúry, typický odstup 20–40 dní a od poslednej
+        uplynulo viac než typický odstup + 10 dní rezervy.
+        """
+        today = today or date.today()
+        rows = self.conn.execute(
+            "SELECT supplier, COALESCE(due_date, substr(created_at, 1, 10)) AS d "
+            "FROM payments WHERE status != 'ignored' AND supplier != '' ORDER BY d"
+        ).fetchall()
+        by_supplier: dict[str, dict] = {}
+        for r in rows:
+            key = normalize_supplier(r["supplier"])
+            if not key:
+                continue
+            entry = by_supplier.setdefault(key, {"name": r["supplier"], "dates": []})
+            entry["name"] = r["supplier"]  # najnovší tvar názvu
+            try:
+                d = date.fromisoformat(r["d"])
+            except (ValueError, TypeError):
+                continue
+            if not entry["dates"] or entry["dates"][-1] != d:
+                entry["dates"].append(d)
+
+        missing = []
+        for entry in by_supplier.values():
+            dates = entry["dates"]
+            if len(dates) < 3:
+                continue
+            gaps = sorted((b - a).days for a, b in zip(dates, dates[1:]))
+            typical = gaps[len(gaps) // 2]
+            if not 20 <= typical <= 40:
+                continue
+            overdue_days = (today - dates[-1]).days - typical - 10
+            if overdue_days > 0:
+                missing.append({
+                    "supplier": entry["name"],
+                    "last_date": dates[-1].isoformat(),
+                    "expected_by": (dates[-1] + timedelta(days=typical + 10)).isoformat(),
+                })
+        return missing
+
     def match_bank_transaction(
         self, *, amount: float, variable_symbol: str = "", iban: str = ""
     ) -> Optional[Payment]:

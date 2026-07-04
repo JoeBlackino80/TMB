@@ -51,12 +51,16 @@ class Users:
         self.conn = sqlite3.connect(db_path or os.environ.get("WEBAPP_DB", "webapp.db"))
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
+        # migrácia: stĺpec verified (existujúce účty zostávajú overené)
+        cols = {r["name"] for r in self.conn.execute("PRAGMA table_info(users)")}
+        if "verified" not in cols:
+            self.conn.execute("ALTER TABLE users ADD COLUMN verified INTEGER NOT NULL DEFAULT 1")
         self.conn.commit()
 
     def close(self) -> None:
         self.conn.close()
 
-    def create(self, email: str, password: str) -> sqlite3.Row:
+    def create(self, email: str, password: str, verified: bool = True) -> sqlite3.Row:
         email = email.strip().lower()
         slug = slugify(email)
         n = 1
@@ -68,13 +72,24 @@ class Users:
             client_dir = f"{slug}-{n}"
         trial_until = (date.today() + timedelta(days=TRIAL_DAYS)).isoformat()
         self.conn.execute(
-            "INSERT INTO users (email, pw_hash, client_dir, trial_until, created_at) "
-            "VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO users (email, pw_hash, client_dir, trial_until, created_at, verified) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
             (email, hash_password(password), client_dir, trial_until,
-             datetime.now().isoformat(timespec="seconds")),
+             datetime.now().isoformat(timespec="seconds"), int(verified)),
         )
         self.conn.commit()
         return self.by_email(email)
+
+    def set_password(self, user_id: int, password: str) -> None:
+        self.conn.execute(
+            "UPDATE users SET pw_hash = ? WHERE id = ?",
+            (hash_password(password), user_id),
+        )
+        self.conn.commit()
+
+    def mark_verified(self, user_id: int) -> None:
+        self.conn.execute("UPDATE users SET verified = 1 WHERE id = ?", (user_id,))
+        self.conn.commit()
 
     def by_email(self, email: str) -> Optional[sqlite3.Row]:
         return self.conn.execute(

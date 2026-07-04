@@ -3,6 +3,15 @@
 {% block content %}
 <h1>Prehľad</h1>
 
+{% if not user['verified'] %}
+<div class="notice">Potvrďte prosím svoju e-mailovú adresu — poslali sme vám
+  odkaz. Nič vám neprišlo?
+  <form method="post" action="/verify/resend" style="display:inline">
+    <button class="small" type="submit">Poslať znova</button>
+  </form>
+</div>
+{% endif %}
+
 {% if not enabled %}
 <div class="error">Služba je pozastavená — skúšobná doba vypršala alebo predplatné
 skončilo. <a href="/billing">Aktivujte si predplatné</a>.</div>
@@ -37,6 +46,23 @@ skončilo. <a href="/billing">Aktivujte si predplatné</a>.</div>
     <div class="lbl">otvorené úlohy</div>
   </div>
 </div>
+
+{% if missing %}
+<div class="card" style="border-color:#ecd9a8">
+  <h2>Pravidelné faktúry, ktoré neprišli</h2>
+  <table>
+    {% for m in missing %}
+    <tr>
+      <td><b>{{ m.supplier }}</b></td>
+      <td class="muted">posledná {{ m.last_date }}</td>
+      <td class="muted">čakala sa do {{ m.expected_by }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="muted">Skontrolujte, či faktúra nezapadla v spame, alebo či nechodí
+     na inú adresu.</p>
+</div>
+{% endif %}
 
 <div class="card">
   <h2>Nezaplatené platby</h2>
@@ -80,6 +106,15 @@ skončilo. <a href="/billing">Aktivujte si predplatné</a>.</div>
   {% else %}
   <p class="muted">Žiadne evidované nezaplatené platby.</p>
   {% endif %}
+</div>
+
+<div class="card">
+  <h2>Podklady pre účtovníctvo</h2>
+  <p class="muted">ZIP s faktúrami (PDF) a prehľadom platieb za mesiac —
+     pošlite účtovníčke jedným klikom.</p>
+  {% for m in months %}
+    <a class="btn" style="margin-right:10px;margin-top:6px" href="/bundle?month={{ m }}">{{ m }}</a>
+  {% endfor %}
 </div>
 
 <div class="card">

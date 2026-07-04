@@ -93,6 +93,20 @@ def build_digest(cfg: Config, store: Store, days: int) -> tuple[str, str, str] |
     html.append(f"<p><b>{escape(stat)}</b><br><small>Podrobnosti a QR kódy sú "
                 "v poslednom e-maile „Romarium: platby a úlohy“.</small></p>")
 
+    # strážca pravidelných faktúr — čo malo prísť a neprišlo
+    missing = store.missing_recurring()
+    if missing:
+        text_lines.append("Pravidelné faktúry, ktoré tento cyklus neprišli:")
+        html.append("<h3 style='color:#97590a'>Pravidelné faktúry, ktoré neprišli</h3><ul>")
+        for m in missing:
+            line = (f"{m['supplier']} — posledná {m['last_date']}, "
+                    f"ďalšia sa čakala do {m['expected_by']}")
+            text_lines.append(f"  • {line}")
+            html.append(f"<li>{escape(line)}</li>")
+        html.append("</ul><p><small>Skontrolujte, či faktúra nezapadla, "
+                    "alebo či nechodí inam.</small></p>")
+        text_lines.append("")
+
     # rozpis podľa kategórií
     by_category: dict[str, list] = {}
     for e in entries:

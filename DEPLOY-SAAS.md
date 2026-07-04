@@ -93,13 +93,32 @@ systemctl restart caddy
 Po zaplatení Stripe zavolá webhook a účet klienta sa aktivuje automaticky.
 Kým webhook nie je nastavený, klientov aktivujete ručne na `/admin`.
 
-## 6. Cron (doplniť k existujúcim riadkom)
+## 6. Cron
 
-```cron
-15 7 * * *  cd /root/TMB && .venv/bin/python -m webapp.expire >> agent.log 2>&1
+Kompletný odporúčaný crontab je v `crontab.example` — ranný beh, kontrola
+odpovedí každých 30 minút, zhrnutia, vypínanie vypršaných trialov a denná
+záloha. (`run-all` automaticky preskakuje klientov so súborom DISABLED.)
+
+## 6b. Šifrovanie hesiel schránok
+
+Nové heslá schránok sa ukladajú šifrovane automaticky (kľúč = WEBAPP_SECRET,
+prípadne samostatný CRED_KEY v `.env.master`). Existujúce nešifrované heslá
+zašifrujete jednorazovo:
+
+```bash
+cd /root/TMB
+set -a; . .env.master; set +a
+.venv/bin/python -m webapp.encrypt_existing
 ```
 
-(`run-all` automaticky preskakuje klientov so súborom DISABLED.)
+POZOR: po zašifrovaní si WEBAPP_SECRET/CRED_KEY bezpečne odložte — bez neho
+sa heslá schránok nedajú prečítať a klienti by ich museli zadať znova.
+
+## 6c. Zálohy
+
+`scripts/backup.sh` denne balí `clients/`, `webapp.db` a `.env.master` do
+`/root/backups` (drží 14 dní). Odporúčame obsah `/root/backups` synchronizovať
+aj mimo servera (Hetzner Storage Box, rsync).
 
 ## 7. Ekonomika a povinnosti
 

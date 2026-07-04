@@ -9,6 +9,27 @@ from .config import Config
 from .store import Store
 
 
+def _save_invoice_attachments(mail) -> None:
+    """Odloží PDF prílohy faktúry do attachments/RRRR-MM/ (podklady pre účtovníctvo)."""
+    import re
+    from datetime import date
+
+    target = os.path.join("attachments", date.today().strftime("%Y-%m"))
+    for att in mail.attachments:
+        if not att.filename.lower().endswith(".pdf"):
+            continue
+        os.makedirs(target, exist_ok=True)
+        safe = re.sub(r"[^\w.\-]+", "_", att.filename).strip("._") or "priloha.pdf"
+        path = os.path.join(target, safe)
+        n = 1
+        while os.path.exists(path):
+            n += 1
+            base, ext = os.path.splitext(safe)
+            path = os.path.join(target, f"{base}-{n}{ext}")
+        with open(path, "wb") as fh:
+            fh.write(att.data)
+
+
 def cmd_fetch(cfg: Config, store: Store, args: argparse.Namespace) -> None:
     from . import commands
     from . import emails as email_mod
@@ -65,6 +86,8 @@ def cmd_fetch(cfg: Config, store: Store, args: argparse.Namespace) -> None:
                 n_payments += 1
                 print(f"  💸 [{pid}] {p.supplier} {p.amount:.2f} {p.currency}, "
                       f"splatnosť {p.due_date or '—'} (z: {mail.subject!r})")
+            if result.payments:
+                _save_invoice_attachments(mail)
             for t in result.tasks:
                 tid = store.add_task(
                     description=t.description, due_date=t.due_date or None,

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Ochrana osobných údajov — Romarium{% endblock %}
+{% block content %}
+<div class="card" style="max-width:760px;margin:30px auto">
+  <h1 style="margin-top:0">Ochrana osobných údajov</h1>
+  <p class="muted">Prevádzkovateľ: SORB XT s.r.o. · kontakt: obchod@sorbxt.sk</p>
+
+  <h2>Aké údaje spracúvame</h2>
+  <p>Pri poskytovaní služby spracúvame: (a) registračné údaje — e-mail a heslo
+     účtu (heslo ukladáme len ako kryptografický odtlačok); (b) prístupové
+     údaje k pripojeným schránkam — uložené šifrovane; (c) obsah e-mailov
+     v pripojených schránkach vrátane príloh, v rozsahu potrebnom na
+     rozpoznanie faktúr, platieb a termínov; (d) fakturačné údaje pri platbe
+     (spracúva Stripe).</p>
+
+  <h2>Prečo a na akom základe</h2>
+  <p>Údaje spracúvame výlučne na poskytovanie služby (plnenie zmluvy podľa
+     čl. 6 ods. 1 písm. b GDPR). Obsah pošty nepoužívame na reklamu ani ho
+     nepredávame tretím stranám.</p>
+
+  <h2>Sprostredkovatelia</h2>
+  <p>Na rozpoznávanie obsahu využívame API spoločnosti Anthropic (Claude);
+     spracúvaný text sa u poskytovateľa API netrénuje ani neuchováva nad rámec
+     spracovania požiadavky podľa jeho zmluvných podmienok. Platby spracúva
+     Stripe. Servery sú umiestnené v EÚ (Hetzner, Nemecko).</p>
+
+  <h2>Ako dlho údaje držíme</h2>
+  <p>Históriu platieb, súhrny pošty a odložené prílohy držíme počas trvania
+     účtu. Po zrušení účtu všetky dáta do 30 dní zmažeme. Prístupové údaje
+     k schránke zmažeme okamžite pri odobratí schránky z účtu.</p>
+
+  <h2>Vaše práva</h2>
+  <p>Máte právo na prístup k údajom, opravu, výmaz, obmedzenie spracovania,
+     prenosnosť a námietku. Stačí napísať na obchod@sorbxt.sk. Sťažnosť možno
+     podať na Úrad na ochranu osobných údajov SR (dataprotection.gov.sk).</p>
+
+  <h2>Zabezpečenie</h2>
+  <p>Komunikácia so serverom aj s poštovými servermi prebieha šifrovane
+     (HTTPS/TLS). Heslá schránok sú na disku uložené šifrovane, heslá účtov
+     ako PBKDF2 odtlačky. Prístup k serveru je obmedzený.</p>
+
+  <h2>Firemní klienti (DPA)</h2>
+  <p>Ak službu používate ako firma na spracovanie pošty vašej spoločnosti,
+     SORB XT s.r.o. vystupuje ako sprostredkovateľ v zmysle čl. 28 GDPR
+     a tento dokument spolu s obchodnými podmienkami tvorí zmluvu o spracovaní
+     osobných údajov. Na vyžiadanie poskytneme samostatnú písomnú DPA.</p>
+</div>
+{% endblock %}

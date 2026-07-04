@@ -102,12 +102,14 @@ class Config:
                     raise SystemExit(
                         f"accounts.ini [{section}]: security musí byť ssl, starttls alebo plain"
                     )
+                from . import crypto
+
                 accounts.append(MailAccount(
                     name=section,
                     host=sec.get("host").strip(),
                     port=sec.getint("port", fallback=993),
                     user=sec.get("user").strip(),
-                    password=sec.get("password"),
+                    password=crypto.decrypt(sec.get("password"), crypto.secret_from_env()),
                     folder=sec.get("folder", "INBOX").strip(),
                     security=security,
                 ))

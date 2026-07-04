@@ -9,6 +9,8 @@ klienta znamená, že služba je pozastavená (neplatič / vypršal trial).
 import configparser
 import os
 
+from bill_agent import crypto
+
 CLIENTS_DIR = os.environ.get("CLIENTS_DIR", "clients")
 
 # hodnoty zdieľané všetkými klientmi — z prostredia servera (.env.master)
@@ -84,7 +86,8 @@ def add_mailbox(
     parser.add_section(name)
     parser[name].update({
         "host": host, "port": str(port), "user": user,
-        "password": password, "security": security, "folder": folder,
+        "password": crypto.encrypt(password, crypto.secret_from_env()),
+        "security": security, "folder": folder,
     })
     with open(_accounts_file(client_dir), "w", encoding="utf-8") as fh:
         parser.write(fh)
