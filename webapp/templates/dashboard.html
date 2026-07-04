@@ -29,7 +29,7 @@ skončilo. <a href="/billing">Aktivujte si predplatné</a>.</div>
     <div class="lbl">nezaplatené</div>
   </div>
   <div class="stat">
-    <div class="num">{{ '%.2f'|format(stats.total) }} €</div>
+    <div class="num">{{ ('%.2f'|format(stats.total)).replace('.', ',') }} €</div>
     <div class="lbl">spolu na úhradu</div>
   </div>
   <div class="stat">
@@ -49,7 +49,8 @@ skončilo. <a href="/billing">Aktivujte si predplatné</a>.</div>
       <td><b>{{ p.supplier or '—' }}</b>
         {% if p.note and 'iný IBAN' in p.note %}
           <span class="badge b-red">iný IBAN — overiť!</span>{% endif %}</td>
-      <td><b>{{ '%.2f'|format(p.amount) }} {{ p.currency }}</b></td>
+      <td><b>{{ ('%.2f'|format(p.amount)).replace('.', ',') }}
+          {{ '€' if p.currency == 'EUR' else p.currency }}</b></td>
       <td>
         {% if p.group == 'overdue' %}<span class="badge b-red">{{ p.due_date }}</span>
         {% elif p.group == 'today' %}<span class="badge b-amber">dnes</span>

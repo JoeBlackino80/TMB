@@ -5,131 +5,227 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}Romarium — AI strážca faktúr, platieb a termínov{% endblock %}</title>
 <meta name="description" content="Romarium číta vašu poštu, vytiahne z faktúr čo, kedy a kam zaplatiť, postráži termíny a pošle prehľad s QR kódom na platbu.">
-<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%23143d28'/><path d='M9 16.5l5 5 9-11' stroke='%235fc08f' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%2334d399'/><stop offset='1' stop-color='%230d9463'/></linearGradient></defs><rect width='32' height='32' rx='10' fill='%23071b12'/><path d='M9 16.5l5 5 9-11' stroke='url(%23g)' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 {% block head %}{% endblock %}
 <style>
   :root {
     color-scheme: light;
-    --bg: #f5f7f5; --card: #ffffff; --ink: #182a1f; --muted: #61756a;
-    --line: #e2e9e3; --green: #1b6b43; --green-dark: #143d28;
-    --green-soft: #e9f4ee; --green-mid: #2e8a5c;
-    --red-soft: #fdecea; --red: #b42318; --amber-soft: #fdf3dd; --amber: #97590a;
+    --bg: #f2f5f1; --card: #ffffff; --ink: #14231a; --muted: #64786c;
+    --line: #e2e9e2; --deep: #0a1f14; --deep2: #113224;
+    --mint: #10a56e; --mint-dark: #0b7a51; --mint-soft: #e5f5ec;
+    --gold: #b98f2e; --gold-soft: #faf3df;
+    --red: #b42318; --red-soft: #fdecea;
+    --serif: "Fraunces", Georgia, serif;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
-  * { box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-         "Helvetica Neue", Arial, sans-serif; margin: 0; background: var(--bg);
-         color: var(--ink); line-height: 1.55; }
-  header.app { background: var(--card); border-bottom: 1px solid var(--line);
-    padding: 12px 22px; display: flex; align-items: center; gap: 22px;
-    flex-wrap: wrap; position: sticky; top: 0; z-index: 10; }
-  .brand { display: flex; align-items: center; gap: 9px; text-decoration: none; }
-  .brand span { font-size: 19px; font-weight: 800; letter-spacing: .4px;
-    color: var(--green-dark); }
-  header.app nav { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-  header.app nav a { color: var(--muted); text-decoration: none; font-size: 14.5px;
-    font-weight: 600; padding: 6px 2px; }
-  header.app nav a:hover { color: var(--green-dark); }
-  .push { margin-left: auto; display: flex; align-items: center; gap: 14px; }
-  main { max-width: 900px; margin: 28px auto; padding: 0 18px; }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--ink);
+    line-height: 1.55; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+  .shell { display: flex; min-height: 100vh; }
+
+  /* ---------- bočný panel ---------- */
+  aside {
+    width: 232px; flex-shrink: 0; padding: 22px 16px;
+    background: linear-gradient(175deg, var(--deep2), var(--deep) 70%);
+    color: #d7e6dc; display: flex; flex-direction: column; gap: 4px;
+    position: sticky; top: 0; height: 100vh;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none;
+    color: #fff; padding: 4px 10px 22px; }
+  .brand b { font-family: var(--serif); font-weight: 600; font-size: 20px;
+    letter-spacing: .3px; }
+  aside nav { display: flex; flex-direction: column; gap: 3px; }
+  aside nav a {
+    display: flex; align-items: center; gap: 11px; text-decoration: none;
+    color: #a9c4b3; font-size: 14.5px; font-weight: 600;
+    padding: 10px 12px; border-radius: 11px; transition: background .18s, color .18s;
+  }
+  aside nav a svg { flex-shrink: 0; opacity: .8; }
+  aside nav a:hover { color: #fff; background: rgba(52, 211, 153, .1); }
+  aside nav a.on { color: #fff; background: rgba(52, 211, 153, .16); }
+  aside .foot { margin-top: auto; padding: 14px 12px 4px;
+    border-top: 1px solid rgba(148, 199, 168, .16); font-size: 12.5px;
+    color: #7f9a8a; word-break: break-all; }
+  aside .foot a { color: #a9c4b3; text-decoration: none; font-weight: 700; }
+  aside .foot a:hover { color: #fff; }
+
+  /* ---------- obsah ---------- */
+  .content { flex: 1; min-width: 0; padding: 34px 40px 50px; }
+  .content-inner { max-width: 880px; }
+  h1 { font-family: var(--serif); font-weight: 480; font-size: 30px;
+    letter-spacing: -.4px; margin: 0 0 22px; }
+  h2 { font-size: 15.5px; font-weight: 700; margin: 0 0 14px; }
+
   .card { background: var(--card); border: 1px solid var(--line);
-    border-radius: 14px; padding: 20px 22px; margin-bottom: 18px;
-    box-shadow: 0 1px 2px rgba(16, 40, 26, .04); }
-  h1 { font-size: 24px; margin: 6px 0 18px; letter-spacing: -.2px; }
-  h2 { font-size: 16.5px; margin: 0 0 12px; }
-  label { display: block; margin: 12px 0 5px; font-weight: 600; font-size: 13.5px; }
-  input, select { width: 100%; max-width: 440px; padding: 10px 12px;
-    border: 1px solid #ccd8cf; border-radius: 9px; font-size: 15px;
-    background: #fff; }
-  input:focus, select:focus { outline: 2px solid var(--green-mid);
-    outline-offset: 0; border-color: var(--green-mid); }
-  button, .btn { background: var(--green); color: #fff; border: 0;
-    border-radius: 9px; padding: 10px 18px; font-size: 14.5px; font-weight: 700;
-    cursor: pointer; margin-top: 12px; text-decoration: none;
-    display: inline-block; }
-  button:hover, .btn:hover { background: var(--green-dark); }
-  button.small { padding: 5px 12px; font-size: 13px; margin: 0;
-    background: var(--green-soft); color: var(--green-dark);
-    border: 1px solid #cfe3d7; font-weight: 600; }
-  button.small:hover { background: #dcede3; }
-  button.small.danger { background: #fff; color: var(--red); border-color: #eed4d1; }
+    border-radius: 18px; padding: 22px 24px; margin-bottom: 18px;
+    box-shadow: 0 1px 3px rgba(10, 31, 20, .05); }
+
+  label { display: block; margin: 13px 0 5px; font-weight: 600; font-size: 13.5px; }
+  input, select { width: 100%; max-width: 440px; padding: 10px 13px;
+    border: 1px solid #ccd8cf; border-radius: 10px; font-size: 15px;
+    background: #fff; font-family: var(--sans); }
+  input:focus, select:focus { outline: 2px solid var(--mint); outline-offset: 0;
+    border-color: var(--mint); }
+
+  button, .btn { background: linear-gradient(135deg, #12b378, var(--mint-dark));
+    color: #fff; border: 0; border-radius: 11px; padding: 11px 20px;
+    font-size: 14.5px; font-weight: 700; cursor: pointer; margin-top: 12px;
+    text-decoration: none; display: inline-block; font-family: var(--sans);
+    transition: transform .15s, box-shadow .15s;
+    box-shadow: 0 2px 10px rgba(16, 165, 110, .25); }
+  button:hover, .btn:hover { transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(16, 165, 110, .35); }
+  button.small { padding: 6px 13px; font-size: 13px; margin: 0;
+    background: var(--mint-soft); color: var(--mint-dark);
+    border: 1px solid #c3e5d3; font-weight: 700; box-shadow: none; }
+  button.small:hover { background: #d7efe2; transform: none; box-shadow: none; }
+  button.small.danger { background: #fff; color: var(--red);
+    border-color: #eed4d1; }
   button.small.danger:hover { background: var(--red-soft); }
+
   .error { background: var(--red-soft); border: 1px solid #f2c8c4;
-    color: var(--red); padding: 11px 15px; border-radius: 10px;
+    color: var(--red); padding: 12px 16px; border-radius: 12px;
     margin-bottom: 16px; font-size: 14.5px; }
-  .notice { background: var(--amber-soft); border: 1px solid #f0dcb0;
-    color: var(--amber); padding: 11px 15px; border-radius: 10px;
+  .notice { background: var(--gold-soft); border: 1px solid #ecd9a8;
+    color: #7c5c12; padding: 12px 16px; border-radius: 12px;
     margin-bottom: 16px; font-size: 14.5px; }
   .notice a, .error a { color: inherit; font-weight: 700; }
+
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th { text-align: left; padding: 8px 10px; color: var(--muted); font-size: 12px;
-    text-transform: uppercase; letter-spacing: .5px;
+  th { text-align: left; padding: 8px 10px; color: var(--muted); font-size: 11.5px;
+    text-transform: uppercase; letter-spacing: .7px;
     border-bottom: 1px solid var(--line); }
-  td { text-align: left; padding: 10px; border-bottom: 1px solid #eef2ee;
+  td { text-align: left; padding: 11px 10px; border-bottom: 1px solid #eef2ee;
     vertical-align: middle; }
   tr:last-child td { border-bottom: 0; }
   tbody tr:hover td { background: #fafcfa; }
+
   .badge { display: inline-block; padding: 2px 10px; border-radius: 99px;
     font-size: 12px; font-weight: 700; white-space: nowrap; }
-  .b-green { background: var(--green-soft); color: var(--green-dark); }
+  .b-green { background: var(--mint-soft); color: var(--mint-dark); }
   .b-red { background: var(--red-soft); color: var(--red); }
-  .b-amber { background: var(--amber-soft); color: var(--amber); }
+  .b-amber { background: var(--gold-soft); color: #7c5c12; }
   .b-gray { background: #eef1ef; color: var(--muted); }
   .muted { color: var(--muted); font-size: 13.5px; }
+
   .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 14px; margin-bottom: 18px; }
   .stat { background: var(--card); border: 1px solid var(--line);
-    border-radius: 14px; padding: 14px 18px; }
-  .stat .num { font-size: 26px; font-weight: 800; letter-spacing: -.5px; }
-  .stat .lbl { color: var(--muted); font-size: 12.5px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: .4px; }
+    border-radius: 18px; padding: 16px 20px; position: relative; overflow: hidden; }
+  .stat::after { content: ""; position: absolute; left: 20px; bottom: 0;
+    width: 34px; height: 3px; border-radius: 3px 3px 0 0; background: var(--mint); }
+  .stat.warn::after { background: var(--red); }
+  .stat .num { font-family: var(--serif); font-size: 30px; font-weight: 520;
+    letter-spacing: -.5px; line-height: 1.2; }
+  .stat .lbl { color: var(--muted); font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
   .stat.warn .num { color: var(--red); }
+
   .actions form { display: inline; margin: 0; }
-  footer.app { max-width: 900px; margin: 30px auto 26px; padding: 0 18px;
-    color: var(--muted); font-size: 13px; }
+
+  /* ---------- hlavička pre neprihlásených ---------- */
+  header.public { background: var(--deep); padding: 14px 24px;
+    display: flex; align-items: center; gap: 20px; }
+  header.public .push { margin-left: auto; display: flex; align-items: center;
+    gap: 18px; }
+  header.public a.plain { color: #a9c4b3; text-decoration: none;
+    font-weight: 600; font-size: 14.5px; }
+  header.public a.plain:hover { color: #fff; }
+  header.public .btn { margin: 0; padding: 9px 16px; }
+  .public-main { max-width: 900px; margin: 0 auto; padding: 10px 18px 40px; }
+
+  footer.app { padding: 18px 0 6px; color: var(--muted); font-size: 12.5px; }
   footer.app a { color: var(--muted); }
-  @media (max-width: 640px) {
-    main { margin-top: 18px; }
-    .card { padding: 16px; }
+
+  @media (max-width: 760px) {
+    .shell { flex-direction: column; }
+    aside { width: 100%; height: auto; position: static; flex-direction: row;
+      align-items: center; padding: 10px 14px; gap: 8px; overflow-x: auto; }
+    .brand { padding: 0 8px 0 0; }
+    .brand b { font-size: 17px; }
+    aside nav { flex-direction: row; gap: 2px; }
+    aside nav a { padding: 8px 10px; font-size: 13.5px; }
+    aside nav a svg { display: none; }
+    aside .foot { display: none; }
+    .content { padding: 20px 16px 40px; }
+    h1 { font-size: 24px; }
+    .card { padding: 16px; border-radius: 14px; }
     table { font-size: 13px; }
-    td, th { padding: 7px 6px; }
+    td, th { padding: 8px 6px; }
   }
 </style>
 </head>
 <body>
-<header class="app">
-  <a class="brand" href="/" aria-label="Romarium — domov">
+
+{% if user %}
+<div class="shell">
+  <aside>
+    <a class="brand" href="/">
+      <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#0d9463"/>
+        </linearGradient></defs>
+        <rect width="32" height="32" rx="10" fill="#071b12" stroke="rgba(52,211,153,.45)"/>
+        <path d="M9 16.5l5 5 9-11" stroke="url(#lg)" stroke-width="3.5" fill="none"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <b>romarium</b>
+    </a>
+    <nav>
+      <a href="/" class="{% if request.url.path == '/' %}on{% endif %}">
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5L10 4l7 6.5"/><path d="M5 9v7h10V9"/></svg>
+        Prehľad</a>
+      <a href="/mailboxes" class="{% if request.url.path == '/mailboxes' %}on{% endif %}">
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="4.5" width="15" height="11" rx="2"/><path d="M3 6l7 5.5L17 6"/></svg>
+        Schránky</a>
+      <a href="/settings" class="{% if request.url.path == '/settings' %}on{% endif %}">
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="2.6"/><path d="M10 3v2.2M10 14.8V17M3 10h2.2M14.8 10H17M5.1 5.1l1.6 1.6M13.3 13.3l1.6 1.6M14.9 5.1l-1.6 1.6M6.7 13.3l-1.6 1.6"/></svg>
+        Nastavenia</a>
+      <a href="/billing" class="{% if request.url.path == '/billing' %}on{% endif %}">
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="5" width="15" height="10.5" rx="2"/><path d="M2.5 8.5h15"/></svg>
+        Predplatné</a>
+    </nav>
+    <div class="foot">
+      {{ user['email'] }}<br>
+      <a href="/logout">Odhlásiť sa</a>
+    </div>
+  </aside>
+  <div class="content">
+    <div class="content-inner">
+      {% if error %}<div class="error">{{ error }}</div>{% endif %}
+      {% block content %}{% endblock %}
+      <footer class="app">© SORB XT s.r.o. · Romarium ·
+        <a href="mailto:obchod@sorbxt.sk">obchod@sorbxt.sk</a></footer>
+    </div>
+  </div>
+</div>
+{% else %}
+<header class="public">
+  <a class="brand" href="/">
     <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
-      <rect width="32" height="32" rx="9" fill="#143d28"/>
-      <path d="M9 16.5l5 5 9-11" stroke="#5fc08f" stroke-width="3.5" fill="none"
+      <defs><linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#0d9463"/>
+      </linearGradient></defs>
+      <rect width="32" height="32" rx="10" fill="#071b12" stroke="rgba(52,211,153,.45)"/>
+      <path d="M9 16.5l5 5 9-11" stroke="url(#lg2)" stroke-width="3.5" fill="none"
             stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
-    <span>romarium</span>
+    <b style="color:#fff">romarium</b>
   </a>
-  {% if user %}
-  <nav>
-    <a href="/">Prehľad</a>
-    <a href="/mailboxes">Schránky</a>
-    <a href="/settings">Nastavenia</a>
-    <a href="/billing">Predplatné</a>
-  </nav>
   <div class="push">
-    <span class="muted">{{ user['email'] }}</span>
-    <a href="/logout" class="muted" style="text-decoration:none;font-weight:600">Odhlásiť</a>
+    <a class="plain" href="/login">Prihlásiť sa</a>
+    <a class="btn" href="/register">Vyskúšať zadarmo</a>
   </div>
-  {% else %}
-  <div class="push">
-    <a href="/login" style="color:var(--muted);text-decoration:none;font-weight:600;font-size:14.5px">Prihlásiť sa</a>
-    <a href="/register" class="btn" style="margin:0;padding:8px 15px">Vyskúšať zadarmo</a>
-  </div>
-  {% endif %}
 </header>
-<main>
-  {% if error %}<div class="error">{{ error }}</div>{% endif %}
-  {% block content %}{% endblock %}
+<main class="public-main">
+  {% if error %}<div class="error" style="margin-top:20px">{{ error }}</div>{% endif %}
+  {% block content_public %}{{ self.content() }}{% endblock %}
 </main>
-<footer class="app">
-  © SORB XT s.r.o. · Romarium — AI strážca faktúr a platieb ·
-  <a href="mailto:obchod@sorbxt.sk">obchod@sorbxt.sk</a>
-</footer>
+{% endif %}
+
 </body>
 </html>
