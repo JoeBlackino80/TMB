@@ -49,7 +49,7 @@ def cmd_fetch(cfg: Config, store: Store, args: argparse.Namespace) -> None:
                 if p.iban:
                     known = store.known_ibans_for_supplier(p.supplier)
                     if known and p.iban not in known:
-                        warning = ("⚠️ POZOR: iný IBAN než pri predchádzajúcich "
+                        warning = ("POZOR: iný IBAN než pri predchádzajúcich "
                                    "platbách tomuto dodávateľovi — overte pravosť faktúry!")
                         note = f"{warning} {note}".strip()
                         print(f"  ⚠️ {p.supplier}: IBAN sa líši od minulých faktúr "

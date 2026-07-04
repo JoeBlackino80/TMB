@@ -13,12 +13,12 @@ from .config import Config
 from .store import Store
 
 _CATEGORY_TITLES = {
-    "faktura": "🧾 Faktúry a platby",
-    "banka": "🏦 Banka",
-    "objednavka": "📦 Objednávky a zásielky",
-    "uloha": "📋 Úlohy a termíny",
-    "marketing": "📣 Marketing / newslettre",
-    "ine": "✉️ Ostatné",
+    "faktura": "Faktúry a platby",
+    "banka": "Banka",
+    "objednavka": "Objednávky a zásielky",
+    "uloha": "Úlohy a termíny",
+    "marketing": "Marketing / newslettre",
+    "ine": "Ostatné",
 }
 
 
@@ -66,11 +66,11 @@ def build_digest(cfg: Config, store: Store, days: int) -> tuple[str, str, str] |
 
     today = date.today()
     if days <= 1:
-        subject = f"🗞️ Zhrnutie dňa — {today.strftime('%-d.%-m.%Y')}"
+        subject = f"Romarium: Zhrnutie dňa — {today.strftime('%-d.%-m.%Y')}"
         title = "Zhrnutie dňa"
     else:
         since = today - timedelta(days=days)
-        subject = f"🗞️ Zhrnutie týždňa {since.strftime('%-d.%-m.')}–{today.strftime('%-d.%-m.%Y')}"
+        subject = f"Romarium: Zhrnutie týždňa {since.strftime('%-d.%-m.')}–{today.strftime('%-d.%-m.%Y')}"
         title = "Zhrnutie týždňa"
 
     narrative = _narrative(cfg, entries, days)
@@ -91,7 +91,7 @@ def build_digest(cfg: Config, store: Store, days: int) -> tuple[str, str, str] |
             + f" · aktívnych úloh: {len(tasks)}")
     text_lines += [stat, ""]
     html.append(f"<p><b>{escape(stat)}</b><br><small>Podrobnosti a QR kódy sú "
-                "v poslednom e-maile „💸 Platby a úlohy“.</small></p>")
+                "v poslednom e-maile „Romarium: platby a úlohy“.</small></p>")
 
     # rozpis podľa kategórií
     by_category: dict[str, list] = {}

@@ -1,15 +1,22 @@
 {% extends "base.html" %}
+{% block title %}Admin — Romarium{% endblock %}
 {% block content %}
 <h1>Admin — klienti</h1>
 <div class="card">
+<div style="overflow-x:auto">
 <table>
   <tr><th>ID</th><th>E-mail</th><th>Stav</th><th>Trial do</th><th>Schránky</th><th>Beží</th><th>Akcia</th></tr>
   {% for c in clients %}
   <tr>
     <td>{{ c.id }}</td><td>{{ c.email }}</td>
-    <td>{{ c.status }}</td><td>{{ c.trial_until }}</td><td>{{ c.mailboxes }}</td>
-    <td>{% if c.enabled %}<span class="badge b-green">áno</span>{% else %}<span class="badge b-red">nie</span>{% endif %}</td>
     <td>
+      {% if c.status == 'active' %}<span class="badge b-green">active</span>
+      {% elif c.status == 'trial' %}<span class="badge b-amber">trial</span>
+      {% else %}<span class="badge b-red">{{ c.status }}</span>{% endif %}
+    </td>
+    <td>{{ c.trial_until }}</td><td>{{ c.mailboxes }}</td>
+    <td>{% if c.enabled %}<span class="badge b-green">áno</span>{% else %}<span class="badge b-red">nie</span>{% endif %}</td>
+    <td class="actions" style="white-space:nowrap">
       <form method="post" action="/admin/set-status" style="display:inline">
         <input type="hidden" name="user_id" value="{{ c.id }}">
         <input type="hidden" name="status" value="active">
@@ -18,11 +25,12 @@
       <form method="post" action="/admin/set-status" style="display:inline">
         <input type="hidden" name="user_id" value="{{ c.id }}">
         <input type="hidden" name="status" value="expired">
-        <button class="small" style="background:#dc2626">vypnúť</button>
+        <button class="small danger">vypnúť</button>
       </form>
     </td>
   </tr>
   {% endfor %}
 </table>
+</div>
 </div>
 {% endblock %}

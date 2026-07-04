@@ -15,7 +15,8 @@ import time
 from urllib.parse import quote
 
 from fastapi import Depends, FastAPI, Form, Request
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import (HTMLResponse, PlainTextResponse,
+                               RedirectResponse, Response)
 from fastapi.templating import Jinja2Templates
 
 from bill_agent.store import Store
@@ -116,31 +117,91 @@ def logout():
     return response
 
 
-# -- dashboard -----------------------------------------------------------------
+# -- landing + dashboard --------------------------------------------------------
+
+def _client_db(user) -> str:
+    return os.path.join(clientfs.client_path(user["client_dir"]), "bill_agent.db")
+
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request, user=Depends(current_user)):
     if not user:
-        return _redirect("/login")
-    db_path = os.path.join(clientfs.client_path(user["client_dir"]), "bill_agent.db")
+        return _render(request, "landing.html")
+    db_path = _client_db(user)
     payments, tasks = [], []
+    stats = {"overdue": 0, "pending": 0, "total": 0.0}
     if os.path.exists(db_path):
         store = Store(db_path)
         try:
             groups = store.payments_due(7)
-            payments = (groups["overdue"] + groups["today"]
-                        + groups["upcoming"] + groups["no_date"])
+            for key in ("overdue", "today", "upcoming", "no_date"):
+                for p in groups[key]:
+                    payments.append({**vars(p), "group": key})
             tasks = store.active_tasks()
         finally:
             store.close()
+        stats["overdue"] = len(groups["overdue"])
+        stats["pending"] = len(payments)
+        stats["total"] = sum(p["amount"] for p in payments
+                             if p["currency"] == "EUR")
     users = Users()
     try:
         enabled = users.is_service_enabled(user)
     finally:
         users.close()
     return _render(request, "dashboard.html", user=user, payments=payments,
-                   tasks=tasks, enabled=enabled,
+                   tasks=tasks, enabled=enabled, stats=stats,
                    mailboxes=clientfs.list_mailboxes(user["client_dir"]))
+
+
+@app.post("/payments/set-status")
+def payment_set_status(request: Request, user=Depends(current_user),
+                       payment_id: int = Form(...), status: str = Form(...)):
+    if not user:
+        return _redirect("/login")
+    if status in ("paid", "ignored") and os.path.exists(_client_db(user)):
+        store = Store(_client_db(user))
+        try:
+            store.set_payment_status(payment_id, status)
+        finally:
+            store.close()
+    return _redirect("/")
+
+
+@app.post("/tasks/done")
+def task_done(request: Request, user=Depends(current_user),
+              task_id: int = Form(...)):
+    if not user:
+        return _redirect("/login")
+    if os.path.exists(_client_db(user)):
+        store = Store(_client_db(user))
+        try:
+            store.set_task_status(task_id, "done")
+        finally:
+            store.close()
+    return _redirect("/")
+
+
+# -- SEO ------------------------------------------------------------------------
+
+@app.get("/robots.txt", response_class=PlainTextResponse)
+def robots():
+    return ("User-agent: *\n"
+            "Allow: /\n"
+            "Disallow: /admin\n"
+            "Sitemap: https://romarium.com/sitemap.xml\n")
+
+
+@app.get("/sitemap.xml")
+def sitemap():
+    urls = "".join(
+        f"<url><loc>https://romarium.com{path}</loc></url>"
+        for path in ("/", "/register", "/login")
+    )
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>'
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+           f"{urls}</urlset>")
+    return Response(content=xml, media_type="application/xml")
 
 
 # -- schránky -------------------------------------------------------------------

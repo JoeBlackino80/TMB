@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block title %}Schránky — Romarium{% endblock %}
 {% block content %}
 <h1>E-mailové schránky</h1>
 
@@ -8,10 +9,11 @@
     <tr><th>Názov</th><th>Server</th><th>Prihlásenie</th><th></th></tr>
     {% for m in mailboxes %}
     <tr>
-      <td>{{ m.name }}</td><td>{{ m.host }}</td><td>{{ m.user }}</td>
-      <td><form method="post" action="/mailboxes/delete" style="margin:0">
+      <td><b>{{ m.name }}</b></td><td>{{ m.host }}</td><td>{{ m.user }}</td>
+      <td style="text-align:right"><form method="post" action="/mailboxes/delete" style="margin:0">
         <input type="hidden" name="name" value="{{ m.name }}">
-        <button class="small" onclick="return confirm('Odobrať schránku?')">Odobrať</button>
+        <button class="small danger"
+                onclick="return confirm('Odobrať schránku?')">Odobrať</button>
       </form></td>
     </tr>
     {% endfor %}
@@ -24,10 +26,10 @@
 <div class="card">
   <h2>Pridať schránku</h2>
   <p class="muted">Prihlásenie sa hneď overí. Pre Gmail použite
-     <a href="https://myaccount.google.com/apppasswords" target="_blank">App Password</a>,
+     <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener">App Password</a>,
      nie bežné heslo.</p>
   <form method="post" action="/mailboxes">
-    <label>Názov (napr. „firma“)</label>
+    <label>Názov (napr. „mojafirma“)</label>
     <input name="name" placeholder="mojafirma">
     <label>IMAP server</label>
     <input name="host" placeholder="imap.gmail.com / mail.webhouse.sk" required>
@@ -43,7 +45,7 @@
       <option value="starttls">STARTTLS (napr. Proton Bridge)</option>
       <option value="plain">bez šifrovania</option>
     </select>
-    <button type="submit">Overiť a pridať</button>
+    <div><button type="submit">Overiť a pridať</button></div>
   </form>
 </div>
 {% endblock %}

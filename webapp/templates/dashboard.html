@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block title %}Prehľad — Romarium{% endblock %}
 {% block content %}
 <h1>Prehľad</h1>
 
@@ -6,49 +7,95 @@
 <div class="error">Služba je pozastavená — skúšobná doba vypršala alebo predplatné
 skončilo. <a href="/billing">Aktivujte si predplatné</a>.</div>
 {% elif user['status'] == 'trial' %}
-<div class="card" style="background:#fffbeb;border-color:#fde68a">
-  Skúšobná doba do <b>{{ user['trial_until'] }}</b>.
-  <a href="/billing">Prejsť na predplatné</a> — 4,99 €/mes. alebo 49 €/rok.
-</div>
+<div class="notice">Skúšobná doba do <b>{{ user['trial_until'] }}</b>.
+  <a href="/billing">Prejsť na predplatné</a> — 4,99 €/mes. alebo 49 €/rok.</div>
 {% endif %}
 
 {% if not mailboxes %}
 <div class="card">
-  <h2>Začnite pridaním schránky 📬</h2>
-  <p>Agent potrebuje prístup k schránke, kam vám chodia faktúry.
-     <a href="/mailboxes">Pridať schránku →</a></p>
+  <h2>Začnite pridaním schránky</h2>
+  <p>Romarium potrebuje prístup k schránke, kam vám chodia faktúry.</p>
+  <a class="btn" href="/mailboxes">Pridať schránku</a>
 </div>
 {% endif %}
 
+<div class="stats">
+  <div class="stat{% if stats.overdue %} warn{% endif %}">
+    <div class="num">{{ stats.overdue }}</div>
+    <div class="lbl">po splatnosti</div>
+  </div>
+  <div class="stat">
+    <div class="num">{{ stats.pending }}</div>
+    <div class="lbl">nezaplatené</div>
+  </div>
+  <div class="stat">
+    <div class="num">{{ '%.2f'|format(stats.total) }} €</div>
+    <div class="lbl">spolu na úhradu</div>
+  </div>
+  <div class="stat">
+    <div class="num">{{ tasks|length }}</div>
+    <div class="lbl">otvorené úlohy</div>
+  </div>
+</div>
+
 <div class="card">
-  <h2>Nezaplatené platby ({{ payments|length }})</h2>
+  <h2>Nezaplatené platby</h2>
   {% if payments %}
+  <div style="overflow-x:auto">
   <table>
-    <tr><th>č.</th><th>Dodávateľ</th><th>Suma</th><th>Splatnosť</th><th>VS</th></tr>
+    <tr><th>Dodávateľ</th><th>Suma</th><th>Splatnosť</th><th>VS</th><th></th></tr>
     {% for p in payments %}
     <tr>
-      <td>{{ p.id }}</td>
-      <td>{{ p.supplier or '—' }}{% if '⚠️' in p.note %} <span class="badge b-red">⚠ iný IBAN!</span>{% endif %}</td>
+      <td><b>{{ p.supplier or '—' }}</b>
+        {% if p.note and 'iný IBAN' in p.note %}
+          <span class="badge b-red">iný IBAN — overiť!</span>{% endif %}</td>
       <td><b>{{ '%.2f'|format(p.amount) }} {{ p.currency }}</b></td>
-      <td>{{ p.due_date or '—' }}</td>
+      <td>
+        {% if p.group == 'overdue' %}<span class="badge b-red">{{ p.due_date }}</span>
+        {% elif p.group == 'today' %}<span class="badge b-amber">dnes</span>
+        {% elif p.due_date %}{{ p.due_date }}
+        {% else %}<span class="muted">—</span>{% endif %}
+      </td>
       <td>{{ p.variable_symbol or '—' }}</td>
+      <td class="actions" style="white-space:nowrap">
+        <form method="post" action="/payments/set-status">
+          <input type="hidden" name="payment_id" value="{{ p.id }}">
+          <input type="hidden" name="status" value="paid">
+          <button class="small">Zaplatené</button>
+        </form>
+        <form method="post" action="/payments/set-status">
+          <input type="hidden" name="payment_id" value="{{ p.id }}">
+          <input type="hidden" name="status" value="ignored">
+          <button class="small danger"
+                  onclick="return confirm('Ignorovať túto platbu?')">Ignorovať</button>
+        </form>
+      </td>
     </tr>
     {% endfor %}
   </table>
+  </div>
   <p class="muted">QR kódy na zaplatenie nájdete v e-mailových prehľadoch.
-     Odškrtnete odpoveďou „zaplatené č." alebo to spraví výpis z banky sám.</p>
+     Zaplatené odškrtne aj výpis z banky alebo odpoveď „zaplatené č.“ na e-mail.</p>
   {% else %}
-  <p class="muted">Žiadne evidované nezaplatené platby. 🎉</p>
+  <p class="muted">Žiadne evidované nezaplatené platby.</p>
   {% endif %}
 </div>
 
 <div class="card">
-  <h2>Úlohy ({{ tasks|length }})</h2>
+  <h2>Úlohy</h2>
   {% if tasks %}
   <table>
     {% for t in tasks %}
-    <tr><td>{{ t.id }}</td><td>{{ t.description }}</td>
-        <td>{{ ('do ' + t.due_date) if t.due_date else '' }}</td></tr>
+    <tr>
+      <td>{{ t.description }}</td>
+      <td>{% if t.due_date %}do {{ t.due_date }}{% endif %}</td>
+      <td class="actions" style="text-align:right">
+        <form method="post" action="/tasks/done">
+          <input type="hidden" name="task_id" value="{{ t.id }}">
+          <button class="small">Hotovo</button>
+        </form>
+      </td>
+    </tr>
     {% endfor %}
   </table>
   {% else %}

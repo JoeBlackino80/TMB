@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block title %}Predplatné — Romarium{% endblock %}
 {% block content %}
 <h1>Predplatné</h1>
 <div class="card">
@@ -10,15 +11,17 @@
   {% if user['status'] != 'active' %}
     {% if monthly or yearly %}
       <p>Vyberte si plán — platba prebieha bezpečne cez Stripe:</p>
-      {% if monthly %}<p><a href="{{ monthly }}"><button>4,99 € / mesiac</button></a></p>{% endif %}
-      {% if yearly %}<p><a href="{{ yearly }}"><button>49 € / rok (2 mesiace zadarmo)</button></a></p>{% endif %}
+      {% if monthly %}<p><a class="btn" href="{{ monthly }}">4,99 € / mesiac</a></p>{% endif %}
+      {% if yearly %}<p><a class="btn" href="{{ yearly }}">49 € / rok — 2 mesiace zadarmo</a></p>{% endif %}
       <p class="muted">Po zaplatení sa účet aktivuje automaticky do minúty.</p>
     {% else %}
-      <p class="muted">Platobná brána sa pripravuje — napíšte nám a aktivujeme vás ručne.</p>
+      <p class="muted">Platobná brána sa pripravuje — napíšte nám na
+         <a href="mailto:obchod@sorbxt.sk">obchod@sorbxt.sk</a> a aktivujeme vás ručne.</p>
     {% endif %}
   {% else %}
-    <p class="muted">Ďakujeme, že službu využívate! Zrušenie predplatného: cez odkaz
-       v potvrdení od Stripe, alebo nám napíšte.</p>
+    <p class="muted">Ďakujeme, že Romarium využívate. Zrušenie predplatného:
+       cez odkaz v potvrdení od Stripe, alebo nám napíšte na
+       <a href="mailto:obchod@sorbxt.sk">obchod@sorbxt.sk</a>.</p>
   {% endif %}
 </div>
 {% endblock %}

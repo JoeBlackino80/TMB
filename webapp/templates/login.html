@@ -1,14 +1,16 @@
 {% extends "base.html" %}
+{% block title %}Prihlásenie — Romarium{% endblock %}
 {% block content %}
-<div class="card" style="max-width:460px;margin:40px auto">
-  <h1>Prihlásenie</h1>
+<div class="card" style="max-width:440px;margin:48px auto">
+  <h1 style="margin-top:0">Prihlásenie</h1>
   <form method="post" action="/login">
     <label>E-mail</label>
-    <input type="email" name="email" required>
+    <input type="email" name="email" required autocomplete="email">
     <label>Heslo</label>
-    <input type="password" name="password" required>
+    <input type="password" name="password" required autocomplete="current-password">
     <button type="submit">Prihlásiť sa</button>
   </form>
-  <p class="muted">Nemáte účet? <a href="/register">Registrujte sa</a> — 14 dní zadarmo.</p>
+  <p class="muted" style="margin-top:18px">Nemáte účet?
+     <a href="/register">Registrujte sa</a> — 14 dní zadarmo.</p>
 </div>
 {% endblock %}

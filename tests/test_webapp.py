@@ -42,9 +42,49 @@ def test_register_login_and_mailbox_flow(client, tmp_path):
     assert "Nesprávny" in r.text
 
 
-def test_dashboard_requires_login(client):
+def test_landing_for_anonymous_and_login_wall(client):
+    # anonym vidí landing page so SEO obsahom
     r = client.get("/")
-    assert r.status_code == 303 and r.headers["location"] == "/login"
+    assert r.status_code == 200
+    assert "romarium" in r.text.lower() and "14 dní zadarmo" in r.text
+    # chránené stránky presmerujú na login
+    for path in ("/mailboxes", "/settings", "/billing"):
+        r = client.get(path)
+        assert r.status_code == 303 and r.headers["location"] == "/login"
+
+
+def test_seo_endpoints(client):
+    r = client.get("/robots.txt")
+    assert r.status_code == 200 and "Sitemap:" in r.text
+    r = client.get("/sitemap.xml")
+    assert r.status_code == 200 and "romarium.com" in r.text
+
+
+def test_payment_and_task_actions(client, tmp_path):
+    from bill_agent.store import Store
+
+    client.post("/register", data={"email": "akcie@x.sk", "password": "tajneheslo"})
+    session = client.post("/login", data={"email": "akcie@x.sk", "password": "tajneheslo"}).cookies["session"]
+
+    db = tmp_path / "clients" / "akcie-x-sk" / "bill_agent.db"
+    store = Store(str(db))
+    pid = store.add_payment(supplier="Test s.r.o.", amount=12.5, currency="EUR",
+                            iban="SK000", variable_symbol="1", due_date=None)
+    tid = store.add_task(description="zavolať účtovníčke", due_date=None)
+    store.close()
+
+    r = client.post("/payments/set-status",
+                    data={"payment_id": pid, "status": "paid"},
+                    cookies={"session": session})
+    assert r.status_code == 303
+    r = client.post("/tasks/done", data={"task_id": tid},
+                    cookies={"session": session})
+    assert r.status_code == 303
+
+    store = Store(str(db))
+    assert store.pending_payments() == []
+    assert store.active_tasks() == []
+    store.close()
 
 
 def test_admin_only_for_admin(client, tmp_path):

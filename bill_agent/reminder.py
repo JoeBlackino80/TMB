@@ -11,10 +11,17 @@ from .config import Config
 from .store import Payment, Store, Task
 
 _SECTION_TITLES = {
-    "overdue": "🔴 Po splatnosti",
-    "today": "🟠 Splatné dnes",
-    "upcoming": "🟡 Splatné v najbližších dňoch",
-    "no_date": "⚪ Bez uvedenej splatnosti",
+    "overdue": "Po splatnosti",
+    "today": "Splatné dnes",
+    "upcoming": "Splatné v najbližších dňoch",
+    "no_date": "Bez uvedenej splatnosti",
+}
+
+_SECTION_COLORS = {
+    "overdue": "#b42318",
+    "today": "#b54708",
+    "upcoming": "#175636",
+    "no_date": "#5f7268",
 }
 
 
@@ -66,7 +73,9 @@ def build_reminder(store: Store, days_ahead: int) -> tuple[str, str, list[tuple[
             continue
         title = _SECTION_TITLES[key]
         text_lines.append(f"\n{title}")
-        html_parts.append(f"<h3>{title}</h3>")
+        html_parts.append(
+            f"<h3 style='color:{_SECTION_COLORS[key]};margin:18px 0 6px'>{title}</h3>"
+        )
         for p in payments:
             due = p.due_date or "—"
             text_lines.append(
@@ -85,7 +94,7 @@ def build_reminder(store: Store, days_ahead: int) -> tuple[str, str, list[tuple[
                 f"IBAN: {escape(p.iban or '—')} &nbsp; VS: {escape(p.variable_symbol or '—')}"
                 + (
                     (f"<br><span style='color:#c00;font-weight:bold'>{escape(p.note)}</span>"
-                     if "⚠️" in p.note else f"<br>{escape(p.note)}")
+                     if "iný IBAN" in p.note else f"<br>{escape(p.note)}")
                     if p.note else ""
                 )
             )
@@ -105,8 +114,8 @@ def build_reminder(store: Store, days_ahead: int) -> tuple[str, str, list[tuple[
             )
 
     if tasks:
-        text_lines.append("\n📋 Úlohy")
-        html_parts.append("<h3>📋 Úlohy</h3><ul>")
+        text_lines.append("\nÚlohy")
+        html_parts.append("<h3 style='margin:18px 0 6px'>Úlohy</h3><ul>")
         for t in tasks:
             due = f" (do {t.due_date})" if t.due_date else ""
             text_lines.append(f"  [{t.id}] {t.description}{due}")
@@ -171,9 +180,9 @@ def send_reminder(cfg: Config, store: Store) -> bool:
     # odpovede typu "zaplatené 3"
     groups = store.payments_due(cfg.reminder_days_ahead)
     n_urgent = len(groups["overdue"]) + len(groups["today"])
-    subject = "💸 Platby a úlohy"
+    subject = "Romarium: platby a úlohy"
     if n_urgent:
-        subject = f"💸 Platby a úlohy — {n_urgent} súrne"
+        subject = f"Romarium: platby a úlohy — {n_urgent} súrne"
 
     send_email(cfg, subject, text, html, images)
     return True
