@@ -21,7 +21,8 @@ cat > /root/TMB/.env.master <<'EOF'
 ANTHROPIC_API_KEY=sk-ant-...
 CLAUDE_MODEL=claude-opus-4-8
 SMTP_HOST=mail.webhouse.sk
-SMTP_PORT=465
+# Hetzner blokuje odchádzajúce porty 25 a 465 — používajte 587 (STARTTLS)
+SMTP_PORT=587
 SMTP_USER=obchod@sorbxt.sk
 SMTP_PASSWORD=...
 WEBAPP_SECRET=DLHY-NAHODNY-RETAZEC-min-32-znakov
