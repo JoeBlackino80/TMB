@@ -1,6 +1,8 @@
-"""Príkazový riadok agenta: fetch / remind / run / list / paid / ignore / qr / import-bank."""
+"""Príkazový riadok agenta: fetch / remind / run / digest / list / ... / run-all."""
 
 import argparse
+import os
+import subprocess
 import sys
 
 from .config import Config
@@ -119,6 +121,41 @@ def cmd_digest(cfg: Config, store: Store, args: argparse.Namespace) -> None:
     print(f"Zhrnutie odoslané na {cfg.reminder_to}." if sent else "Nie je čo zhrnúť.")
 
 
+def cmd_run_all(args: argparse.Namespace) -> None:
+    """Spustí príkaz pre každého klienta v adresári clients/ (mini-SaaS režim).
+
+    Každý klient = podadresár s vlastným .env, accounts.ini a databázou.
+    Beží v samostatnom procese s cwd v adresári klienta, takže konfigurácie
+    aj dáta sú úplne oddelené. Pád jedného klienta nezastaví ostatných.
+    """
+    base = args.clients_dir
+    if not os.path.isdir(base):
+        raise SystemExit(
+            f"Adresár {base!r} neexistuje. Vytvorte clients/<meno-klienta>/ "
+            "s .env a accounts.ini (pozri README)."
+        )
+    client_dirs = sorted(
+        d for d in os.listdir(base)
+        if os.path.isfile(os.path.join(base, d, ".env"))
+    )
+    if not client_dirs:
+        raise SystemExit(f"V {base!r} nie je žiadny klient (podadresár s .env).")
+
+    command = [sys.executable, "-m", "bill_agent", args.subcommand]
+    if args.subcommand == "digest":
+        command += ["--days", str(args.days)]
+
+    failed = []
+    for name in client_dirs:
+        print(f"\n=== 👤 {name} ===")
+        result = subprocess.run(command, cwd=os.path.join(base, name))
+        if result.returncode != 0:
+            failed.append(name)
+    if failed:
+        print(f"\n⚠ Zlyhali klienti: {', '.join(failed)}", file=sys.stderr)
+        raise SystemExit(1)
+
+
 def cmd_list(cfg: Config, store: Store, args: argparse.Namespace) -> None:
     payments = store.pending_payments()
     print(f"Nezaplatené platby ({len(payments)}):")
@@ -230,6 +267,13 @@ def main(argv: list[str] | None = None) -> None:
     p_qr.add_argument("id", type=int)
     p_qr.add_argument("-o", "--output", default="", help="cesta k PNG súboru")
 
+    p_all = sub.add_parser("run-all", help="spustí príkaz pre všetkých klientov v clients/")
+    p_all.add_argument("subcommand", nargs="?", default="run",
+                       choices=["run", "fetch", "remind", "digest", "list"],
+                       help="čo spustiť pre každého klienta (predvolene run)")
+    p_all.add_argument("--days", type=int, default=1, help="obdobie pre digest")
+    p_all.add_argument("--clients-dir", default="clients", help="adresár s klientmi")
+
     p_bank = sub.add_parser("import-bank", help="spáruje platby s CSV výpisom z banky")
     p_bank.add_argument("file", help="cesta k CSV výpisu")
     p_bank.add_argument("--amount-col", required=True, help="názov stĺpca so sumou")
@@ -239,6 +283,12 @@ def main(argv: list[str] | None = None) -> None:
     p_bank.add_argument("--encoding", default="utf-8-sig", help="kódovanie súboru")
 
     args = parser.parse_args(argv)
+
+    # run-all si spúšťa podprocesy s vlastnými konfiguráciami — bez cfg/store
+    if args.command == "run-all":
+        cmd_run_all(args)
+        return
+
     cfg = Config()
     store = Store(cfg.db_path)
     try:

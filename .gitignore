@@ -9,3 +9,4 @@ venv/
 payment-*.png
 agent.log
 .pytest_cache/
+clients/

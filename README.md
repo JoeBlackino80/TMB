@@ -103,6 +103,38 @@ python -m bill_agent digest --days 1   # zhrnutie dňa
 python -m bill_agent digest --days 7   # zhrnutie týždňa
 ```
 
+## Viac klientov na jednom serveri (mini-SaaS)
+
+Agent vie na jednom stroji obsluhovať viacero úplne oddelených klientov.
+Každý klient = podadresár v `clients/` s vlastnou konfiguráciou a databázou:
+
+```
+clients/
+  firma-a/
+    .env            # SMTP, REMINDER_TO, ANTHROPIC_API_KEY, PDF_PASSWORDS klienta
+    accounts.ini    # schránky klienta
+    bill_agent.db   # vznikne automaticky
+  firma-b/
+    ...
+```
+
+Spustenie pre všetkých naraz (do cronu):
+
+```bash
+python -m bill_agent run-all              # fetch + remind pre každého klienta
+python -m bill_agent run-all digest       # zhrnutie dňa pre každého klienta
+python -m bill_agent run-all digest --days 7
+python -m bill_agent run-all list         # rýchla kontrola všetkých klientov
+```
+
+Konfigurácie aj dáta sú oddelené (každý klient beží vo vlastnom procese vo
+svojom adresári); pád jedného klienta nezastaví ostatných. Adresár `clients/`
+je v .gitignore — obsahuje prihlasovacie údaje.
+
+> Klientom zriaďte v ich pošte samostatné aplikačné heslá a majte ich písomný
+> súhlas so spracovaním pošty — čítate ich e-maily, ste v pozícii sprostredkovateľa
+> podľa GDPR.
+
 ## Automatické spúšťanie (cron)
 
 Každý pracovný deň o 7:30 skontroluje poštu a pošle upozornenie
