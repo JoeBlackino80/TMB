@@ -41,7 +41,7 @@ chmod 600 /root/TMB/.env.master
 ```bash
 cat > /etc/systemd/system/platby-web.service <<'EOF'
 [Unit]
-Description=Platby AI web
+Description=Romarium web
 After=network.target
 
 [Service]
@@ -58,13 +58,13 @@ systemctl enable --now platby-web
 
 ## 4. Doména + HTTPS (Caddy)
 
-Zaregistrujte doménu (napr. `platby-ai.sk`) a nasmerujte A záznam na IP servera.
+Nasmerujte A záznam domény (produkčne `romarium.com`) na IP servera.
 Caddy vybaví HTTPS certifikát sám:
 
 ```bash
 apt install -y caddy
 cat > /etc/caddy/Caddyfile <<'EOF'
-platby-ai.sk {
+romarium.com, www.romarium.com, platby.romarium.com {
     reverse_proxy 127.0.0.1:8000
 }
 EOF
@@ -78,12 +78,12 @@ systemctl restart caddy
 ## 5. Stripe (4,99 €/mes., 49 €/rok)
 
 1. Účet na [stripe.com](https://stripe.com) → aktivujte firmu (SORB XT s.r.o.)
-2. **Products** → New: „Platby AI" — cena 4,99 €/mesiac (recurring)
+2. **Products** → New: „Romarium" — cena 4,99 €/mesiac (recurring)
    a druhá cena 49 €/rok
 3. **Payment Links** → vytvorte link pre mesačnú aj ročnú cenu
    → URL vložte do `.env.master` (`STRIPE_LINK_MONTHLY/ YEARLY`)
 4. **Developers → Webhooks** → Add endpoint:
-   `https://platby-ai.sk/stripe/webhook`, events:
+   `https://romarium.com/stripe/webhook`, events:
    `checkout.session.completed`, `customer.subscription.deleted`
    → „Signing secret" (whsec_...) do `STRIPE_WEBHOOK_SECRET`
 5. `systemctl restart platby-web`

@@ -29,7 +29,7 @@ STRIPE_LINK_MONTHLY = os.environ.get("STRIPE_LINK_MONTHLY", "")
 STRIPE_LINK_YEARLY = os.environ.get("STRIPE_LINK_YEARLY", "")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 
-app = FastAPI(title="Platby AI")
+app = FastAPI(title="Romarium")
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
 
 
