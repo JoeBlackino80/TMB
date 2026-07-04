@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Nastavenia</h1>
+<div class="card">
+  <form method="post" action="/settings">
+    <label>Kam posielať prehľady a upozornenia</label>
+    <input type="email" name="reminder_to" value="{{ settings['REMINDER_TO'] }}" required>
+    <label>Heslá k chráneným PDF (výpisy z banky) — viac oddeľte čiarkou</label>
+    <input name="pdf_passwords" value="{{ settings['PDF_PASSWORDS'] }}"
+           placeholder="napr. rodné číslo alebo heslo z banky">
+    <p class="muted">Heslo sa použije len lokálne na odomknutie PDF výpisov,
+       aby agent vedel sám odškrtnúť zaplatené platby.</p>
+    <button type="submit">Uložiť</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Prehľad</h1>
+
+{% if not enabled %}
+<div class="error">Služba je pozastavená — skúšobná doba vypršala alebo predplatné
+skončilo. <a href="/billing">Aktivujte si predplatné</a>.</div>
+{% elif user['status'] == 'trial' %}
+<div class="card" style="background:#fffbeb;border-color:#fde68a">
+  Skúšobná doba do <b>{{ user['trial_until'] }}</b>.
+  <a href="/billing">Prejsť na predplatné</a> — 4,99 €/mes. alebo 49 €/rok.
+</div>
+{% endif %}
+
+{% if not mailboxes %}
+<div class="card">
+  <h2>Začnite pridaním schránky 📬</h2>
+  <p>Agent potrebuje prístup k schránke, kam vám chodia faktúry.
+     <a href="/mailboxes">Pridať schránku →</a></p>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Nezaplatené platby ({{ payments|length }})</h2>
+  {% if payments %}
+  <table>
+    <tr><th>č.</th><th>Dodávateľ</th><th>Suma</th><th>Splatnosť</th><th>VS</th></tr>
+    {% for p in payments %}
+    <tr>
+      <td>{{ p.id }}</td>
+      <td>{{ p.supplier or '—' }}{% if '⚠️' in p.note %} <span class="badge b-red">⚠ iný IBAN!</span>{% endif %}</td>
+      <td><b>{{ '%.2f'|format(p.amount) }} {{ p.currency }}</b></td>
+      <td>{{ p.due_date or '—' }}</td>
+      <td>{{ p.variable_symbol or '—' }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="muted">QR kódy na zaplatenie nájdete v e-mailových prehľadoch.
+     Odškrtnete odpoveďou „zaplatené č." alebo to spraví výpis z banky sám.</p>
+  {% else %}
+  <p class="muted">Žiadne evidované nezaplatené platby. 🎉</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Úlohy ({{ tasks|length }})</h2>
+  {% if tasks %}
+  <table>
+    {% for t in tasks %}
+    <tr><td>{{ t.id }}</td><td>{{ t.description }}</td>
+        <td>{{ ('do ' + t.due_date) if t.due_date else '' }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">Žiadne otvorené úlohy.</p>
+  {% endif %}
+</div>
+{% endblock %}

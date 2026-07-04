@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width:460px;margin:40px auto">
+  <h1>Vytvorte si účet</h1>
+  <p class="muted">AI asistent, ktorý stráži vaše faktúry, platby a termíny.
+     14 dní zadarmo, potom 4,99 €/mesiac alebo 49 €/rok.</p>
+  <form method="post" action="/register">
+    <label>Váš e-mail (sem budú chodiť prehľady)</label>
+    <input type="email" name="email" required>
+    <label>Heslo (min. 8 znakov)</label>
+    <input type="password" name="password" minlength="8" required>
+    <button type="submit">Registrovať sa</button>
+  </form>
+  <p class="muted">Máte účet? <a href="/login">Prihláste sa</a></p>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>E-mailové schránky</h1>
+
+<div class="card">
+  {% if mailboxes %}
+  <table>
+    <tr><th>Názov</th><th>Server</th><th>Prihlásenie</th><th></th></tr>
+    {% for m in mailboxes %}
+    <tr>
+      <td>{{ m.name }}</td><td>{{ m.host }}</td><td>{{ m.user }}</td>
+      <td><form method="post" action="/mailboxes/delete" style="margin:0">
+        <input type="hidden" name="name" value="{{ m.name }}">
+        <button class="small" onclick="return confirm('Odobrať schránku?')">Odobrať</button>
+      </form></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">Zatiaľ žiadna schránka — pridajte prvú nižšie.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Pridať schránku</h2>
+  <p class="muted">Prihlásenie sa hneď overí. Pre Gmail použite
+     <a href="https://myaccount.google.com/apppasswords" target="_blank">App Password</a>,
+     nie bežné heslo.</p>
+  <form method="post" action="/mailboxes">
+    <label>Názov (napr. „firma“)</label>
+    <input name="name" placeholder="mojafirma">
+    <label>IMAP server</label>
+    <input name="host" placeholder="imap.gmail.com / mail.webhouse.sk" required>
+    <label>Port</label>
+    <input name="port" type="number" value="993">
+    <label>Prihlasovací e-mail</label>
+    <input name="imap_user" type="email" required>
+    <label>Heslo schránky / App Password</label>
+    <input name="password" type="password" required>
+    <label>Zabezpečenie</label>
+    <select name="security">
+      <option value="ssl">SSL (bežné, port 993)</option>
+      <option value="starttls">STARTTLS (napr. Proton Bridge)</option>
+      <option value="plain">bez šifrovania</option>
+    </select>
+    <button type="submit">Overiť a pridať</button>
+  </form>
+</div>
+{% endblock %}

@@ -137,6 +137,7 @@ def cmd_run_all(args: argparse.Namespace) -> None:
     client_dirs = sorted(
         d for d in os.listdir(base)
         if os.path.isfile(os.path.join(base, d, ".env"))
+        and not os.path.exists(os.path.join(base, d, "DISABLED"))  # neplatič/trial vypršal
     )
     if not client_dirs:
         raise SystemExit(f"V {base!r} nie je žiadny klient (podadresár s .env).")

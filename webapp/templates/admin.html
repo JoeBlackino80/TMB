@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Admin — klienti</h1>
+<div class="card">
+<table>
+  <tr><th>ID</th><th>E-mail</th><th>Stav</th><th>Trial do</th><th>Schránky</th><th>Beží</th><th>Akcia</th></tr>
+  {% for c in clients %}
+  <tr>
+    <td>{{ c.id }}</td><td>{{ c.email }}</td>
+    <td>{{ c.status }}</td><td>{{ c.trial_until }}</td><td>{{ c.mailboxes }}</td>
+    <td>{% if c.enabled %}<span class="badge b-green">áno</span>{% else %}<span class="badge b-red">nie</span>{% endif %}</td>
+    <td>
+      <form method="post" action="/admin/set-status" style="display:inline">
+        <input type="hidden" name="user_id" value="{{ c.id }}">
+        <input type="hidden" name="status" value="active">
+        <button class="small">aktivovať</button>
+      </form>
+      <form method="post" action="/admin/set-status" style="display:inline">
+        <input type="hidden" name="user_id" value="{{ c.id }}">
+        <input type="hidden" name="status" value="expired">
+        <button class="small" style="background:#dc2626">vypnúť</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+</div>
+{% endblock %}

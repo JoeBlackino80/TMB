@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Predplatné</h1>
+<div class="card">
+  <p>Stav účtu:
+    {% if user['status'] == 'active' %}<span class="badge b-green">aktívne predplatné</span>
+    {% elif user['status'] == 'trial' %}<span class="badge b-amber">skúšobná doba do {{ user['trial_until'] }}</span>
+    {% else %}<span class="badge b-red">neaktívne</span>{% endif %}
+  </p>
+  {% if user['status'] != 'active' %}
+    {% if monthly or yearly %}
+      <p>Vyberte si plán — platba prebieha bezpečne cez Stripe:</p>
+      {% if monthly %}<p><a href="{{ monthly }}"><button>4,99 € / mesiac</button></a></p>{% endif %}
+      {% if yearly %}<p><a href="{{ yearly }}"><button>49 € / rok (2 mesiace zadarmo)</button></a></p>{% endif %}
+      <p class="muted">Po zaplatení sa účet aktivuje automaticky do minúty.</p>
+    {% else %}
+      <p class="muted">Platobná brána sa pripravuje — napíšte nám a aktivujeme vás ručne.</p>
+    {% endif %}
+  {% else %}
+    <p class="muted">Ďakujeme, že službu využívate! Zrušenie predplatného: cez odkaz
+       v potvrdení od Stripe, alebo nám napíšte.</p>
+  {% endif %}
+</div>
+{% endblock %}
