@@ -4,3 +4,7 @@
 
 # Voliteľne: druhá kontrola pošty poobede (bez upozornenia)
 0 15 * * 1-5  cd /cesta/k/TMB && .venv/bin/python -m bill_agent fetch >> agent.log 2>&1
+
+# Zhrnutie dňa o 17:30 (čo prišlo, čo treba riešiť) a zhrnutie týždňa v piatok
+30 17 * * 1-5 cd /cesta/k/TMB && .venv/bin/python -m bill_agent digest --days 1 >> agent.log 2>&1
+0 17 * * 5    cd /cesta/k/TMB && .venv/bin/python -m bill_agent digest --days 7 >> agent.log 2>&1

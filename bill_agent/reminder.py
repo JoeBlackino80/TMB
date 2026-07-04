@@ -132,22 +132,12 @@ def build_reminder(store: Store, days_ahead: int) -> tuple[str, str, list[tuple[
     return text, "".join(html_parts), images
 
 
-def send_reminder(cfg: Config, store: Store) -> bool:
-    """Pošle pripomienku e-mailom. Vráti True, ak bolo čo poslať."""
-    built = build_reminder(store, cfg.reminder_days_ahead)
-    if built is None:
-        return False
-    text, html, images = built
-
+def send_email(
+    cfg: Config, subject: str, text: str, html: str,
+    images: list[tuple[str, bytes]] | None = None,
+) -> None:
+    """Pošle HTML e-mail s voliteľnými vloženými obrázkami cez SMTP."""
     cfg.require("smtp_host", "smtp_user", "smtp_password", "reminder_to")
-
-    # predmet musí obsahovať SUBJECT_MARKER z commands.py, aby fungovali
-    # odpovede typu "zaplatené 3"
-    groups = store.payments_due(cfg.reminder_days_ahead)
-    n_urgent = len(groups["overdue"]) + len(groups["today"])
-    subject = "💸 Platby a úlohy"
-    if n_urgent:
-        subject = f"💸 Platby a úlohy — {n_urgent} súrne"
 
     msg = EmailMessage()
     msg["Subject"] = subject
@@ -155,7 +145,7 @@ def send_reminder(cfg: Config, store: Store) -> bool:
     msg["To"] = cfg.reminder_to
     msg.set_content(text)
     msg.add_alternative(html, subtype="html")
-    for cid, png in images:
+    for cid, png in images or []:
         msg.get_payload()[1].add_related(png, "image", "png", cid=cid)
 
     if cfg.smtp_port == 465:
@@ -168,4 +158,22 @@ def send_reminder(cfg: Config, store: Store) -> bool:
         server.send_message(msg)
     finally:
         server.quit()
+
+
+def send_reminder(cfg: Config, store: Store) -> bool:
+    """Pošle pripomienku e-mailom. Vráti True, ak bolo čo poslať."""
+    built = build_reminder(store, cfg.reminder_days_ahead)
+    if built is None:
+        return False
+    text, html, images = built
+
+    # predmet musí obsahovať SUBJECT_MARKER z commands.py, aby fungovali
+    # odpovede typu "zaplatené 3"
+    groups = store.payments_due(cfg.reminder_days_ahead)
+    n_urgent = len(groups["overdue"]) + len(groups["today"])
+    subject = "💸 Platby a úlohy"
+    if n_urgent:
+        subject = f"💸 Platby a úlohy — {n_urgent} súrne"
+
+    send_email(cfg, subject, text, html, images)
     return True

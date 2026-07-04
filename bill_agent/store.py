@@ -42,7 +42,27 @@ CREATE TABLE IF NOT EXISTS processed_emails (
     message_id TEXT PRIMARY KEY,
     processed_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS email_log (
+    message_id TEXT PRIMARY KEY,
+    account TEXT NOT NULL DEFAULT '',
+    sender TEXT NOT NULL DEFAULT '',
+    subject TEXT NOT NULL DEFAULT '',
+    summary TEXT NOT NULL DEFAULT '',
+    category TEXT NOT NULL DEFAULT 'ine',
+    received_at TEXT NOT NULL DEFAULT ''
+);
 """
+
+
+@dataclass
+class EmailLogEntry:
+    sender: str
+    subject: str
+    summary: str
+    category: str
+    account: str
+    received_at: str
 
 
 @dataclass
@@ -329,6 +349,31 @@ class Store:
         )
         self.conn.commit()
         return cur.rowcount > 0
+
+    # -- denník e-mailov (pre zhrnutia dňa/týždňa) ----------------------------
+
+    def log_email(
+        self, *, message_id: str, account: str, sender: str, subject: str,
+        summary: str, category: str,
+    ) -> None:
+        self.conn.execute(
+            "INSERT OR IGNORE INTO email_log (message_id, account, sender, subject, "
+            "summary, category, received_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (message_id, account, sender, subject, summary, category,
+             datetime.now().isoformat(timespec="seconds")),
+        )
+        self.conn.commit()
+
+    def emails_since(self, days: int) -> list[EmailLogEntry]:
+        cutoff = (datetime.now() - timedelta(days=days)).isoformat(timespec="seconds")
+        rows = self.conn.execute(
+            "SELECT * FROM email_log WHERE received_at >= ? ORDER BY received_at",
+            (cutoff,),
+        ).fetchall()
+        return [EmailLogEntry(
+            sender=r["sender"], subject=r["subject"], summary=r["summary"],
+            category=r["category"], account=r["account"], received_at=r["received_at"],
+        ) for r in rows]
 
     def set_task_status(self, task_id: int, status: str) -> bool:
         cur = self.conn.execute(

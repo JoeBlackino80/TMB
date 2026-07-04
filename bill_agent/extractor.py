@@ -35,8 +35,12 @@ extrahuješ z nich:
    automatické odškrtnutie už zaplatených záväzkov. Prijaté (kreditné) platby
    a poplatky banky neuvádzaj.
 
+4. SÚHRN (summary + category): 1–2 vety po slovensky, o čom e-mail je a či
+   vyžaduje pozornosť. Kategória: faktura | banka | objednavka | uloha |
+   marketing | ine.
+
 Ak e-mail neobsahuje nič relevantné (newsletter, spam, bežná konverzácia),
-vráť prázdne zoznamy."""
+vráť prázdne zoznamy (summary a category vyplň vždy)."""
 
 OUTPUT_SCHEMA = {
     "type": "json_schema",
@@ -92,11 +96,18 @@ OUTPUT_SCHEMA = {
                     "additionalProperties": False,
                 },
             },
+            "summary": {"type": "string", "description": "1-2 vety po slovensky"},
+            "category": {
+                "type": "string",
+                "enum": ["faktura", "banka", "objednavka", "uloha", "marketing", "ine"],
+            },
         },
-        "required": ["payments", "tasks", "paid_transactions"],
+        "required": ["payments", "tasks", "paid_transactions", "summary", "category"],
         "additionalProperties": False,
     },
 }
+
+CATEGORIES = ("faktura", "banka", "objednavka", "uloha", "marketing", "ine")
 
 
 @dataclass
@@ -132,6 +143,8 @@ class Extraction:
     payments: list[ExtractedPayment] = field(default_factory=list)
     tasks: list[ExtractedTask] = field(default_factory=list)
     paid_transactions: list[ExtractedPaid] = field(default_factory=list)
+    summary: str = ""
+    category: str = "ine"
 
 
 def _maybe_decrypt_pdf(data: bytes, passwords: list[str]) -> Optional[bytes]:
@@ -301,4 +314,10 @@ def parse_extraction(data: dict) -> Extraction:
             date=tr.get("date", "").strip(),
             description=tr.get("description", "").strip(),
         ))
-    return Extraction(payments=payments, tasks=tasks, paid_transactions=paid)
+    category = data.get("category", "ine")
+    if category not in CATEGORIES:
+        category = "ine"
+    return Extraction(
+        payments=payments, tasks=tasks, paid_transactions=paid,
+        summary=data.get("summary", "").strip(), category=category,
+    )

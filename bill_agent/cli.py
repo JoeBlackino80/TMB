@@ -70,6 +70,11 @@ def cmd_fetch(cfg: Config, store: Store, args: argparse.Namespace) -> None:
                 )
                 n_tasks += 1
                 print(f"  📋 [{tid}] {t.description} (do {t.due_date or '—'})")
+            store.log_email(
+                message_id=mail.message_id, account=account.name,
+                sender=mail.sender, subject=mail.subject,
+                summary=result.summary, category=result.category,
+            )
             # z výpisov a potvrdení o platbe automaticky odškrtávame zaplatené
             for tr in result.paid_transactions:
                 match = store.match_bank_transaction(
@@ -101,6 +106,17 @@ def cmd_remind(cfg: Config, store: Store, args: argparse.Namespace) -> None:
 def cmd_run(cfg: Config, store: Store, args: argparse.Namespace) -> None:
     cmd_fetch(cfg, store, args)
     cmd_remind(cfg, store, args)
+
+
+def cmd_digest(cfg: Config, store: Store, args: argparse.Namespace) -> None:
+    from . import digest
+
+    if getattr(args, "dry_run", False):
+        built = digest.build_digest(cfg, store, args.days)
+        print(built[1] if built else "Nie je čo zhrnúť.")
+        return
+    sent = digest.send_digest(cfg, store, args.days)
+    print(f"Zhrnutie odoslané na {cfg.reminder_to}." if sent else "Nie je čo zhrnúť.")
 
 
 def cmd_list(cfg: Config, store: Store, args: argparse.Namespace) -> None:
@@ -195,6 +211,10 @@ def main(argv: list[str] | None = None) -> None:
     p_run = sub.add_parser("run", help="fetch + remind")
     p_run.add_argument("--dry-run", action="store_true", help="pripomienku len vypíše")
 
+    p_digest = sub.add_parser("digest", help="pošle zhrnutie prijatej pošty (deň/týždeň)")
+    p_digest.add_argument("--days", type=int, default=1, help="obdobie v dňoch (1 = deň, 7 = týždeň)")
+    p_digest.add_argument("--dry-run", action="store_true", help="len vypíše, neposiela")
+
     sub.add_parser("list", help="prehľad nezaplatených platieb a úloh")
 
     p_paid = sub.add_parser("paid", help="označí platbu ako zaplatenú")
@@ -226,6 +246,7 @@ def main(argv: list[str] | None = None) -> None:
             "fetch": cmd_fetch,
             "remind": cmd_remind,
             "run": cmd_run,
+            "digest": cmd_digest,
             "list": cmd_list,
             "paid": cmd_paid,
             "ignore": cmd_ignore,

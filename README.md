@@ -27,7 +27,11 @@ Okrem platieb si všíma aj úlohy a termíny spomenuté v e-mailoch a pripomeni
    o vykonanej platbe.
 5. **`import-bank`** — načíta výpis z banky (CSV) a automaticky spáruje zaplatené platby
    podľa variabilného symbolu a sumy → označí ich ako zaplatené, takže vám ich už nepripomína.
-6. **`run`** — `fetch` + `remind` v jednom (ideálne do cronu).
+6. **`digest`** — pošle **zhrnutie dňa** (`--days 1`) alebo **týždňa** (`--days 7`):
+   AI naratív o prijatej pošte + rozpis podľa kategórií (faktúry, banka, objednávky,
+   úlohy, marketing) + stav platieb. Súhrny sa ukladajú už pri `fetch`, takže zhrnutie
+   stojí len jedno AI volanie.
+7. **`run`** — `fetch` + `remind` v jednom (ideálne do cronu).
 
 Ďalšie príkazy: `list` (prehľad platieb a úloh), `paid <id>` / `ignore <id>` (ručné označenie),
 `qr <id>` (uloží QR kód platby do PNG).
@@ -95,6 +99,8 @@ python -m bill_agent list         # prehľad evidovaných platieb a úloh
 python -m bill_agent paid 3       # označí platbu č. 3 ako zaplatenú
 python -m bill_agent qr 3         # uloží QR kód platby č. 3 do payment-3.png
 python -m bill_agent import-bank vypis.csv --vs-col VS --amount-col Suma
+python -m bill_agent digest --days 1   # zhrnutie dňa
+python -m bill_agent digest --days 7   # zhrnutie týždňa
 ```
 
 ## Automatické spúšťanie (cron)
