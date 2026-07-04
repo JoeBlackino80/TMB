@@ -1,5 +1,7 @@
 """Zostavenie a odoslanie pripomienkového e-mailu s PAY by square QR kódmi."""
 
+import hashlib
+import hmac
 import smtplib
 from datetime import date
 from email.message import EmailMessage
@@ -55,7 +57,48 @@ def _payment_qr(p: Payment) -> bytes | None:
         return None
 
 
-def build_reminder(store: Store, days_ahead: int) -> tuple[str, str, list[tuple[str, bytes]]] | None:
+def action_sig(secret: str, client: str, kind: str, item_id: int, action: str) -> str:
+    """HMAC podpis jednoklikového akčného odkazu (zdieľaný s webapp)."""
+    payload = f"{client}|{kind}|{item_id}|{action}"
+    return hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()[:40]
+
+
+def _action_url(cfg: Config | None, kind: str, item_id: int, action: str) -> str:
+    """URL akčného odkazu, alebo '' ak odkazy nie sú nakonfigurované."""
+    if not cfg or not cfg.action_base_url or not cfg.action_secret or not cfg.client_slug:
+        return ""
+    sig = action_sig(cfg.action_secret, cfg.client_slug, kind, item_id, action)
+    return (f"{cfg.action_base_url}/a?c={cfg.client_slug}&k={kind}"
+            f"&i={item_id}&do={action}&s={sig}")
+
+
+_BTN = ("display:inline-block;padding:7px 14px;border-radius:8px;"
+        "text-decoration:none;font-size:13px;font-weight:bold;margin:8px 8px 0 0;")
+
+
+def _action_buttons(cfg: Config | None, kind: str, item_id: int) -> str:
+    """HTML tlačidlá pod položkou; '' ak odkazy nie sú nakonfigurované."""
+    if kind == "p":
+        paid = _action_url(cfg, "p", item_id, "paid")
+        if not paid:
+            return ""
+        snooze = _action_url(cfg, "p", item_id, "snooze")
+        return (
+            f"<br><a href='{paid}' style='{_BTN}background:#e5f5ec;color:#0b7a51;"
+            "border:1px solid #b7dfc9'>&#10003; Označiť ako zaplatené</a>"
+            f"<a href='{snooze}' style='{_BTN}background:#f6f6f2;color:#7c5c12;"
+            "border:1px solid #e3ddc8'>Odložiť o 3 dni</a>"
+        )
+    done = _action_url(cfg, "t", item_id, "done")
+    if not done:
+        return ""
+    return (f"<br><a href='{done}' style='{_BTN}background:#e5f5ec;color:#0b7a51;"
+            "border:1px solid #b7dfc9'>&#10003; Hotovo</a>")
+
+
+def build_reminder(
+    store: Store, days_ahead: int, cfg: Config | None = None,
+) -> tuple[str, str, list[tuple[str, bytes]]] | None:
     """Vráti (text, html, [(cid, png)]) alebo None, ak nie je čo pripomenúť."""
     groups = store.payments_due(days_ahead)
     tasks = store.active_tasks()
@@ -107,9 +150,10 @@ def build_reminder(store: Store, days_ahead: int) -> tuple[str, str, list[tuple[
                     "alt='PAY by square QR' style='margin-top:8px'>"
                     "<br><small>Naskenujte v bankovej appke a platbu potvrďte.</small>"
                 )
+            html_parts.append(_action_buttons(cfg, "p", p.id))
             html_parts.append(
-                f"<br><small>Po zaplatení odpovedzte na tento e-mail: "
-                f"<b>zaplatené {p.id}</b></small>"
+                f"<br><small style='color:#888'>alebo odpovedzte na tento "
+                f"e-mail: <b>zaplatené {p.id}</b></small>"
                 "</div>"
             )
 
@@ -121,7 +165,8 @@ def build_reminder(store: Store, days_ahead: int) -> tuple[str, str, list[tuple[
             text_lines.append(f"  [{t.id}] {t.description}{due}")
             html_parts.append(
                 f"<li><b>č. {t.id}</b> — {escape(t.description)}{escape(due)}"
-                f" &nbsp;<small>(hotovo? odpovedzte: <b>hotovo {t.id}</b>)</small></li>"
+                f" &nbsp;<small>(hotovo? odpovedzte: <b>hotovo {t.id}</b>)</small>"
+                f"{_action_buttons(cfg, 't', t.id)}</li>"
             )
         html_parts.append("</ul>")
 
@@ -171,7 +216,7 @@ def send_email(
 
 def send_reminder(cfg: Config, store: Store) -> bool:
     """Pošle pripomienku e-mailom. Vráti True, ak bolo čo poslať."""
-    built = build_reminder(store, cfg.reminder_days_ahead)
+    built = build_reminder(store, cfg.reminder_days_ahead, cfg)
     if built is None:
         return False
     text, html, images = built

@@ -152,6 +152,16 @@ def cmd_run_all(args: argparse.Namespace) -> None:
     env = dict(os.environ)
     env["PYTHONPATH"] = package_root + os.pathsep + env.get("PYTHONPATH", "")
 
+    # zdieľané hodnoty pre všetkých klientov (ACTION_BASE_URL, WEBAPP_SECRET...)
+    # — cron ich nemá v prostredí, tak ich pridáme zo .env.master
+    master_env = os.path.join(package_root, ".env.master")
+    if os.path.isfile(master_env):
+        for line in open(master_env, encoding="utf-8"):
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, _, value = line.partition("=")
+                env.setdefault(key.strip(), value.strip())
+
     failed = []
     for name in client_dirs:
         print(f"\n=== 👤 {name} ===")

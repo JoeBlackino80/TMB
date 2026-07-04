@@ -57,6 +57,18 @@ class Config:
     reminder_days_ahead: int = field(default_factory=lambda: _int_env("REMINDER_DAYS_AHEAD", 7))
     email_lookback_days: int = field(default_factory=lambda: _int_env("EMAIL_LOOKBACK_DAYS", 7))
 
+    # jednoklikové akčné odkazy v e-mailoch (Označiť ako zaplatené / Odložiť).
+    # ACTION_BASE_URL = adresa webu (https://romarium.com); tajomstvo na podpis
+    # odkazov je ACTION_SECRET, s fallbackom na WEBAPP_SECRET zo .env.master.
+    action_base_url: str = field(default_factory=lambda: os.environ.get("ACTION_BASE_URL", "").rstrip("/"))
+    action_secret: str = field(default_factory=lambda: (
+        os.environ.get("ACTION_SECRET", "") or os.environ.get("WEBAPP_SECRET", "")
+    ))
+    # identifikátor klienta pre akčné odkazy — v run-all režime názov adresára
+    client_slug: str = field(default_factory=lambda: (
+        os.environ.get("CLIENT_SLUG", "") or os.path.basename(os.getcwd())
+    ))
+
     db_path: str = field(default_factory=lambda: os.environ.get("DB_PATH", "bill_agent.db"))
     accounts_file: str = field(default_factory=lambda: os.environ.get("ACCOUNTS_FILE", "accounts.ini"))
     # heslá na odomknutie chránených PDF (bankové výpisy, poistky...) — skúšajú sa postupne

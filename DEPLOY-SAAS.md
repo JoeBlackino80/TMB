@@ -27,6 +27,8 @@ SMTP_USER=obchod@sorbxt.sk
 SMTP_PASSWORD=...
 WEBAPP_SECRET=DLHY-NAHODNY-RETAZEC-min-32-znakov
 ADMIN_EMAIL=obchod@sorbxt.sk
+# adresa webu — zapne jednoklikové tlačidlá (Zaplatené / Odložiť) v e-mailoch
+ACTION_BASE_URL=https://romarium.com
 STRIPE_LINK_MONTHLY=
 STRIPE_LINK_YEARLY=
 STRIPE_WEBHOOK_SECRET=

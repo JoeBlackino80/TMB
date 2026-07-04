@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Potvrdenie — Romarium{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px;margin:48px auto;text-align:center">
+  {% if invalid %}
+    <h1 style="margin-top:0">Neplatný odkaz</h1>
+    <p class="muted">Odkaz je poškodený alebo neúplný. Otvorte ho znova
+       z e-mailu, prípadne položku vybavte po prihlásení v prehľade.</p>
+    <a class="btn" href="/login">Prihlásiť sa</a>
+  {% elif done %}
+    {% if ok %}
+      <h1 style="margin-top:0">Vybavené</h1>
+      <p class="muted">Podarilo sa {{ label }}.</p>
+    {% else %}
+      <h1 style="margin-top:0">Už vybavené</h1>
+      <p class="muted">Položka medzičasom zmenila stav — pravdepodobne ste ju
+         už odškrtli, alebo ju spároval výpis z banky.</p>
+    {% endif %}
+    <a class="btn" href="/">Prejsť na prehľad</a>
+  {% else %}
+    <h1 style="margin-top:0">Potvrdenie</h1>
+    <p>Naozaj {{ label }}?</p>
+    {% if item %}<p><b>{{ item }}</b></p>{% endif %}
+    <form method="post" action="/a">
+      <input type="hidden" name="c" value="{{ c }}">
+      <input type="hidden" name="k" value="{{ k }}">
+      <input type="hidden" name="i" value="{{ i }}">
+      <input type="hidden" name="do" value="{{ do }}">
+      <input type="hidden" name="s" value="{{ s }}">
+      <button type="submit">Áno, potvrdiť</button>
+    </form>
+    <p class="muted" style="margin-top:14px">Ak ste odkaz neotvorili vy,
+       stránku jednoducho zavrite — nič sa nestane.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -19,12 +19,14 @@ from fastapi.responses import (HTMLResponse, PlainTextResponse,
                                RedirectResponse, Response)
 from fastapi.templating import Jinja2Templates
 
+from bill_agent.reminder import action_sig
 from bill_agent.store import Store
 
 from . import clientfs
 from .auth import Users, verify_password
 
 SECRET = os.environ.get("WEBAPP_SECRET", "")
+ACTION_SECRET = os.environ.get("ACTION_SECRET", "") or SECRET
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "").lower()
 STRIPE_LINK_MONTHLY = os.environ.get("STRIPE_LINK_MONTHLY", "")
 STRIPE_LINK_YEARLY = os.environ.get("STRIPE_LINK_YEARLY", "")
@@ -180,6 +182,75 @@ def task_done(request: Request, user=Depends(current_user),
         finally:
             store.close()
     return _redirect("/")
+
+
+# -- jednoklikové akcie z e-mailu -------------------------------------------------
+
+_ACTION_LABELS = {
+    ("p", "paid"): "označiť platbu ako zaplatenú",
+    ("p", "snooze"): "odložiť pripomienku o 3 dni",
+    ("t", "done"): "označiť úlohu ako hotovú",
+}
+
+
+def _valid_action(c: str, k: str, i: int, do: str, s: str) -> bool:
+    if (k, do) not in _ACTION_LABELS or not ACTION_SECRET:
+        return False
+    expected = action_sig(ACTION_SECRET, c, k, i, do)
+    return hmac.compare_digest(expected, s)
+
+
+def _action_item_text(c: str, k: str, i: int) -> str:
+    """Popis položky pre potvrdzovaciu stránku ('' ak sa nedá načítať)."""
+    db = os.path.join(clientfs.client_path(c), "bill_agent.db")
+    if not os.path.exists(db):
+        return ""
+    store = Store(db)
+    try:
+        if k == "p":
+            p = store.get_payment(i)
+            if p:
+                amount = f"{p.amount:.2f}".replace(".", ",")
+                return f"{p.supplier or 'platba'} — {amount} {p.currency}"
+        else:
+            for t in store.pending_tasks():
+                if t.id == i:
+                    return t.description
+    finally:
+        store.close()
+    return ""
+
+
+@app.get("/a", response_class=HTMLResponse)
+def action_confirm(request: Request, c: str = "", k: str = "", i: int = 0,
+                   do: str = "", s: str = ""):
+    if not _valid_action(c, k, i, do, s):
+        return _render(request, "action.html", invalid=True)
+    return _render(request, "action.html",
+                   label=_ACTION_LABELS[(k, do)], item=_action_item_text(c, k, i),
+                   c=c, k=k, i=i, do=do, s=s)
+
+
+@app.post("/a", response_class=HTMLResponse)
+def action_execute(request: Request, c: str = Form(...), k: str = Form(...),
+                   i: int = Form(...), do: str = Form(...), s: str = Form(...)):
+    if not _valid_action(c, k, i, do, s):
+        return _render(request, "action.html", invalid=True)
+    db = os.path.join(clientfs.client_path(c), "bill_agent.db")
+    ok = False
+    if os.path.exists(db):
+        store = Store(db)
+        try:
+            if k == "p" and do == "paid":
+                ok = store.set_payment_status(i, "paid")
+            elif k == "p" and do == "snooze":
+                ok = store.snooze_payment(i, 3)
+            elif k == "t" and do == "done":
+                ok = store.set_task_status(i, "done")
+        finally:
+            store.close()
+    return _render(request, "action.html", done=True, ok=ok,
+                   label=_ACTION_LABELS[(k, do)])
 
 
 # -- SEO ------------------------------------------------------------------------

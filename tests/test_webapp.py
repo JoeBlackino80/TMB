@@ -13,6 +13,7 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setattr("webapp.clientfs.CLIENTS_DIR", str(tmp_path / "clients"))
     import webapp.app as app_module
     monkeypatch.setattr(app_module, "SECRET", "test-secret")
+    monkeypatch.setattr(app_module, "ACTION_SECRET", "test-secret")
     monkeypatch.setattr(app_module, "ADMIN_EMAIL", "admin@test.sk")
     return TestClient(app_module.app, follow_redirects=False)
 
@@ -97,6 +98,51 @@ def test_admin_only_for_admin(client, tmp_path):
     s2 = client.post("/login", data={"email": "admin@test.sk", "password": "tajneheslo"}).cookies["session"]
     r = client.get("/admin", cookies={"session": s2})
     assert r.status_code == 200 and "obycajny@x.sk" in r.text
+
+
+def test_email_action_links(client, tmp_path):
+    """Jednoklikové odkazy z e-mailu: podpis, potvrdenie, vykonanie."""
+    from types import SimpleNamespace
+
+    from bill_agent import reminder
+    from bill_agent.store import Store
+
+    client.post("/register", data={"email": "klik@x.sk", "password": "tajneheslo"})
+    db = tmp_path / "clients" / "klik-x-sk" / "bill_agent.db"
+    store = Store(str(db))
+    pid = store.add_payment(supplier="Energo", amount=9.9, currency="EUR",
+                            iban="SK1", variable_symbol="7", due_date=None)
+    store.close()
+
+    # e-mail obsahuje tlačidlá s podpísaným odkazom
+    cfg = SimpleNamespace(action_base_url="http://test", action_secret="test-secret",
+                          client_slug="klik-x-sk")
+    store = Store(str(db))
+    _, html, _ = reminder.build_reminder(store, 7, cfg)
+    store.close()
+    assert "Označiť ako zaplatené" in html and "/a?c=klik-x-sk" in html
+
+    sig = reminder.action_sig("test-secret", "klik-x-sk", "p", pid, "paid")
+    url = f"/a?c=klik-x-sk&k=p&i={pid}&do=paid&s={sig}"
+
+    # GET zobrazí potvrdenie (nič nevykoná — ochrana pred e-mailovými skenermi)
+    r = client.get(url)
+    assert r.status_code == 200 and "Potvrdenie" in r.text
+    store = Store(str(db))
+    assert len(store.pending_payments()) == 1
+    store.close()
+
+    # POST vykoná akciu
+    r = client.post("/a", data={"c": "klik-x-sk", "k": "p", "i": pid,
+                                "do": "paid", "s": sig})
+    assert r.status_code == 200 and "Vybavené" in r.text
+    store = Store(str(db))
+    assert store.pending_payments() == []
+    store.close()
+
+    # zlý podpis sa odmietne
+    r = client.get(f"/a?c=klik-x-sk&k=p&i={pid}&do=paid&s=deadbeef")
+    assert "Neplatný odkaz" in r.text
 
 
 def test_expire_disables_expired_trial(tmp_path, monkeypatch):
