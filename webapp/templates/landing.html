@@ -15,10 +15,10 @@
 <meta property="og:locale" content="sk_SK">
 <meta name="twitter:card" content="summary">
 <meta name="robots" content="index, follow">
-<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%2334d399'/><stop offset='1' stop-color='%230d9463'/></linearGradient></defs><rect width='32' height='32' rx='10' fill='%23071b12'/><path d='M9 16.5l5 5 9-11' stroke='url(%23g)' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230a0c10'/><path d='M9 16.5l5 5 9-11' stroke='%2310b981' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -41,430 +41,424 @@
 </script>
 <style>
   :root {
-    --bg: #060f0a;
-    --bg2: #0a1811;
-    --panel: #0e2015;
-    --line: rgba(148, 199, 168, .14);
-    --ink: #eef6f0;
-    --dim: #9db8a8;
-    --mint: #34d399;
-    --mint-deep: #0d9463;
-    --gold: #e8c876;
-    --serif: "Fraunces", Georgia, serif;
+    --bg: #fcfcfd; --ink: #0d1117; --muted: #61697a; --faint: #98a1b2;
+    --line: #e7e9ee; --line2: #eff1f5;
+    --accent: #059669; --accent-soft: #e8f7f0;
+    --black: #0a0c10; --red: #d92d20; --red-soft: #fef0ef;
+    --amber: #b54708; --amber-soft: #fdf4e3;
     --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
   * { box-sizing: border-box; margin: 0; }
   html { scroll-behavior: smooth; }
-  body {
-    font-family: var(--sans); background: var(--bg); color: var(--ink);
-    line-height: 1.6; overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-  }
-  body::before { /* jemný šum */
-    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
-    opacity: .35; mix-blend-mode: overlay;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.05 0'/></filter><rect width='120' height='120' filter='url(%23n)'/></svg>");
-  }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--ink);
+    line-height: 1.6; -webkit-font-smoothing: antialiased; font-size: 16px; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
   a { color: inherit; }
 
   /* ---------- nav ---------- */
-  nav.top {
-    position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
-    width: min(1120px, calc(100% - 28px)); z-index: 50;
-    display: flex; align-items: center; gap: 26px;
-    padding: 10px 18px; border-radius: 18px;
-    background: rgba(10, 24, 17, .72); backdrop-filter: blur(14px);
-    border: 1px solid var(--line);
-  }
-  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-  .brand svg { display: block; }
-  .brand b { font-family: var(--serif); font-weight: 600; font-size: 21px;
-    letter-spacing: .3px; }
-  nav.top .links { margin-left: auto; display: flex; align-items: center; gap: 22px; }
-  nav.top .links a { text-decoration: none; color: var(--dim); font-size: 14px;
-    font-weight: 600; transition: color .2s; }
-  nav.top .links a:hover { color: var(--ink); }
-  .btn {
-    display: inline-block; text-decoration: none; font-weight: 700;
-    font-size: 15px; padding: 12px 22px; border-radius: 14px;
-    background: linear-gradient(135deg, var(--mint), var(--mint-deep));
-    color: #04150c; transition: transform .18s, box-shadow .18s;
-    box-shadow: 0 4px 24px rgba(52, 211, 153, .25);
-  }
-  .btn:hover { transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(52, 211, 153, .4); }
-  .btn.line { background: transparent; color: var(--ink);
-    border: 1px solid rgba(148, 199, 168, .35); box-shadow: none; }
-  .btn.line:hover { border-color: var(--mint); box-shadow: none; }
-  .btn.big { padding: 15px 30px; font-size: 16px; }
-  nav.top .btn { padding: 9px 17px; font-size: 14px; }
+  header.nav { position: sticky; top: 0; z-index: 50;
+    background: rgba(252, 252, 253, .8); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line2); }
+  .navrow { display: flex; align-items: center; gap: 28px; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 9px; text-decoration: none;
+    font-weight: 700; font-size: 17px; letter-spacing: -.2px; }
+  .navlinks { display: flex; gap: 24px; margin-left: 8px; }
+  .navlinks a { text-decoration: none; color: var(--muted); font-size: 14px;
+    font-weight: 500; transition: color .15s; }
+  .navlinks a:hover { color: var(--ink); }
+  .navcta { margin-left: auto; display: flex; align-items: center; gap: 18px; }
+  .navcta .signin { text-decoration: none; color: var(--muted); font-size: 14px;
+    font-weight: 500; }
+  .navcta .signin:hover { color: var(--ink); }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; text-decoration: none; font-weight: 600; font-size: 15px;
+    padding: 11px 22px; border-radius: 10px; background: var(--black);
+    color: #fff; border: 1px solid var(--black);
+    transition: opacity .15s, transform .15s; }
+  .btn:hover { opacity: .85; }
+  .btn.ghost { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+  .btn.ghost:hover { opacity: 1; border-color: #c9cedb; background: #f8f9fb; }
+  .btn.sm { padding: 8px 15px; font-size: 13.5px; border-radius: 8px; }
+  .btn.lg { padding: 13px 26px; font-size: 15.5px; }
 
   /* ---------- hero ---------- */
-  .hero { position: relative; padding: 150px 0 90px; }
-  .glow { position: absolute; border-radius: 50%; filter: blur(90px);
-    pointer-events: none; }
-  .glow.a { width: 560px; height: 560px; top: -180px; right: -120px;
-    background: radial-gradient(circle, rgba(13, 148, 99, .35), transparent 65%); }
-  .glow.b { width: 420px; height: 420px; bottom: -160px; left: -140px;
-    background: radial-gradient(circle, rgba(232, 200, 118, .12), transparent 65%); }
-  .hero .wrap { display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px;
-    align-items: center; }
-  .eyebrow { display: inline-flex; align-items: center; gap: 8px;
-    font-size: 13px; font-weight: 700; letter-spacing: 1.5px;
-    text-transform: uppercase; color: var(--mint); margin-bottom: 22px; }
-  .eyebrow::before { content: ""; width: 26px; height: 1px; background: var(--mint); }
-  h1 {
-    font-family: var(--serif); font-weight: 420; font-size: clamp(40px, 5.6vw, 66px);
-    line-height: 1.04; letter-spacing: -1px; margin-bottom: 24px;
-  }
-  h1 em { font-style: italic; font-weight: 480;
-    background: linear-gradient(100deg, var(--mint) 10%, var(--gold) 90%);
-    -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .lead { font-size: 18px; color: var(--dim); max-width: 30em; margin-bottom: 34px; }
-  .cta-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
-  .hero-meta { display: flex; gap: 26px; margin-top: 38px; flex-wrap: wrap; }
-  .hero-meta div { font-size: 13.5px; color: var(--dim); }
-  .hero-meta b { display: block; font-family: var(--serif); font-size: 21px;
-    color: var(--ink); font-weight: 550; }
+  .hero { text-align: center; padding: 88px 0 0; position: relative; }
+  .pill { display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid var(--line); background: #fff; border-radius: 99px;
+    padding: 5px 14px; font-size: 13px; font-weight: 500; color: var(--muted);
+    margin-bottom: 26px; }
+  .pill .dot { width: 7px; height: 7px; border-radius: 99px; background: var(--accent); }
+  h1 { font-size: clamp(38px, 5.4vw, 62px); font-weight: 700;
+    letter-spacing: -2.2px; line-height: 1.05; max-width: 17em; margin: 0 auto 20px; }
+  h1 .acc { color: var(--accent); }
+  .lead { font-size: 18px; color: var(--muted); max-width: 36em;
+    margin: 0 auto 32px; }
+  .ctarow { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .subnote { margin-top: 16px; font-size: 13.5px; color: var(--faint); }
 
-  /* plávajúce karty */
-  .stage { position: relative; min-height: 540px; }
-  .fcard {
-    position: absolute; border-radius: 20px; padding: 20px 22px;
-    background: linear-gradient(165deg, rgba(20, 42, 29, .92), rgba(10, 24, 17, .96));
-    border: 1px solid var(--line); backdrop-filter: blur(6px);
-    box-shadow: 0 30px 60px rgba(0, 0, 0, .45);
-  }
-  .fcard .t { font-size: 11.5px; letter-spacing: 1.2px; text-transform: uppercase;
-    color: var(--dim); font-weight: 700; margin-bottom: 10px; }
-  .fcard.pay { top: 0; left: 6%; width: 300px; z-index: 3;
-    animation: float 7s ease-in-out infinite; }
-  .fcard.pay .sup { font-weight: 700; font-size: 15.5px; }
-  .fcard.pay .amt { font-family: var(--serif); font-size: 34px; font-weight: 550;
-    margin: 6px 0 2px; letter-spacing: -.5px; }
-  .fcard.pay .due { color: #ff9d8f; font-size: 13px; font-weight: 600; }
-  .fcard.pay .qr { float: right; margin: 4px 0 0 12px;
-    background: #fff; border-radius: 10px; padding: 7px; }
-  .fcard.bank { top: 230px; right: 0; width: 290px; z-index: 1;
-    animation: float 8s ease-in-out -2.5s infinite; }
-  .fcard.bank .ok { color: var(--mint); font-weight: 700; font-size: 14.5px; }
-  .fcard.bank .row { display: flex; justify-content: space-between;
-    font-size: 13px; color: var(--dim); padding: 5px 0;
-    border-bottom: 1px dashed rgba(148, 199, 168, .15); }
-  .fcard.bank .row:last-child { border: 0; }
-  .fcard.bank .row s { color: #6e8579; }
-  .fcard.alertc { top: 400px; left: 0; width: 260px; z-index: 2;
-    animation: float 6.5s ease-in-out -4s infinite;
-    border-color: rgba(255, 157, 143, .3); }
-  .fcard.alertc .warn { color: #ff9d8f; font-weight: 700; font-size: 13.5px; }
-  .fcard.alertc p { font-size: 12.5px; color: var(--dim); margin-top: 6px; }
-  @keyframes float { 0%, 100% { transform: translateY(0) }
-    50% { transform: translateY(-14px) } }
+  /* produktové okno */
+  .stagewrap { position: relative; padding: 64px 0 40px; }
+  .stagewrap::before { content: ""; position: absolute; inset: 30% 8% 10%;
+    background: radial-gradient(ellipse at center, rgba(5, 150, 105, .14), transparent 65%);
+    filter: blur(50px); pointer-events: none; }
+  .window { position: relative; max-width: 960px; margin: 0 auto;
+    background: #fff; border: 1px solid var(--line); border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(13, 17, 23, .04), 0 24px 60px -12px rgba(13, 17, 23, .18);
+    overflow: hidden; text-align: left; }
+  .winbar { display: flex; align-items: center; gap: 8px; height: 40px;
+    padding: 0 16px; border-bottom: 1px solid var(--line2); background: #fafbfc; }
+  .winbar i { width: 11px; height: 11px; border-radius: 99px; background: #e4e7ec; }
+  .winbar .url { margin: 0 auto; background: #fff; border: 1px solid var(--line2);
+    border-radius: 7px; font-size: 12px; color: var(--muted); padding: 3px 40px; }
+  .app { display: flex; min-height: 430px; font-size: 13px; }
+  .app aside { width: 190px; border-right: 1px solid var(--line2);
+    padding: 16px 10px; flex-shrink: 0; background: #fafbfc; }
+  .app aside .abrand { display: flex; gap: 7px; align-items: center;
+    font-weight: 700; font-size: 14px; padding: 0 8px 14px; }
+  .app aside nav a { display: block; padding: 7px 10px; border-radius: 7px;
+    color: var(--muted); text-decoration: none; font-weight: 500; margin-bottom: 2px; }
+  .app aside nav a.on { background: #eef0f4; color: var(--ink); font-weight: 600; }
+  .app main { flex: 1; padding: 20px 22px; min-width: 0; }
+  .app h2 { font-size: 16px; font-weight: 600; letter-spacing: -.3px;
+    margin-bottom: 14px; }
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+    margin-bottom: 16px; }
+  .tile { border: 1px solid var(--line2); border-radius: 10px; padding: 10px 13px; }
+  .tile b { display: block; font-size: 19px; font-weight: 700;
+    letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
+  .tile.bad b { color: var(--red); }
+  .tile span { font-size: 10.5px; color: var(--faint); font-weight: 600;
+    text-transform: uppercase; letter-spacing: .4px; }
+  .lst { border: 1px solid var(--line2); border-radius: 10px; overflow: hidden; }
+  .lrow { display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+    border-bottom: 1px solid var(--line2); background: #fff; }
+  .lrow:last-child { border-bottom: 0; }
+  .lrow .sup { font-weight: 600; min-width: 130px; }
+  .lrow .amt { font-variant-numeric: tabular-nums; font-weight: 600;
+    margin-left: auto; }
+  .chip { font-size: 11px; font-weight: 600; border-radius: 99px;
+    padding: 2px 9px; white-space: nowrap; }
+  .chip.red { background: var(--red-soft); color: var(--red); }
+  .chip.amber { background: var(--amber-soft); color: var(--amber); }
+  .chip.green { background: var(--accent-soft); color: var(--accent); }
+  .chip.gray { background: #f2f4f7; color: var(--muted); }
+  .mbtn { font-size: 11.5px; font-weight: 600; border: 1px solid var(--line);
+    border-radius: 7px; padding: 4px 10px; color: var(--ink); background: #fff; }
+
+  /* ---------- trust ---------- */
+  .trust { display: flex; justify-content: center; gap: 10px 34px; flex-wrap: wrap;
+    padding: 26px 0 8px; color: var(--faint); font-size: 13px; font-weight: 500; }
+  .trust span { display: flex; align-items: center; gap: 7px; }
+  .trust svg { flex-shrink: 0; }
 
   /* ---------- sekcie ---------- */
-  section { padding: 96px 0; position: relative; }
-  .kick { font-size: 13px; font-weight: 700; letter-spacing: 2px;
-    text-transform: uppercase; color: var(--mint); margin-bottom: 14px; }
-  h2.sec { font-family: var(--serif); font-weight: 440;
-    font-size: clamp(30px, 3.6vw, 44px); letter-spacing: -.5px;
-    line-height: 1.12; margin-bottom: 18px; max-width: 22em; }
-  .sub { color: var(--dim); max-width: 40em; margin-bottom: 46px; font-size: 16.5px; }
+  section { padding: 92px 0; }
+  .kick { color: var(--accent); font-weight: 600; font-size: 13.5px;
+    margin-bottom: 10px; letter-spacing: .2px; }
+  h2.sec { font-size: clamp(28px, 3.4vw, 40px); font-weight: 700;
+    letter-spacing: -1.4px; line-height: 1.15; max-width: 20em; margin-bottom: 14px; }
+  .sub { color: var(--muted); max-width: 38em; margin-bottom: 44px; font-size: 16px; }
 
   /* bento */
-  .bento { display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px; }
-  .cell {
-    border: 1px solid var(--line); border-radius: 22px; padding: 28px;
-    background: linear-gradient(170deg, rgba(20, 42, 29, .55), rgba(9, 20, 14, .8));
-    position: relative; overflow: hidden;
-    transition: transform .25s, border-color .25s;
-  }
-  .cell:hover { transform: translateY(-4px); border-color: rgba(52, 211, 153, .4); }
-  .cell.w3 { grid-column: span 3; } .cell.w2 { grid-column: span 2; }
-  .cell.w4 { grid-column: span 4; }
-  .cell h3 { font-family: var(--serif); font-weight: 520; font-size: 21px;
-    margin: 14px 0 8px; }
-  .cell p { color: var(--dim); font-size: 14.5px; }
-  .cell .num { position: absolute; right: 22px; top: 14px;
-    font-family: var(--serif); font-style: italic; font-size: 44px;
-    color: rgba(148, 199, 168, .14); font-weight: 300; }
-  .ic { width: 42px; height: 42px; border-radius: 13px; display: flex;
-    align-items: center; justify-content: center;
-    background: rgba(52, 211, 153, .12); border: 1px solid rgba(52, 211, 153, .25); }
-  .cell .demo { margin-top: 18px; border-radius: 14px; padding: 14px 16px;
-    background: rgba(6, 15, 10, .6); border: 1px solid var(--line);
-    font-size: 13px; color: var(--dim); }
-  .cell .demo b { color: var(--ink); }
-  .cell .demo .mint { color: var(--mint); font-weight: 700; }
-  .cell .demo .red { color: #ff9d8f; font-weight: 700; }
+  .bento { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+  .cell { grid-column: span 2; background: #fff; border: 1px solid var(--line);
+    border-radius: 16px; padding: 24px; transition: box-shadow .2s, transform .2s; }
+  .cell:hover { box-shadow: 0 12px 32px -8px rgba(13, 17, 23, .12);
+    transform: translateY(-2px); }
+  .cell.w3 { grid-column: span 3; }
+  .cell h3 { font-size: 16px; font-weight: 600; letter-spacing: -.2px;
+    margin: 0 0 6px; }
+  .cell p { color: var(--muted); font-size: 14px; }
+  .demo { margin-top: 16px; border: 1px solid var(--line2); background: #fafbfc;
+    border-radius: 10px; padding: 12px 14px; font-size: 12.5px; color: var(--muted); }
+  .demo b { color: var(--ink); }
+  .demo .qrbox { float: right; margin-left: 10px; background: #fff;
+    border: 1px solid var(--line2); border-radius: 8px; padding: 5px; }
+  .bars { display: flex; align-items: flex-end; gap: 8px; height: 56px;
+    margin-top: 14px; }
+  .bars i { flex: 1; background: var(--accent-soft); border-radius: 5px 5px 0 0;
+    position: relative; }
+  .bars i.hi { background: var(--accent); }
 
   /* kroky */
-  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
-    border: 1px solid var(--line); border-radius: 24px; overflow: hidden; }
-  .step { padding: 38px 32px; background: rgba(14, 32, 21, .35); }
-  .step + .step { border-left: 1px solid var(--line); }
-  .step .n { font-family: var(--serif); font-style: italic; font-size: 52px;
-    font-weight: 300; color: var(--mint); line-height: 1; margin-bottom: 18px; }
-  .step h3 { font-family: var(--serif); font-weight: 520; font-size: 20px;
-    margin-bottom: 8px; }
-  .step p { color: var(--dim); font-size: 14.5px; }
-
-  /* quote */
-  .quote { text-align: center; padding: 40px 0 20px; }
-  .quote p { font-family: var(--serif); font-weight: 380; font-style: italic;
-    font-size: clamp(24px, 3vw, 34px); line-height: 1.3; max-width: 26em;
-    margin: 0 auto; color: #d9e8de; }
-  .quote p b { color: var(--mint); font-style: normal; font-weight: 550; }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px;
+    counter-reset: step; }
+  .step { position: relative; padding-top: 18px; }
+  .step::before { counter-increment: step; content: "0" counter(step);
+    font-size: 13px; font-weight: 700; color: var(--accent);
+    font-variant-numeric: tabular-nums; }
+  .step::after { content: ""; position: absolute; top: 8px; left: 34px; right: 0;
+    height: 1px; background: var(--line); }
+  .step:last-child::after { display: none; }
+  .step h3 { font-size: 16.5px; font-weight: 600; margin: 10px 0 6px;
+    letter-spacing: -.2px; }
+  .step p { color: var(--muted); font-size: 14.5px; }
 
   /* pricing */
-  .plans { display: grid; grid-template-columns: repeat(2, minmax(0, 380px));
-    gap: 22px; justify-content: center; }
-  .plan { border: 1px solid var(--line); border-radius: 26px; padding: 36px;
-    background: linear-gradient(170deg, rgba(20, 42, 29, .55), rgba(9, 20, 14, .85));
+  .plans { display: grid; grid-template-columns: repeat(2, minmax(0, 360px));
+    gap: 18px; justify-content: center; }
+  .plan { background: #fff; border: 1px solid var(--line); border-radius: 18px;
+    padding: 30px; position: relative; }
+  .plan.hot { border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft); }
+  .plan .tag { position: absolute; top: -11px; left: 28px; background: var(--accent);
+    color: #fff; font-size: 11.5px; font-weight: 700; border-radius: 99px;
+    padding: 3px 12px; letter-spacing: .3px; }
+  .plan h3 { font-size: 14px; font-weight: 600; color: var(--muted); }
+  .plan .price { font-size: 42px; font-weight: 700; letter-spacing: -1.8px;
+    margin: 10px 0 0; font-variant-numeric: tabular-nums; }
+  .plan .price small { font-size: 15px; color: var(--faint); font-weight: 500;
+    letter-spacing: 0; }
+  .plan .per { color: var(--faint); font-size: 13.5px; margin-bottom: 20px; }
+  .plan ul { list-style: none; padding: 0; margin: 0 0 24px; }
+  .plan li { padding: 6px 0 6px 26px; font-size: 14px; color: var(--muted);
     position: relative; }
-  .plan.hot { border: 1px solid transparent;
-    background:
-      linear-gradient(170deg, rgba(22, 48, 33, .92), rgba(9, 20, 14, .95)) padding-box,
-      linear-gradient(135deg, var(--mint), var(--gold)) border-box; }
-  .plan .tag { position: absolute; top: -13px; left: 32px;
-    background: linear-gradient(135deg, var(--mint), var(--mint-deep));
-    color: #04150c; font-size: 12px; font-weight: 800; letter-spacing: .6px;
-    border-radius: 99px; padding: 4px 14px; }
-  .plan h3 { font-size: 14px; letter-spacing: 1.5px; text-transform: uppercase;
-    color: var(--dim); font-weight: 700; }
-  .plan .price { font-family: var(--serif); font-size: 54px; font-weight: 480;
-    letter-spacing: -1.5px; margin: 14px 0 2px; }
-  .plan .price small { font-size: 17px; color: var(--dim); font-family: var(--sans);
-    font-weight: 500; letter-spacing: 0; }
-  .plan .per { color: var(--dim); font-size: 14px; margin-bottom: 22px; }
-  .plan ul { list-style: none; padding: 0; margin: 0 0 26px; }
-  .plan li { padding: 8px 0 8px 28px; font-size: 14.5px; color: #c6d8cc;
-    position: relative; }
-  .plan li::before { content: ""; position: absolute; left: 0; top: 13px;
-    width: 15px; height: 8px; border-left: 2.5px solid var(--mint);
-    border-bottom: 2.5px solid var(--mint); transform: rotate(-45deg); }
+  .plan li::before { content: ""; position: absolute; left: 2px; top: 12px;
+    width: 12px; height: 7px; border-left: 2px solid var(--accent);
+    border-bottom: 2px solid var(--accent); transform: rotate(-45deg); }
+  .plan .btn { width: 100%; }
 
   /* faq */
-  .faq { max-width: 760px; }
-  details { border-bottom: 1px solid var(--line); padding: 22px 4px; }
-  details summary { cursor: pointer; font-weight: 650; font-size: 17px;
-    list-style: none; display: flex; justify-content: space-between; gap: 16px;
-    align-items: center; }
+  .faq { max-width: 720px; }
+  details { border-bottom: 1px solid var(--line); padding: 20px 2px; }
+  details summary { cursor: pointer; font-weight: 600; font-size: 15.5px;
+    list-style: none; display: flex; justify-content: space-between;
+    align-items: center; gap: 16px; letter-spacing: -.2px; }
   details summary::-webkit-details-marker { display: none; }
-  details summary::after { content: "+"; font-family: var(--serif);
-    font-size: 26px; font-weight: 300; color: var(--mint); transition: transform .25s;
-    flex-shrink: 0; }
+  details summary::after { content: "+"; font-size: 20px; font-weight: 400;
+    color: var(--faint); transition: transform .2s; flex-shrink: 0; }
   details[open] summary::after { transform: rotate(45deg); }
-  details p { color: var(--dim); font-size: 15px; margin-top: 12px; max-width: 42em; }
+  details p { color: var(--muted); font-size: 14.5px; margin-top: 10px;
+    max-width: 44em; }
 
   /* cta band */
-  .band { margin: 20px 0 0; }
-  .band .in { border-radius: 30px; padding: 74px 40px; text-align: center;
-    position: relative; overflow: hidden;
-    background: linear-gradient(140deg, #0d3320, #0a1f14 70%);
-    border: 1px solid rgba(52, 211, 153, .25); }
-  .band .glow.c { width: 460px; height: 460px; top: -220px; left: 50%;
-    transform: translateX(-50%);
-    background: radial-gradient(circle, rgba(52, 211, 153, .28), transparent 65%); }
-  .band h2 { font-family: var(--serif); font-weight: 440;
-    font-size: clamp(28px, 3.6vw, 42px); letter-spacing: -.5px; margin-bottom: 12px; }
-  .band p { color: var(--dim); margin-bottom: 30px; }
+  .band { padding: 0 24px 90px; }
+  .band .in { max-width: 1080px; margin: 0 auto; background: var(--black);
+    border-radius: 22px; padding: 68px 40px; text-align: center; color: #fff;
+    position: relative; overflow: hidden; }
+  .band .in::before { content: ""; position: absolute; inset: -40% 20% 60%;
+    background: radial-gradient(ellipse, rgba(16, 185, 129, .25), transparent 70%);
+    filter: blur(40px); }
+  .band h2 { font-size: clamp(26px, 3.2vw, 38px); font-weight: 700;
+    letter-spacing: -1.2px; margin-bottom: 10px; position: relative; }
+  .band p { color: #9aa4b2; margin-bottom: 28px; position: relative; }
+  .band .btn { background: #fff; color: var(--black); border-color: #fff;
+    position: relative; }
 
-  footer { padding: 46px 0 40px; color: var(--dim); font-size: 13.5px; }
-  footer .wrap { display: flex; gap: 22px; flex-wrap: wrap; align-items: center; }
-  footer a { color: var(--dim); text-decoration: none; }
+  footer { border-top: 1px solid var(--line2); padding: 34px 0 44px;
+    font-size: 13.5px; color: var(--muted); }
+  footer .wrap { display: flex; gap: 14px 26px; flex-wrap: wrap; align-items: center; }
+  footer a { color: var(--muted); text-decoration: none; }
   footer a:hover { color: var(--ink); }
-  footer .brand b { font-size: 17px; color: var(--ink); }
+  footer .brand { font-size: 15px; margin-right: 8px; }
 
-  /* reveal animácie */
-  .rv { opacity: 0; transform: translateY(26px);
-    transition: opacity .7s ease, transform .7s ease; }
+  /* reveal */
+  .rv { opacity: 0; transform: translateY(18px);
+    transition: opacity .6s ease, transform .6s ease; }
   .rv.in { opacity: 1; transform: none; }
-  .rv.d1 { transition-delay: .08s; } .rv.d2 { transition-delay: .16s; }
-  .rv.d3 { transition-delay: .24s; } .rv.d4 { transition-delay: .32s; }
+  .rv.d1 { transition-delay: .07s; } .rv.d2 { transition-delay: .14s; }
 
-  @media (max-width: 920px) {
-    .hero { padding: 120px 0 60px; }
-    .hero .wrap { grid-template-columns: 1fr; gap: 40px; }
-    .stage { min-height: 430px; max-width: 480px; }
-    .bento { grid-template-columns: 1fr 1fr; }
-    .cell.w2, .cell.w3, .cell.w4 { grid-column: span 2; }
-    .steps { grid-template-columns: 1fr; }
-    .step + .step { border-left: 0; border-top: 1px solid var(--line); }
+  @media (max-width: 860px) {
+    .navlinks { display: none; }
+    .hero { padding-top: 56px; }
+    h1 { letter-spacing: -1.2px; }
+    .app aside { display: none; }
+    .tiles { grid-template-columns: repeat(2, 1fr); }
+    .bento { grid-template-columns: 1fr; }
+    .cell, .cell.w3 { grid-column: span 1; }
+    .steps { grid-template-columns: 1fr; gap: 26px; }
+    .step::after { display: none; }
     .plans { grid-template-columns: 1fr; }
-    nav.top .links a.plain { display: none; }
-    section { padding: 66px 0; }
+    section { padding: 60px 0; }
   }
 </style>
 </head>
 <body>
 
-<nav class="top">
-  <a class="brand" href="/">
-    <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
-      <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#0d9463"/>
-      </linearGradient></defs>
-      <rect width="32" height="32" rx="10" fill="#071b12" stroke="rgba(52,211,153,.4)"/>
-      <path d="M9 16.5l5 5 9-11" stroke="url(#lg)" stroke-width="3.5" fill="none"
-            stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-    <b>romarium</b>
-  </a>
-  <div class="links">
-    <a class="plain" href="#funkcie">Funkcie</a>
-    <a class="plain" href="#ako">Ako to funguje</a>
-    <a class="plain" href="#cennik">Cenník</a>
-    <a class="plain" href="/login">Prihlásiť sa</a>
-    <a class="btn" href="/register">Vyskúšať zadarmo</a>
-  </div>
-</nav>
-
-<header class="hero">
-  <div class="glow a"></div><div class="glow b"></div>
-  <div class="wrap">
-    <div>
-      <div class="eyebrow rv in">AI asistent pre podnikateľov</div>
-      <h1 class="rv in">Faktúry sa platia<br>samy. Vy len<br><em>naskenujete kód.</em></h1>
-      <p class="lead rv in d1">Romarium číta vašu poštu, z faktúr vytiahne sumu,
-        IBAN aj splatnosť a pošle vám prehľad s QR kódom. Výpis z banky potom
-        zaplatené odškrtne sám.</p>
-      <div class="cta-row rv in d2">
-        <a class="btn big" href="/register">Vyskúšať 14 dní zadarmo</a>
-        <a class="btn line" href="#ako">Ako to funguje</a>
-      </div>
-      <div class="hero-meta rv in d3">
-        <div><b>2 min</b>nastavenie</div>
-        <div><b>0 €</b>prvých 14 dní, bez karty</div>
-        <div><b>4,99 €</b>mesačne potom</div>
-      </div>
-    </div>
-    <div class="stage rv in d2" aria-hidden="true">
-      <div class="fcard pay">
-        <div class="t">Splatné dnes</div>
-        <svg class="qr" width="92" height="92" viewBox="0 0 21 21" shape-rendering="crispEdges">
-          <rect width="21" height="21" fill="#fff"/>
-          <path fill="#0a1811" d="M0 0h7v7H0zM14 0h7v7h-7zM0 14h7v7H0z
-            M2 2h3v3H2zM16 2h3v3h-3zM2 16h3v3H2zM9 0h1v2H9zM11 1h2v1h-2zM9 3h3v1H9z
-            M12 4h1v2h-1zM8 5h2v1H8zM9 7h1v2H9zM0 9h2v1H0zM3 8h2v2H3zM6 9h3v1H6z
-            M11 8h2v1h-2zM14 9h2v1h-2zM17 8h1v2h-1zM19 9h2v1h-2zM1 11h1v2H1z
-            M4 11h2v1H4zM7 12h2v1H7zM10 11h1v3h-1zM12 12h2v1h-2zM15 11h2v2h-2z
-            M18 12h3v1h-3zM8 14h2v2H8zM11 15h2v1h-2zM14 14h1v2h-1zM16 15h2v1h-2z
-            M19 14h2v2h-2zM9 17h1v2H9zM11 18h3v1h-3zM15 17h2v2h-2zM18 18h2v1h-2z
-            M8 20h4v1H8zM14 20h3v1h-3z"/>
-        </svg>
-        <div class="sup">Energie SK, a. s.</div>
-        <div class="amt">184,20 €</div>
-        <div class="due">splatnosť dnes · VS 202600412</div>
-      </div>
-      <div class="fcard bank">
-        <div class="t">Výpis z banky spracovaný</div>
-        <div class="ok">3 platby odškrtnuté automaticky</div>
-        <div class="row"><s>Webhouse s.r.o.</s><s>14,90 €</s></div>
-        <div class="row"><s>O2 Slovakia</s><s>25,00 €</s></div>
-        <div class="row"><s>Poistenie auta</s><s>38,42 €</s></div>
-      </div>
-      <div class="fcard alertc">
-        <div class="warn">Pozor — iný IBAN</div>
-        <p>Dodávateľ „Stavmat" uviedol iné číslo účtu než pri minulých faktúrach.
-           Overte pravosť pred platbou.</p>
-      </div>
+<header class="nav">
+  <div class="wrap navrow">
+    <a class="brand" href="/">
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="#0a0c10"/>
+        <path d="M9 16.5l5 5 9-11" stroke="#10b981" stroke-width="3.5" fill="none"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      romarium
+    </a>
+    <nav class="navlinks">
+      <a href="#funkcie">Funkcie</a>
+      <a href="#ako">Ako to funguje</a>
+      <a href="#cennik">Cenník</a>
+    </nav>
+    <div class="navcta">
+      <a class="signin" href="/login">Prihlásiť sa</a>
+      <a class="btn sm" href="/register">Vyskúšať zadarmo</a>
     </div>
   </div>
 </header>
 
-<section id="funkcie" style="border-top: 1px solid var(--line)">
+<section class="hero">
+  <div class="wrap">
+    <div class="pill rv in"><span class="dot"></span> AI asistent pre slovenských podnikateľov</div>
+    <h1 class="rv in">Faktúry pod kontrolou.<br><span class="acc">Bez čítania pošty.</span></h1>
+    <p class="lead rv in d1">Romarium číta vašu schránku, z faktúr vytiahne sumu, IBAN
+       aj splatnosť a každé ráno pošle prehľad s QR kódom. Naskenujete, zaplatíte —
+       výpis z banky odškrtne zaplatené sám.</p>
+    <div class="ctarow rv in d1">
+      <a class="btn lg" href="/register">Vyskúšať 14 dní zadarmo</a>
+      <a class="btn lg ghost" href="#ako">Ako to funguje</a>
+    </div>
+    <div class="subnote rv in d2">Bez platobnej karty · nastavenie za 2 minúty</div>
+  </div>
+
+  <div class="stagewrap">
+    <div class="wrap">
+      <div class="window rv in d2" aria-hidden="true">
+        <div class="winbar"><i></i><i></i><i></i><span class="url">romarium.com</span></div>
+        <div class="app">
+          <aside>
+            <div class="abrand">
+              <svg width="18" height="18" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#0a0c10"/><path d="M9 16.5l5 5 9-11" stroke="#10b981" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              romarium
+            </div>
+            <nav>
+              <a class="on">Prehľad</a><a>Schránky</a><a>Nastavenia</a><a>Predplatné</a>
+            </nav>
+          </aside>
+          <main>
+            <h2>Prehľad</h2>
+            <div class="tiles">
+              <div class="tile bad"><b>1</b><span>po splatnosti</span></div>
+              <div class="tile"><b>4</b><span>nezaplatené</span></div>
+              <div class="tile"><b>642,10 €</b><span>do konca mesiaca</span></div>
+              <div class="tile"><b>218,00 €</b><span>budúci mesiac</span></div>
+            </div>
+            <div class="lst">
+              <div class="lrow">
+                <span class="sup">Energie SK, a. s.</span>
+                <span class="chip red">po splatnosti</span>
+                <span class="amt">184,20 €</span>
+                <span class="mbtn">QR platba</span>
+              </div>
+              <div class="lrow">
+                <span class="sup">Webhouse s.r.o.</span>
+                <span class="chip amber">dnes</span>
+                <span class="amt">14,90 €</span>
+                <span class="mbtn">QR platba</span>
+              </div>
+              <div class="lrow">
+                <span class="sup">Stavmat SK</span>
+                <span class="chip red">iný IBAN — overiť!</span>
+                <span class="amt">420,00 €</span>
+                <span class="mbtn">QR platba</span>
+              </div>
+              <div class="lrow">
+                <span class="sup">O2 Slovakia</span>
+                <span class="chip green">zaplatené výpisom</span>
+                <span class="amt" style="text-decoration:line-through;color:var(--faint)">25,00 €</span>
+                <span class="mbtn" style="opacity:.4">✓</span>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+
+      <div class="trust rv">
+        <span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#98a1b2" stroke-width="1.8"><path d="M10 2l7 3v5c0 4.5-3 7.5-7 8-4-.5-7-3.5-7-8V5z"/></svg> Heslá uložené šifrovane</span>
+        <span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#98a1b2" stroke-width="1.8"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M7 10l2 2 4-4"/></svg> PAY by square — všetky slovenské banky</span>
+        <span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#98a1b2" stroke-width="1.8"><circle cx="10" cy="10" r="7.5"/><path d="M10 5.5V10l3 2"/></svg> Servery v EÚ · GDPR</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="funkcie" style="padding-top: 40px">
   <div class="wrap">
     <div class="kick rv">Funkcie</div>
-    <h2 class="sec rv">Jeden asistent, ktorý myslí<br>na vaše peniaze aj termíny</h2>
-    <p class="sub rv d1">Nie ďalšia appka, do ktorej musíte klikať. Romarium pracuje
-       samo na pozadí — vy dostávate hotové výsledky do schránky.</p>
+    <h2 class="sec rv">Všetko okolo platieb vybavené,<br>kým dopijete kávu</h2>
+    <p class="sub rv d1">Romarium pracuje na pozadí — vy dostávate hotové výsledky
+       do schránky a jedným klikom ich odbavíte.</p>
     <div class="bento">
       <div class="cell w3 rv">
-        <div class="ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#34d399" stroke-width="1.7"><rect x="2" y="2" width="6" height="6" rx="1"/><rect x="12" y="2" width="6" height="6" rx="1"/><rect x="2" y="12" width="6" height="6" rx="1"/><path d="M12 12h2v2h-2zM16 12h2v2h-2zM12 16h2v2h-2zM16 16h2v2h-2z" fill="#34d399" stroke="none"/></svg></div>
         <h3>QR kód na každú platbu</h3>
-        <p>Ku každej faktúre dostanete PAY by square kód s predvyplnenou sumou,
-           IBAN-om aj variabilným symbolom. Naskenujete, potvrdíte, hotovo —
-           žiadne prepisovanie čísel. Funguje v appke každej slovenskej banky.</p>
-        <div class="demo"><b>Romarium: platby a úlohy — 2 súrne</b><br>
-          Faktúra Webhouse 14,90 € · <span class="mint">QR priložený</span> ·
-          splatnosť zajtra</div>
+        <p>PAY by square s predvyplnenou sumou, IBAN-om aj variabilným symbolom —
+           v e-maile aj na webe. Naskenujete, potvrdíte, hotovo.</p>
+        <div class="demo">
+          <svg class="qrbox" width="66" height="66" viewBox="0 0 21 21" shape-rendering="crispEdges"><rect width="21" height="21" fill="#fff"/><path fill="#0d1117" d="M0 0h7v7H0zM14 0h7v7h-7zM0 14h7v7H0zM2 2h3v3H2zM16 2h3v3h-3zM2 16h3v3H2zM9 0h1v2H9zM11 1h2v1h-2zM9 3h3v1H9zM12 4h1v2h-1zM8 5h2v1H8zM9 7h1v2H9zM0 9h2v1H0zM3 8h2v2H3zM6 9h3v1H6zM11 8h2v1h-2zM14 9h2v1h-2zM17 8h1v2h-1zM19 9h2v1h-2zM1 11h1v2H1zM4 11h2v1H4zM7 12h2v1H7zM10 11h1v3h-1zM12 12h2v1h-2zM15 11h2v2h-2zM18 12h3v1h-3zM8 14h2v2H8zM11 15h2v1h-2zM14 14h1v2h-1zM16 15h2v1h-2zM19 14h2v2h-2zM9 17h1v2H9zM11 18h3v1h-3zM15 17h2v2h-2zM18 18h2v1h-2zM8 20h4v1H8zM14 20h3v1h-3z"/></svg>
+          <b>Romarium: platby a úlohy — 2 súrne</b><br>
+          Energie SK — 184,20 € · splatnosť dnes · VS 202600412<br>
+          <span style="color:var(--accent);font-weight:600">✓ Označiť ako zaplatené</span> ·
+          Odložiť o 3 dni
+        </div>
       </div>
       <div class="cell w3 rv d1">
-        <div class="ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#34d399" stroke-width="1.7"><path d="M10 2l7 3v5c0 4.5-3 7.5-7 8-4-.5-7-3.5-7-8V5z"/><path d="M7 10l2 2 4-4.5"/></svg></div>
-        <h3>Stráž proti podvodom</h3>
-        <p>Podvodníci menia IBAN na faktúrach známych dodávateľov. Romarium si
-           pamätá účty všetkých vašich partnerov — pri akejkoľvek zmene vás varuje
-           skôr, než odošlete peniaze.</p>
-        <div class="demo"><span class="red">POZOR: iný IBAN</span> než pri
-          predchádzajúcich platbách tomuto dodávateľovi — overte pravosť faktúry.</div>
+        <h3>Stráž proti podvodom s IBANom</h3>
+        <p>Romarium si pamätá účty všetkých vašich dodávateľov. Keď faktúra príde
+           s iným číslom účtu než doteraz, varuje vás skôr, než odošlete peniaze
+           podvodníkovi.</p>
+        <div class="demo">
+          <span class="chip red" style="float:none">POZOR: iný IBAN</span><br>
+          Dodávateľ „Stavmat SK" uviedol iný účet než pri minulých 12 faktúrach.
+          Overte pravosť faktúry telefonicky.
+        </div>
       </div>
-      <div class="cell w2 rv">
-        <div class="ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#34d399" stroke-width="1.7"><path d="M3 4h14v12H3z"/><path d="M3 8h14M7 12h6"/></svg></div>
+      <div class="cell rv">
         <h3>Banka odškrtáva sama</h3>
-        <p>Prepošlete výpis z účtu — pokojne aj chránený heslom — a zaplatené
-           položky sa spárujú automaticky.</p>
+        <p>Prepošlete výpis z účtu — aj chránený heslom — a zaplatené položky sa
+           spárujú automaticky.</p>
       </div>
-      <div class="cell w2 rv d1">
-        <div class="ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#34d399" stroke-width="1.7"><path d="M4 3h12v14H4z"/><path d="M7 7h6M7 10h6M7 13h4"/></svg></div>
+      <div class="cell rv d1">
+        <h3>Hromadný príkaz</h3>
+        <p>Jeden súbor so všetkými úhradami nahráte do internet bankingu a všetko
+           potvrdíte naraz (SEPA XML).</p>
+      </div>
+      <div class="cell rv d2">
+        <h3>Cashflow na prvý pohľad</h3>
+        <p>Koľko odíde do konca mesiaca a koľko budúci — viete to skôr, než príde
+           výpis.</p>
+        <div class="bars"><i style="height:38%"></i><i style="height:62%"></i><i class="hi" style="height:88%"></i><i style="height:46%"></i><i style="height:30%"></i><i style="height:55%"></i></div>
+      </div>
+      <div class="cell rv">
         <h3>Zhrnutie dňa a týždňa</h3>
-        <p>Večer krátke AI zhrnutie celej pošty — čo prišlo, čo horí a čo môže
+        <p>Večer krátke AI zhrnutie celej pošty — čo prišlo, čo horí, čo môže
            počkať. Marketing jednou vetou.</p>
       </div>
-      <div class="cell w2 rv d2">
-        <div class="ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#34d399" stroke-width="1.7"><path d="M3 6l7-3 7 3v8l-7 3-7-3z"/><path d="M3 6l7 3 7-3M10 9v8"/></svg></div>
-        <h3>Viac firiem naraz</h3>
-        <p>Neobmedzený počet schránok — všetky vaše firmy a projekty v jednom
-           prehľade.</p>
+      <div class="cell rv d1">
+        <h3>Strážca pravidelných faktúr</h3>
+        <p>Keď mesačná faktúra nepríde, dozviete sa to — skôr než penále
+           za omeškanie.</p>
       </div>
-      <div class="cell w4 rv">
-        <div class="ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#34d399" stroke-width="1.7"><circle cx="10" cy="10" r="7.5"/><path d="M10 5.5V10l3 2"/></svg></div>
-        <h3>Vybavíte jedným klikom</h3>
-        <p>Priamo v e-maile máte tlačidlá „Označiť ako zaplatené" a „Odložiť" —
-           klik a hotovo, bez prihlasovania. Funguje aj odpoveď „zaplatené 3"
-           či „odlož 4 o 5", alebo klik vo webovom prehľade.</p>
-      </div>
-      <div class="cell w2 rv d1">
-        <div class="ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#34d399" stroke-width="1.7"><path d="M10 3v14M3 10h14"/></svg></div>
-        <h3>Úlohy a termíny</h3>
-        <p>Z pošty vytiahne aj povinnosti a deadliny — daňové priznanie, STK,
-           odpoveď klientovi.</p>
+      <div class="cell rv d2">
+        <h3>Viac firiem, viac schránok</h3>
+        <p>Neobmedzený počet schránok v jednom účte. Faktúry môžete aj len
+           preposielať na unikátnu adresu.</p>
       </div>
     </div>
   </div>
 </section>
 
-<section id="ako" style="padding-top: 40px">
+<section id="ako" style="padding-top: 30px">
   <div class="wrap">
     <div class="kick rv">Ako to funguje</div>
-    <h2 class="sec rv">Nastavíte raz. Funguje stále.</h2>
-    <div class="steps rv d1" style="margin-top: 34px">
-      <div class="step">
-        <div class="n">01</div>
+    <h2 class="sec rv">Nastavíte raz, funguje stále</h2>
+    <div class="steps" style="margin-top: 40px">
+      <div class="step rv">
         <h3>Pripojíte schránku</h3>
-        <p>E-mail, kam vám chodia faktúry — Gmail, Webhouse či iná firemná pošta.
-           Odporúčame aplikačné heslo, ktoré viete kedykoľvek zrušiť.</p>
+        <p>E-mail, kam vám chodia faktúry — Gmail, Webhouse či firemná pošta.
+           Alebo faktúry len preposielate, bez zadávania hesla.</p>
       </div>
-      <div class="step">
-        <div class="n">02</div>
+      <div class="step rv d1">
         <h3>AI číta poštu za vás</h3>
-        <p>Romarium spracuje faktúry aj PDF prílohy, vytiahne sumy, IBAN-y,
-           symboly a splatnosti. Rozpozná aj úlohy a termíny.</p>
+        <p>Z faktúr a PDF príloh vytiahne sumy, IBAN-y, symboly a splatnosti.
+           Rozpozná aj úlohy, termíny a výpisy z banky.</p>
       </div>
-      <div class="step">
-        <div class="n">03</div>
+      <div class="step rv d2">
         <h3>Dostávate hotové prehľady</h3>
-        <p>Ráno čo zaplatiť s QR kódmi, večer zhrnutie dňa. Zaplatené sa
-           odškrtne samo podľa výpisu z banky.</p>
+        <p>Ráno čo zaplatiť s QR kódmi, večer zhrnutie dňa. Zaplatené sa odškrtne
+           samo — klikom, odpoveďou alebo výpisom.</p>
       </div>
     </div>
-  </div>
-</section>
-
-<section style="padding-top: 10px; padding-bottom: 60px">
-  <div class="wrap quote rv">
-    <p>„Prestal som nosiť splatnosti v hlave. Ráno prehľad, večer súhrn —
-       a keď dodávateľ zmení účet, <b>dozviem sa to skôr, než zaplatím.</b>"</p>
   </div>
 </section>
 
@@ -472,13 +466,12 @@
   <div class="wrap">
     <div class="kick rv">Cenník</div>
     <h2 class="sec rv">Menej než jedna káva mesačne</h2>
-    <p class="sub rv d1">Jedna zmeškaná pokuta za oneskorenú platbu stojí viac
-       než rok Romaria.</p>
+    <p class="sub rv d1">Jedno zmeškané penále stojí viac než rok Romaria.</p>
     <div class="plans">
       <div class="plan rv">
         <h3>Mesačne</h3>
         <div class="price">4,99 € <small>/ mesiac</small></div>
-        <div class="per">zrušíte kedykoľvek jedným klikom</div>
+        <div class="per">zrušíte kedykoľvek</div>
         <ul>
           <li>14 dní zadarmo, bez platobnej karty</li>
           <li>všetky funkcie bez obmedzení</li>
@@ -487,7 +480,7 @@
         <a class="btn" href="/register">Začať zadarmo</a>
       </div>
       <div class="plan hot rv d1">
-        <div class="tag">2 mesiace zadarmo</div>
+        <div class="tag">Ušetríte 17 %</div>
         <h3>Ročne</h3>
         <div class="price">49 € <small>/ rok</small></div>
         <div class="per">vychádza 4,08 € mesačne</div>
@@ -502,29 +495,29 @@
   </div>
 </section>
 
-<section id="faq" style="padding-top: 40px">
+<section id="faq" style="padding-top: 20px; padding-bottom: 70px">
   <div class="wrap">
     <div class="kick rv">Časté otázky</div>
     <h2 class="sec rv">Na čo sa pýtate</h2>
     <div class="faq rv d1">
       <details>
         <summary>Je bezpečné zadať heslo k schránke?</summary>
-        <p>Heslo sa uloží na našom serveri a používa sa výlučne na čítanie pošty
-           cez šifrované IMAP pripojenie. Odporúčame aplikačné heslo (App
-           Password), ktoré viete kedykoľvek zrušiť bez zmeny hlavného hesla —
-           pri Gmaili je to dokonca jediná podporovaná možnosť.</p>
+        <p>Heslo sa ukladá šifrovane a používa výlučne na čítanie pošty cez
+           šifrované IMAP pripojenie. Odporúčame aplikačné heslo (App Password),
+           ktoré viete kedykoľvek zrušiť. A ak heslo zadať nechcete, faktúry
+           môžete len preposielať na svoju unikátnu adresu.</p>
       </details>
       <details>
         <summary>S ktorými bankami QR platby fungujú?</summary>
-        <p>QR kódy sú vo formáte PAY by square, ktorý podporujú všetky slovenské
-           bankové aplikácie — Tatra banka, Slovenská sporiteľňa, VÚB, ČSOB,
-           365.bank, mBank a ďalšie.</p>
+        <p>So všetkými slovenskými (PAY by square) — Tatra banka, Slovenská
+           sporiteľňa, VÚB, ČSOB, 365.bank, mBank a ďalšie. České faktúry
+           dostanú QR Platbu pre české banky.</p>
       </details>
       <details>
         <summary>Ako sa označí, že som už zaplatil?</summary>
-        <p>Najpohodlnejšie: prepošlete výpis z účtu a Romarium spáruje platby
-           samo. Alebo odpoviete na prehľadový e-mail „zaplatené 3", prípadne
-           položku odškrtnete klikom priamo v aplikácii.</p>
+        <p>Najpohodlnejšie: prepošlete výpis z účtu a Romarium spáruje platby samo.
+           Alebo kliknete na tlačidlo priamo v e-maile, odpoviete „zaplatené 3",
+           či odškrtnete v aplikácii — ako vám vyhovuje.</p>
       </details>
       <details>
         <summary>Potrebujem na skúšobnú dobu platobnú kartu?</summary>
@@ -540,29 +533,24 @@
   </div>
 </section>
 
-<div class="wrap band">
+<div class="band">
   <div class="in">
-    <div class="glow c"></div>
     <h2>Prestaňte strážiť splatnosti v hlave</h2>
     <p>Pripojenie schránky trvá dve minúty. Prvý prehľad príde ešte dnes.</p>
-    <a class="btn big" href="/register">Vyskúšať 14 dní zadarmo</a>
+    <a class="btn lg" href="/register">Vyskúšať 14 dní zadarmo</a>
   </div>
 </div>
 
 <footer>
   <div class="wrap">
     <a class="brand" href="/">
-      <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true">
-        <rect width="32" height="32" rx="10" fill="#0e2015" stroke="rgba(52,211,153,.4)"/>
-        <path d="M9 16.5l5 5 9-11" stroke="#34d399" stroke-width="3.5" fill="none"
-              stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <b>romarium</b>
+      <svg width="20" height="20" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#0a0c10"/><path d="M9 16.5l5 5 9-11" stroke="#10b981" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      romarium
     </a>
     <span>© SORB XT s.r.o.</span>
     <a href="mailto:obchod@sorbxt.sk">obchod@sorbxt.sk</a>
     <a href="/login">Prihlásenie</a>
-    <a href="/register">Registrácia — 14 dní zadarmo</a>
+    <a href="/register">Registrácia</a>
     <a href="/podmienky">Obchodné podmienky</a>
     <a href="/gdpr">Ochrana osobných údajov</a>
   </div>

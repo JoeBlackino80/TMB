@@ -5,156 +5,140 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}Romarium — AI strážca faktúr, platieb a termínov{% endblock %}</title>
 <meta name="description" content="Romarium číta vašu poštu, vytiahne z faktúr čo, kedy a kam zaplatiť, postráži termíny a pošle prehľad s QR kódom na platbu.">
-<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%2334d399'/><stop offset='1' stop-color='%230d9463'/></linearGradient></defs><rect width='32' height='32' rx='10' fill='%23071b12'/><path d='M9 16.5l5 5 9-11' stroke='url(%23g)' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230a0c10'/><path d='M9 16.5l5 5 9-11' stroke='%2310b981' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 {% block head %}{% endblock %}
 <style>
   :root {
     color-scheme: light;
-    --bg: #f2f5f1; --card: #ffffff; --ink: #14231a; --muted: #64786c;
-    --line: #e2e9e2; --deep: #0a1f14; --deep2: #113224;
-    --mint: #10a56e; --mint-dark: #0b7a51; --mint-soft: #e5f5ec;
-    --gold: #b98f2e; --gold-soft: #faf3df;
-    --red: #b42318; --red-soft: #fdecea;
-    --serif: "Fraunces", Georgia, serif;
+    --bg: #f7f8fa; --card: #ffffff; --ink: #0d1117; --muted: #61697a;
+    --faint: #98a1b2; --line: #e7e9ee; --line2: #eff1f5;
+    --accent: #059669; --accent-soft: #e8f7f0;
+    --black: #0a0c10; --red: #d92d20; --red-soft: #fef0ef;
+    --amber: #b54708; --amber-soft: #fdf4e3;
     --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
   * { box-sizing: border-box; margin: 0; }
   body { font-family: var(--sans); background: var(--bg); color: var(--ink);
-    line-height: 1.55; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+    line-height: 1.55; min-height: 100vh; -webkit-font-smoothing: antialiased;
+    font-size: 14.5px; }
 
   .shell { display: flex; min-height: 100vh; }
 
   /* ---------- bočný panel ---------- */
-  aside {
-    width: 232px; flex-shrink: 0; padding: 22px 16px;
-    background: linear-gradient(175deg, var(--deep2), var(--deep) 70%);
-    color: #d7e6dc; display: flex; flex-direction: column; gap: 4px;
-    position: sticky; top: 0; height: 100vh;
-  }
-  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none;
-    color: #fff; padding: 4px 10px 22px; }
-  .brand b { font-family: var(--serif); font-weight: 600; font-size: 20px;
-    letter-spacing: .3px; }
-  aside nav { display: flex; flex-direction: column; gap: 3px; }
-  aside nav a {
-    display: flex; align-items: center; gap: 11px; text-decoration: none;
-    color: #a9c4b3; font-size: 14.5px; font-weight: 600;
-    padding: 10px 12px; border-radius: 11px; transition: background .18s, color .18s;
-  }
-  aside nav a svg { flex-shrink: 0; opacity: .8; }
-  aside nav a:hover { color: #fff; background: rgba(52, 211, 153, .1); }
-  aside nav a.on { color: #fff; background: rgba(52, 211, 153, .16); }
-  aside .foot { margin-top: auto; padding: 14px 12px 4px;
-    border-top: 1px solid rgba(148, 199, 168, .16); font-size: 12.5px;
-    color: #7f9a8a; word-break: break-all; }
-  aside .foot a { color: #a9c4b3; text-decoration: none; font-weight: 700; }
-  aside .foot a:hover { color: #fff; }
+  aside.side { width: 220px; flex-shrink: 0; background: var(--card);
+    border-right: 1px solid var(--line); padding: 18px 12px;
+    display: flex; flex-direction: column; position: sticky; top: 0;
+    height: 100vh; }
+  .brand { display: flex; align-items: center; gap: 9px; text-decoration: none;
+    color: var(--ink); font-weight: 700; font-size: 16px; letter-spacing: -.2px;
+    padding: 4px 10px 18px; }
+  aside.side nav { display: flex; flex-direction: column; gap: 2px; }
+  aside.side nav a { display: flex; align-items: center; gap: 10px;
+    text-decoration: none; color: var(--muted); font-size: 14px; font-weight: 500;
+    padding: 8px 10px; border-radius: 8px; transition: background .12s, color .12s; }
+  aside.side nav a svg { flex-shrink: 0; opacity: .75; }
+  aside.side nav a:hover { background: #f2f4f7; color: var(--ink); }
+  aside.side nav a.on { background: #eef0f4; color: var(--ink); font-weight: 600; }
+  aside.side .foot { margin-top: auto; padding: 12px 10px 4px;
+    border-top: 1px solid var(--line2); font-size: 12.5px; color: var(--faint);
+    word-break: break-all; }
+  aside.side .foot a { color: var(--muted); text-decoration: none; font-weight: 600; }
+  aside.side .foot a:hover { color: var(--ink); }
 
   /* ---------- obsah ---------- */
-  .content { flex: 1; min-width: 0; padding: 34px 40px 50px; }
-  .content-inner { max-width: 880px; }
-  h1 { font-family: var(--serif); font-weight: 480; font-size: 30px;
-    letter-spacing: -.4px; margin: 0 0 22px; }
-  h2 { font-size: 15.5px; font-weight: 700; margin: 0 0 14px; }
+  .content { flex: 1; min-width: 0; padding: 30px 36px 46px; }
+  .content-inner { max-width: 860px; }
+  h1 { font-size: 21px; font-weight: 700; letter-spacing: -.5px; margin: 0 0 20px; }
+  h2 { font-size: 14.5px; font-weight: 600; letter-spacing: -.2px; margin: 0 0 12px; }
 
   .card { background: var(--card); border: 1px solid var(--line);
-    border-radius: 18px; padding: 22px 24px; margin-bottom: 18px;
-    box-shadow: 0 1px 3px rgba(10, 31, 20, .05); }
+    border-radius: 12px; padding: 20px 22px; margin-bottom: 16px; }
 
-  label { display: block; margin: 13px 0 5px; font-weight: 600; font-size: 13.5px; }
-  input, select { width: 100%; max-width: 440px; padding: 10px 13px;
-    border: 1px solid #ccd8cf; border-radius: 10px; font-size: 15px;
-    background: #fff; font-family: var(--sans); }
-  input:focus, select:focus { outline: 2px solid var(--mint); outline-offset: 0;
-    border-color: var(--mint); }
+  label { display: block; margin: 12px 0 5px; font-weight: 500; font-size: 13px;
+    color: var(--muted); }
+  input, select { width: 100%; max-width: 420px; padding: 9px 12px;
+    border: 1px solid var(--line); border-radius: 8px; font-size: 14px;
+    background: #fff; font-family: var(--sans); color: var(--ink); }
+  input:focus, select:focus { outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft); }
 
-  button, .btn { background: linear-gradient(135deg, #12b378, var(--mint-dark));
-    color: #fff; border: 0; border-radius: 11px; padding: 11px 20px;
-    font-size: 14.5px; font-weight: 700; cursor: pointer; margin-top: 12px;
-    text-decoration: none; display: inline-block; font-family: var(--sans);
-    transition: transform .15s, box-shadow .15s;
-    box-shadow: 0 2px 10px rgba(16, 165, 110, .25); }
-  button:hover, .btn:hover { transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(16, 165, 110, .35); }
-  button.small { padding: 6px 13px; font-size: 13px; margin: 0;
-    background: var(--mint-soft); color: var(--mint-dark);
-    border: 1px solid #c3e5d3; font-weight: 700; box-shadow: none; }
-  button.small:hover { background: #d7efe2; transform: none; box-shadow: none; }
-  button.small.danger { background: #fff; color: var(--red);
-    border-color: #eed4d1; }
-  button.small.danger:hover { background: var(--red-soft); }
+  button, .btn { background: var(--black); color: #fff; border: 1px solid var(--black);
+    border-radius: 8px; padding: 9px 16px; font-size: 13.5px; font-weight: 600;
+    cursor: pointer; margin-top: 12px; text-decoration: none;
+    display: inline-block; font-family: var(--sans); transition: opacity .15s; }
+  button:hover, .btn:hover { opacity: .82; }
+  button.small { padding: 5px 11px; font-size: 12.5px; margin: 0; background: #fff;
+    color: var(--ink); border: 1px solid var(--line); font-weight: 600; }
+  button.small:hover { opacity: 1; background: #f8f9fb; border-color: #c9cedb; }
+  button.small.danger { color: var(--red); }
+  button.small.danger:hover { background: var(--red-soft); border-color: #f0c4c0; }
 
   .error { background: var(--red-soft); border: 1px solid #f2c8c4;
-    color: var(--red); padding: 12px 16px; border-radius: 12px;
-    margin-bottom: 16px; font-size: 14.5px; }
-  .notice { background: var(--gold-soft); border: 1px solid #ecd9a8;
-    color: #7c5c12; padding: 12px 16px; border-radius: 12px;
-    margin-bottom: 16px; font-size: 14.5px; }
+    color: var(--red); padding: 11px 15px; border-radius: 10px;
+    margin-bottom: 16px; font-size: 13.5px; }
+  .notice { background: var(--amber-soft); border: 1px solid #eedcb2;
+    color: var(--amber); padding: 11px 15px; border-radius: 10px;
+    margin-bottom: 16px; font-size: 13.5px; }
   .notice a, .error a { color: inherit; font-weight: 700; }
 
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th { text-align: left; padding: 8px 10px; color: var(--muted); font-size: 11.5px;
-    text-transform: uppercase; letter-spacing: .7px;
-    border-bottom: 1px solid var(--line); }
-  td { text-align: left; padding: 11px 10px; border-bottom: 1px solid #eef2ee;
-    vertical-align: middle; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { text-align: left; padding: 7px 10px; color: var(--faint); font-size: 11px;
+    font-weight: 600; text-transform: uppercase; letter-spacing: .5px;
+    border-bottom: 1px solid var(--line2); }
+  td { text-align: left; padding: 10px; border-bottom: 1px solid var(--line2);
+    vertical-align: middle; font-variant-numeric: tabular-nums; }
   tr:last-child td { border-bottom: 0; }
-  tbody tr:hover td { background: #fafcfa; }
+  tbody tr:hover td { background: #fafbfc; }
 
-  .badge { display: inline-block; padding: 2px 10px; border-radius: 99px;
-    font-size: 12px; font-weight: 700; white-space: nowrap; }
-  .b-green { background: var(--mint-soft); color: var(--mint-dark); }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 99px;
+    font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+  .b-green { background: var(--accent-soft); color: var(--accent); }
   .b-red { background: var(--red-soft); color: var(--red); }
-  .b-amber { background: var(--gold-soft); color: #7c5c12; }
-  .b-gray { background: #eef1ef; color: var(--muted); }
-  .muted { color: var(--muted); font-size: 13.5px; }
+  .b-amber { background: var(--amber-soft); color: var(--amber); }
+  .b-gray { background: #f2f4f7; color: var(--muted); }
+  .muted { color: var(--muted); font-size: 13px; }
 
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 14px; margin-bottom: 18px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+    gap: 12px; margin-bottom: 16px; }
   .stat { background: var(--card); border: 1px solid var(--line);
-    border-radius: 18px; padding: 16px 20px; position: relative; overflow: hidden; }
-  .stat::after { content: ""; position: absolute; left: 20px; bottom: 0;
-    width: 34px; height: 3px; border-radius: 3px 3px 0 0; background: var(--mint); }
-  .stat.warn::after { background: var(--red); }
-  .stat .num { font-family: var(--serif); font-size: 30px; font-weight: 520;
-    letter-spacing: -.5px; line-height: 1.2; }
-  .stat .lbl { color: var(--muted); font-size: 12px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+    border-radius: 12px; padding: 14px 16px; }
+  .stat .num { font-size: 22px; font-weight: 700; letter-spacing: -.6px;
+    font-variant-numeric: tabular-nums; line-height: 1.3; }
+  .stat .lbl { color: var(--faint); font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .4px; margin-top: 1px; }
   .stat.warn .num { color: var(--red); }
 
   .actions form { display: inline; margin: 0; }
 
   /* ---------- hlavička pre neprihlásených ---------- */
-  header.public { background: var(--deep); padding: 14px 24px;
-    display: flex; align-items: center; gap: 20px; }
+  header.public { background: var(--card); border-bottom: 1px solid var(--line);
+    padding: 0 22px; display: flex; align-items: center; gap: 20px; height: 58px; }
   header.public .push { margin-left: auto; display: flex; align-items: center;
-    gap: 18px; }
-  header.public a.plain { color: #a9c4b3; text-decoration: none;
-    font-weight: 600; font-size: 14.5px; }
-  header.public a.plain:hover { color: #fff; }
-  header.public .btn { margin: 0; padding: 9px 16px; }
-  .public-main { max-width: 900px; margin: 0 auto; padding: 10px 18px 40px; }
+    gap: 16px; }
+  header.public a.plain { color: var(--muted); text-decoration: none;
+    font-weight: 500; font-size: 14px; }
+  header.public a.plain:hover { color: var(--ink); }
+  header.public .btn { margin: 0; padding: 8px 14px; font-size: 13.5px; }
+  .public-main { max-width: 860px; margin: 0 auto; padding: 10px 18px 40px; }
 
-  footer.app { padding: 18px 0 6px; color: var(--muted); font-size: 12.5px; }
-  footer.app a { color: var(--muted); }
+  footer.app { padding: 18px 2px 6px; color: var(--faint); font-size: 12.5px; }
+  footer.app a { color: var(--faint); }
 
   @media (max-width: 760px) {
     .shell { flex-direction: column; }
-    aside { width: 100%; height: auto; position: static; flex-direction: row;
-      align-items: center; padding: 10px 14px; gap: 8px; overflow-x: auto; }
-    .brand { padding: 0 8px 0 0; }
-    .brand b { font-size: 17px; }
-    aside nav { flex-direction: row; gap: 2px; }
-    aside nav a { padding: 8px 10px; font-size: 13.5px; }
-    aside nav a svg { display: none; }
-    aside .foot { display: none; }
-    .content { padding: 20px 16px 40px; }
-    h1 { font-size: 24px; }
-    .card { padding: 16px; border-radius: 14px; }
-    table { font-size: 13px; }
+    aside.side { width: 100%; height: auto; position: static; flex-direction: row;
+      align-items: center; padding: 8px 12px; gap: 6px; overflow-x: auto;
+      border-right: 0; border-bottom: 1px solid var(--line); }
+    .brand { padding: 0 6px 0 0; }
+    aside.side nav { flex-direction: row; gap: 2px; }
+    aside.side nav a { padding: 7px 9px; font-size: 13px; white-space: nowrap; }
+    aside.side nav a svg { display: none; }
+    aside.side .foot { display: none; }
+    .content { padding: 18px 14px 36px; }
+    .card { padding: 15px; }
     td, th { padding: 8px 6px; }
   }
 </style>
@@ -163,30 +147,27 @@
 
 {% if user %}
 <div class="shell">
-  <aside>
+  <aside class="side">
     <a class="brand" href="/">
-      <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
-        <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#0d9463"/>
-        </linearGradient></defs>
-        <rect width="32" height="32" rx="10" fill="#071b12" stroke="rgba(52,211,153,.45)"/>
-        <path d="M9 16.5l5 5 9-11" stroke="url(#lg)" stroke-width="3.5" fill="none"
+      <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="#0a0c10"/>
+        <path d="M9 16.5l5 5 9-11" stroke="#10b981" stroke-width="3.5" fill="none"
               stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <b>romarium</b>
+      romarium
     </a>
     <nav>
       <a href="/" class="{% if request.url.path == '/' %}on{% endif %}">
-        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5L10 4l7 6.5"/><path d="M5 9v7h10V9"/></svg>
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 10.5L10 4l7 6.5"/><path d="M5 9v7h10V9"/></svg>
         Prehľad</a>
       <a href="/mailboxes" class="{% if request.url.path == '/mailboxes' %}on{% endif %}">
-        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="4.5" width="15" height="11" rx="2"/><path d="M3 6l7 5.5L17 6"/></svg>
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="4.5" width="15" height="11" rx="2"/><path d="M3 6l7 5.5L17 6"/></svg>
         Schránky</a>
       <a href="/settings" class="{% if request.url.path == '/settings' %}on{% endif %}">
-        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="2.6"/><path d="M10 3v2.2M10 14.8V17M3 10h2.2M14.8 10H17M5.1 5.1l1.6 1.6M13.3 13.3l1.6 1.6M14.9 5.1l-1.6 1.6M6.7 13.3l-1.6 1.6"/></svg>
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10" cy="10" r="2.6"/><path d="M10 3v2.2M10 14.8V17M3 10h2.2M14.8 10H17M5.1 5.1l1.6 1.6M13.3 13.3l1.6 1.6M14.9 5.1l-1.6 1.6M6.7 13.3l-1.6 1.6"/></svg>
         Nastavenia</a>
       <a href="/billing" class="{% if request.url.path == '/billing' %}on{% endif %}">
-        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="5" width="15" height="10.5" rx="2"/><path d="M2.5 8.5h15"/></svg>
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="5" width="15" height="10.5" rx="2"/><path d="M2.5 8.5h15"/></svg>
         Predplatné</a>
     </nav>
     <div class="foot">
@@ -207,15 +188,12 @@
 {% else %}
 <header class="public">
   <a class="brand" href="/">
-    <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
-      <defs><linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#0d9463"/>
-      </linearGradient></defs>
-      <rect width="32" height="32" rx="10" fill="#071b12" stroke="rgba(52,211,153,.45)"/>
-      <path d="M9 16.5l5 5 9-11" stroke="url(#lg2)" stroke-width="3.5" fill="none"
+    <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true">
+      <rect width="32" height="32" rx="8" fill="#0a0c10"/>
+      <path d="M9 16.5l5 5 9-11" stroke="#10b981" stroke-width="3.5" fill="none"
             stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
-    <b style="color:#fff">romarium</b>
+    romarium
   </a>
   <div class="push">
     <a class="plain" href="/login">Prihlásiť sa</a>
