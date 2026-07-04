@@ -609,6 +609,28 @@ def save_settings(request: Request, user=Depends(current_user),
     return _redirect("/settings")
 
 
+@app.get("/qr/{payment_id}.png")
+def payment_qr(request: Request, payment_id: int, user=Depends(current_user)):
+    """PAY by square / SPAYD QR kód platby ako PNG (len pre vlastné platby)."""
+    from bill_agent.reminder import _payment_qr
+
+    if not user:
+        return _redirect("/login")
+    png = None
+    if os.path.exists(_client_db(user)):
+        store = Store(_client_db(user))
+        try:
+            payment = store.get_payment(payment_id)
+        finally:
+            store.close()
+        if payment:
+            png = _payment_qr(payment)
+    if not png:
+        return Response(status_code=404)
+    return Response(content=png, media_type="image/png",
+                    headers={"Cache-Control": "private, max-age=3600"})
+
+
 @app.get("/sepa")
 def sepa_export(request: Request, user=Depends(current_user)):
     """SEPA XML hromadný príkaz na úhradu všetkých nezaplatených platieb."""

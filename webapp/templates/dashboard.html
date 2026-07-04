@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Prehľad — Romarium{% endblock %}
 {% block content %}
+<script>
+function toggleQr(btn) {
+  const row = document.getElementById("qr-" + btn.dataset.qr);
+  const img = row.querySelector("img");
+  if (!img.getAttribute("src")) img.src = img.dataset.src;
+  row.style.display = row.style.display === "none" ? "" : "none";
+}
+</script>
 <h1>Prehľad</h1>
 
 {% if not user['verified'] %}
@@ -89,6 +97,10 @@ skončilo. <a href="/billing">Aktivujte si predplatné</a>.</div>
       </td>
       <td>{{ p.variable_symbol or '—' }}</td>
       <td class="actions" style="white-space:nowrap">
+        {% if p.iban %}
+        <button class="small" type="button" data-qr="{{ p.id }}"
+                onclick="toggleQr(this)">QR platba</button>
+        {% endif %}
         <form method="post" action="/payments/set-status">
           <input type="hidden" name="payment_id" value="{{ p.id }}">
           <input type="hidden" name="status" value="paid">
@@ -100,6 +112,14 @@ skončilo. <a href="/billing">Aktivujte si predplatné</a>.</div>
           <button class="small danger"
                   onclick="return confirm('Ignorovať túto platbu?')">Ignorovať</button>
         </form>
+      </td>
+    </tr>
+    <tr id="qr-{{ p.id }}" style="display:none">
+      <td colspan="5" style="text-align:center;background:#fafcfa">
+        <img data-src="/qr/{{ p.id }}.png" alt="QR kód na platbu"
+             width="190" height="190" style="margin:8px auto;display:inline-block;
+             border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff">
+        <div class="muted">Naskenujte v bankovej appke — suma, IBAN aj VS sú predvyplnené.</div>
       </td>
     </tr>
     {% endfor %}

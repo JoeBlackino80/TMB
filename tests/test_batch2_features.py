@@ -164,6 +164,30 @@ def test_sepa_endpoint_and_forward_address(client, tmp_path, monkeypatch):
     assert "FORWARD_TOKEN=" in env_text
 
 
+def test_qr_endpoint(client, tmp_path):
+    client.post("/register", data={"email": "qr@x.sk", "password": "tajneheslo"})
+    session = client.post("/login", data={"email": "qr@x.sk", "password": "tajneheslo"}).cookies["session"]
+    store = Store(str(tmp_path / "clients" / "qr-x-sk" / "bill_agent.db"))
+    pid = store.add_payment(supplier="Energo", amount=9.9, currency="EUR",
+                            iban="SK3112000000198742637541", variable_symbol="1",
+                            due_date=None)
+    no_iban = store.add_payment(supplier="Hotovosť", amount=1.0, currency="EUR",
+                                iban="", variable_symbol="2", due_date=None)
+    store.close()
+
+    r = client.get(f"/qr/{pid}.png", cookies={"session": session})
+    assert r.status_code == 200 and r.content[:8] == b"\x89PNG\r\n\x1a\n"
+    # bez IBANu QR neexistuje; neexistujúca platba tiež nie
+    assert client.get(f"/qr/{no_iban}.png", cookies={"session": session}).status_code == 404
+    assert client.get("/qr/999.png", cookies={"session": session}).status_code == 404
+    # neprihlásený je presmerovaný
+    client.cookies.clear()
+    assert client.get(f"/qr/{pid}.png").status_code == 303
+    # tlačidlo je na prehľade
+    r = client.get("/", cookies={"session": session})
+    assert "QR platba" in r.text and f"/qr/{pid}.png" in r.text
+
+
 def test_dashboard_cashflow(client, tmp_path):
     client.post("/register", data={"email": "cf@x.sk", "password": "tajneheslo"})
     session = client.post("/login", data={"email": "cf@x.sk", "password": "tajneheslo"}).cookies["session"]
