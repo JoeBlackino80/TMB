@@ -162,16 +162,6 @@
   @keyframes float { 0%, 100% { transform: translateY(0) }
     50% { transform: translateY(-14px) } }
 
-  /* ---------- marquee ---------- */
-  .marq { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-    padding: 16px 0; overflow: hidden; background: rgba(14, 32, 21, .5); }
-  .marq .inner { display: flex; gap: 54px; width: max-content;
-    animation: slide 30s linear infinite; }
-  .marq span { font-size: 13.5px; color: var(--dim); font-weight: 600;
-    letter-spacing: .8px; white-space: nowrap; }
-  .marq b { color: var(--mint); font-weight: 700; }
-  @keyframes slide { to { transform: translateX(-50%); } }
-
   /* ---------- sekcie ---------- */
   section { padding: 96px 0; position: relative; }
   .kick { font-size: 13px; font-weight: 700; letter-spacing: 2px;
@@ -383,20 +373,7 @@
   </div>
 </header>
 
-<div class="marq" aria-hidden="true">
-  <div class="inner">
-    <span>PAY by square — funguje s <b>každou slovenskou bankou</b></span>
-    <span>Tatra banka</span><span>Slovenská sporiteľňa</span><span>VÚB</span>
-    <span>ČSOB</span><span>365.bank</span><span>mBank</span><span>UniCredit</span>
-    <span>Fio banka</span><span>Raiffeisen</span><span>Prima banka</span>
-    <span>PAY by square — funguje s <b>každou slovenskou bankou</b></span>
-    <span>Tatra banka</span><span>Slovenská sporiteľňa</span><span>VÚB</span>
-    <span>ČSOB</span><span>365.bank</span><span>mBank</span><span>UniCredit</span>
-    <span>Fio banka</span><span>Raiffeisen</span><span>Prima banka</span>
-  </div>
-</div>
-
-<section id="funkcie">
+<section id="funkcie" style="border-top: 1px solid var(--line)">
   <div class="wrap">
     <div class="kick rv">Funkcie</div>
     <h2 class="sec rv">Jeden asistent, ktorý myslí<br>na vaše peniaze aj termíny</h2>
@@ -407,8 +384,8 @@
         <div class="ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#34d399" stroke-width="1.7"><rect x="2" y="2" width="6" height="6" rx="1"/><rect x="12" y="2" width="6" height="6" rx="1"/><rect x="2" y="12" width="6" height="6" rx="1"/><path d="M12 12h2v2h-2zM16 12h2v2h-2zM12 16h2v2h-2zM16 16h2v2h-2z" fill="#34d399" stroke="none"/></svg></div>
         <h3>QR kód na každú platbu</h3>
         <p>Ku každej faktúre dostanete PAY by square kód s predvyplnenou sumou,
-           IBAN-om aj variabilným symbolom. Naskenujete v bankovej appke, potvrdíte,
-           hotovo — žiadne prepisovanie čísel.</p>
+           IBAN-om aj variabilným symbolom. Naskenujete, potvrdíte, hotovo —
+           žiadne prepisovanie čísel. Funguje v appke každej slovenskej banky.</p>
         <div class="demo"><b>Romarium: platby a úlohy — 2 súrne</b><br>
           Faktúra Webhouse 14,90 € · <span class="mint">QR priložený</span> ·
           splatnosť zajtra</div>
