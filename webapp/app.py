@@ -161,15 +161,35 @@ def login_form(request: Request):
     return _render(request, "login.html")
 
 
+# ochrana pred hádaním hesiel: po 5 neúspechoch 15 minút blokovania
+_LOGIN_FAILS: dict = {}
+_LOCKOUT_AFTER = 5
+_LOCKOUT_SECONDS = 15 * 60
+
+
+def _login_blocked(key: str) -> bool:
+    now = time.time()
+    fails = [t for t in _LOGIN_FAILS.get(key, []) if now - t < _LOCKOUT_SECONDS]
+    _LOGIN_FAILS[key] = fails
+    return len(fails) >= _LOCKOUT_AFTER
+
+
 @app.post("/login")
 def login(request: Request, email: str = Form(...), password: str = Form(...)):
+    key = email.strip().lower()
+    if _login_blocked(key):
+        return _render(request, "login.html",
+                       error="Príliš veľa neúspešných pokusov — skúste znova o 15 minút, "
+                             "alebo si obnovte heslo cez „Zabudli ste heslo?“.")
     users = Users()
     try:
         user = users.by_email(email)
     finally:
         users.close()
     if not user or not verify_password(password, user["pw_hash"]):
+        _LOGIN_FAILS.setdefault(key, []).append(time.time())
         return _render(request, "login.html", error="Nesprávny e-mail alebo heslo.")
+    _LOGIN_FAILS.pop(key, None)
     response = _redirect("/")
     response.set_cookie("session", _session_cookie(user["id"]),
                         httponly=True, max_age=30 * 86400, samesite="lax")
@@ -280,12 +300,26 @@ def dashboard(request: Request, user=Depends(current_user)):
                     payments.append({**vars(p), "group": key})
             tasks = store.active_tasks()
             missing = store.missing_recurring()
+            all_pending = store.pending_payments()
         finally:
             store.close()
         stats["overdue"] = len(groups["overdue"])
-        stats["pending"] = len(payments)
-        stats["total"] = sum(p["amount"] for p in payments
-                             if p["currency"] == "EUR")
+        stats["pending"] = len(all_pending)
+        stats["total"] = sum(p.amount for p in all_pending if p.currency == "EUR")
+        # cashflow: koľko odíde do konca mesiaca a budúci mesiac
+        # (po splatnosti sa počíta do "do konca mesiaca" — treba zaplatiť hneď)
+        today_iso = date.today().isoformat()
+        this_m = today_iso[:7]
+        y, m = int(this_m[:4]), int(this_m[5:7])
+        next_m = f"{y + 1}-01" if m == 12 else f"{y:04d}-{m + 1:02d}"
+        stats["this_month"] = sum(
+            p.amount for p in all_pending if p.currency == "EUR" and p.due_date
+            and (p.due_date < today_iso or p.due_date.startswith(this_m))
+        )
+        stats["next_month"] = sum(
+            p.amount for p in all_pending
+            if p.currency == "EUR" and (p.due_date or "").startswith(next_m)
+        )
     users = Users()
     try:
         enabled = users.is_service_enabled(user)
@@ -510,7 +544,15 @@ def _test_imap(host: str, port: int, user: str, password: str, security: str) ->
 def mailboxes(request: Request, user=Depends(current_user)):
     if not user:
         return _redirect("/login")
+    # preposielacia adresa — keď je na serveri nastavená zdieľaná schránka
+    forward_addr = ""
+    template = os.environ.get("FORWARD_ADDRESS", "")
+    if template and "{token}" in template:
+        token = clientfs.get_or_create_forward_token(user["client_dir"])
+        if token:
+            forward_addr = template.replace("{token}", token)
     return _render(request, "mailboxes.html", user=user,
+                   forward_addr=forward_addr,
                    mailboxes=clientfs.list_mailboxes(user["client_dir"]))
 
 
@@ -555,13 +597,52 @@ def settings(request: Request, user=Depends(current_user)):
 
 @app.post("/settings")
 def save_settings(request: Request, user=Depends(current_user),
-                  reminder_to: str = Form(...), pdf_passwords: str = Form("")):
+                  reminder_to: str = Form(...), pdf_passwords: str = Form(""),
+                  own_iban: str = Form(""), own_name: str = Form("")):
     if not user:
         return _redirect("/login")
     clientfs.write_env(user["client_dir"],
                        reminder_to=reminder_to.strip() or user["email"],
-                       pdf_passwords=pdf_passwords.strip())
+                       pdf_passwords=pdf_passwords.strip(),
+                       own_iban=own_iban.replace(" ", "").upper(),
+                       own_name=own_name.strip())
     return _redirect("/settings")
+
+
+@app.get("/sepa")
+def sepa_export(request: Request, user=Depends(current_user)):
+    """SEPA XML hromadný príkaz na úhradu všetkých nezaplatených platieb."""
+    from bill_agent import sepa
+
+    if not user:
+        return _redirect("/login")
+    settings = clientfs.read_settings(user["client_dir"])
+    if not settings["OWN_IBAN"]:
+        return _render(request, "message.html", user=user, title="Chýba váš IBAN",
+                       body="Do hromadného príkazu treba doplniť IBAN vášho účtu, "
+                            "z ktorého sa bude platiť.",
+                       cta="/settings", cta_label="Doplniť v nastaveniach")
+    payments = []
+    if os.path.exists(_client_db(user)):
+        store = Store(_client_db(user))
+        try:
+            payments = store.pending_payments()
+        finally:
+            store.close()
+    try:
+        xml = sepa.build_pain001(
+            debtor_name=settings["OWN_NAME"] or user["email"],
+            debtor_iban=settings["OWN_IBAN"], payments=payments,
+        )
+    except ValueError:
+        return _render(request, "message.html", user=user, title="Nie je čo uhradiť",
+                       body="Žiadna nezaplatená platba s IBANom v EUR.",
+                       cta="/", cta_label="Späť na prehľad")
+    return Response(
+        content=xml, media_type="application/xml",
+        headers={"Content-Disposition":
+                 f'attachment; filename="prikaz-{date.today().isoformat()}.xml"'},
+    )
 
 
 # -- platby / predplatné ---------------------------------------------------------

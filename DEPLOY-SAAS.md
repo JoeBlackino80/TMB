@@ -114,7 +114,26 @@ set -a; . .env.master; set +a
 POZOR: po zašifrovaní si WEBAPP_SECRET/CRED_KEY bezpečne odložte — bez neho
 sa heslá schránok nedajú prečítať a klienti by ich museli zadať znova.
 
-## 6c. Zálohy
+## 6c. Preposielacia adresa (voliteľné, odporúčané)
+
+Klienti nemusia zadávať heslo k schránke — môžu faktúry preposielať na svoju
+unikátnu adresu (napr. `prijem+a1b2c3d4@romarium.com`).
+
+1. Vo Webhouse vytvorte schránku `prijem@romarium.com` a zapnite pre ňu
+   **catch-all / plusové aliasy** (doručovanie `prijem+cokolvek@` do tej istej
+   schránky — väčšina hostingov to robí automaticky).
+2. Do `.env.master` doplňte:
+   ```
+   FORWARD_IMAP_HOST=mail.webhouse.sk
+   FORWARD_IMAP_PORT=993
+   FORWARD_IMAP_USER=prijem@romarium.com
+   FORWARD_IMAP_PASSWORD=...
+   FORWARD_ADDRESS=prijem+{token}@romarium.com
+   ```
+3. `systemctl restart platby-web` — klientom sa na stránke Schránky zobrazí
+   ich adresa. Cron `bill_agent intake` (v crontab.example) správy roztriedi.
+
+## 6d. Zálohy
 
 `scripts/backup.sh` denne balí `clients/`, `webapp.db` a `.env.master` do
 `/root/backups` (drží 14 dní). Odporúčame obsah `/root/backups` synchronizovať

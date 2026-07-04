@@ -91,6 +91,26 @@ def decode(code: str) -> str:
     return payload.decode("utf-8")
 
 
+def spayd(
+    *, iban: str, amount: float, currency: str = "CZK",
+    variable_symbol: str = "", message: str = "", due_date=None,
+) -> str:
+    """SPAYD reťazec pre české QR platby (QR Platba) — pre CZ IBANy.
+
+    České bankové appky nečítajú PAY by square; skenujú formát SPAYD.
+    """
+    parts = ["SPD*1.0", f"ACC:{iban.replace(' ', '').upper()}",
+             f"AM:{amount:.2f}", f"CC:{currency.upper()}"]
+    if variable_symbol:
+        parts.append(f"X-VS:{variable_symbol}")
+    if due_date is not None:
+        parts.append(f"DT:{due_date.strftime('%Y%m%d')}")
+    if message:
+        clean = "".join(c for c in message if c.isalnum() or c in " .,-")[:60]
+        parts.append(f"MSG:{clean}")
+    return "*".join(parts)
+
+
 def qr_png(code: str) -> bytes:
     """Vyrenderuje PAY by square reťazec do QR kódu (PNG bajty)."""
     import qrcode

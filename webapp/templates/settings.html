@@ -11,6 +11,12 @@
            placeholder="napr. rodné číslo alebo heslo z banky">
     <p class="muted">Heslo sa použije len lokálne na odomknutie PDF výpisov,
        aby Romarium vedelo samo odškrtnúť zaplatené platby.</p>
+    <label>IBAN vášho účtu (pre hromadný príkaz na úhradu)</label>
+    <input name="own_iban" value="{{ settings['OWN_IBAN'] }}"
+           placeholder="SK00 0000 0000 0000 0000 0000">
+    <label>Názov firmy / meno (objaví sa v príkaze)</label>
+    <input name="own_name" value="{{ settings['OWN_NAME'] }}"
+           placeholder="Moja firma s.r.o.">
     <button type="submit">Uložiť</button>
   </form>
 </div>

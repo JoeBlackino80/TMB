@@ -3,6 +3,16 @@
 {% block content %}
 <h1>E-mailové schránky</h1>
 
+{% if forward_addr %}
+<div class="card" style="border-color:#c3e5d3;background:#f4faf7">
+  <h2>Vaša preposielacia adresa</h2>
+  <p style="font-size:17px"><b>{{ forward_addr }}</b></p>
+  <p class="muted">Nechcete zadávať heslo k schránke? Stačí faktúry preposielať
+     na túto adresu (ručne alebo pravidlom vo vašej pošte) a Romarium ich
+     spracuje rovnako. Adresa je unikátna pre váš účet — nezverejňujte ju.</p>
+</div>
+{% endif %}
+
 <div class="card">
   {% if mailboxes %}
   <table>

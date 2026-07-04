@@ -291,6 +291,24 @@ class Store:
         ).fetchall()
         return {r["iban"] for r in rows if normalize_supplier(r["supplier"]) == key}
 
+    def find_paid_duplicate(
+        self, *, supplier: str, amount: float, variable_symbol: str,
+    ) -> Optional[Payment]:
+        """Už zaplatená platba s rovnakým VS a sumou — možná duplicitná faktúra."""
+        if not variable_symbol:
+            return None
+        key = normalize_supplier(supplier)
+        rows = self.conn.execute(
+            "SELECT * FROM payments WHERE variable_symbol = ? AND status = 'paid'",
+            (variable_symbol,),
+        ).fetchall()
+        for r in rows:
+            if abs(r["amount"] - amount) < 0.005 and (
+                not key or normalize_supplier(r["supplier"]) == key
+            ):
+                return self._row_to_payment(r)
+        return None
+
     def payments_in_month(self, month: str) -> list[sqlite3.Row]:
         """Platby evidované alebo zaplatené v mesiaci RRRR-MM (podklady pre účtovníctvo)."""
         return self.conn.execute(

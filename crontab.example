@@ -9,6 +9,10 @@
 # — bez posielania pripomienky, tá chodí len ráno
 */30 8-18 * * 1-5  cd /root/TMB && .venv/bin/python -m bill_agent run-all fetch >> agent.log 2>&1
 
+# Preposielacia schránka (ak je nastavená FORWARD_IMAP_* v .env.master):
+# roztriedi preposlané faktúry klientom pred každým fetchom
+25,55 8-18 * * 1-5  cd /root/TMB && .venv/bin/python -m bill_agent intake >> agent.log 2>&1
+
 # Zhrnutie dňa o 17:30 a zhrnutie týždňa v piatok o 17:00
 30 17 * * 1-5 cd /root/TMB && .venv/bin/python -m bill_agent run-all digest >> agent.log 2>&1
 0 17 * * 5    cd /root/TMB && .venv/bin/python -m bill_agent run-all digest --days 7 >> agent.log 2>&1

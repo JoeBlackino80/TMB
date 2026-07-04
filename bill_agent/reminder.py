@@ -41,17 +41,26 @@ def _payment_qr(p: Payment) -> bytes | None:
         except ValueError:
             pass
     try:
-        code = pay_by_square.generate_code(
-            amount=p.amount,
-            iban=p.iban,
-            currency=p.currency,
-            due_date=due,
-            variable_symbol=p.variable_symbol,
-            constant_symbol=p.constant_symbol,
-            specific_symbol=p.specific_symbol,
-            note=(p.note or p.supplier)[:60],
-            beneficiary_name=p.supplier[:70],
-        )
+        if p.iban.replace(" ", "").upper().startswith("CZ"):
+            # české účty: QR Platba (SPAYD) — PAY by square by česká appka neprečítala
+            code = pay_by_square.spayd(
+                iban=p.iban, amount=p.amount,
+                currency=p.currency if p.currency in ("CZK", "EUR") else "CZK",
+                variable_symbol=p.variable_symbol, due_date=due,
+                message=(p.supplier or "")[:60],
+            )
+        else:
+            code = pay_by_square.generate_code(
+                amount=p.amount,
+                iban=p.iban,
+                currency=p.currency,
+                due_date=due,
+                variable_symbol=p.variable_symbol,
+                constant_symbol=p.constant_symbol,
+                specific_symbol=p.specific_symbol,
+                note=(p.note or p.supplier)[:60],
+                beneficiary_name=p.supplier[:70],
+            )
         return pay_by_square.qr_png(code)
     except Exception:
         return None

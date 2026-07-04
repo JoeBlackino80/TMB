@@ -33,11 +33,16 @@ def ensure_client(client_dir: str, reminder_to: str) -> str:
     return path
 
 
-def write_env(client_dir: str, *, reminder_to: str, pdf_passwords: str) -> None:
+def write_env(client_dir: str, *, reminder_to: str, pdf_passwords: str,
+              own_iban: str = "", own_name: str = "") -> None:
+    current = read_settings(client_dir)
     lines = [f"{key}={os.environ.get(key, '')}" for key in MASTER_KEYS]
     lines += [
         f"REMINDER_TO={reminder_to}",
         f"PDF_PASSWORDS={pdf_passwords}",
+        f"OWN_IBAN={own_iban or current['OWN_IBAN']}",
+        f"OWN_NAME={own_name or current['OWN_NAME']}",
+        f"FORWARD_TOKEN={current['FORWARD_TOKEN']}",
         "REMINDER_DAYS_AHEAD=7",
         "EMAIL_LOOKBACK_DAYS=7",
         "DB_PATH=bill_agent.db",
@@ -47,7 +52,8 @@ def write_env(client_dir: str, *, reminder_to: str, pdf_passwords: str) -> None:
 
 
 def read_settings(client_dir: str) -> dict:
-    settings = {"REMINDER_TO": "", "PDF_PASSWORDS": ""}
+    settings = {"REMINDER_TO": "", "PDF_PASSWORDS": "",
+                "OWN_IBAN": "", "OWN_NAME": "", "FORWARD_TOKEN": ""}
     env_file = os.path.join(client_path(client_dir), ".env")
     if os.path.exists(env_file):
         for line in open(env_file, encoding="utf-8"):
@@ -55,6 +61,22 @@ def read_settings(client_dir: str) -> dict:
             if key in settings:
                 settings[key] = value
     return settings
+
+
+def get_or_create_forward_token(client_dir: str) -> str:
+    """Token preposielacej adresy klienta — vygeneruje a uloží pri prvom použití."""
+    import secrets
+
+    settings = read_settings(client_dir)
+    if settings["FORWARD_TOKEN"]:
+        return settings["FORWARD_TOKEN"]
+    token = secrets.token_hex(4)
+    env_file = os.path.join(client_path(client_dir), ".env")
+    if not os.path.exists(env_file):
+        return ""
+    with open(env_file, "a", encoding="utf-8") as fh:
+        fh.write(f"FORWARD_TOKEN={token}\n")
+    return token
 
 
 def _accounts_file(client_dir: str) -> str:

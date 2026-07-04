@@ -38,8 +38,12 @@ skončilo. <a href="/billing">Aktivujte si predplatné</a>.</div>
     <div class="lbl">nezaplatené</div>
   </div>
   <div class="stat">
-    <div class="num">{{ ('%.2f'|format(stats.total)).replace('.', ',') }} €</div>
-    <div class="lbl">spolu na úhradu</div>
+    <div class="num">{{ ('%.2f'|format(stats.this_month or 0)).replace('.', ',') }} €</div>
+    <div class="lbl">odíde do konca mesiaca</div>
+  </div>
+  <div class="stat">
+    <div class="num">{{ ('%.2f'|format(stats.next_month or 0)).replace('.', ',') }} €</div>
+    <div class="lbl">budúci mesiac</div>
   </div>
   <div class="stat">
     <div class="num">{{ tasks|length }}</div>
@@ -103,6 +107,9 @@ skončilo. <a href="/billing">Aktivujte si predplatné</a>.</div>
   </div>
   <p class="muted">QR kódy na zaplatenie nájdete v e-mailových prehľadoch.
      Zaplatené odškrtne aj výpis z banky alebo odpoveď „zaplatené č.“ na e-mail.</p>
+  <a class="btn" href="/sepa">Hromadný príkaz na úhradu (SEPA XML)</a>
+  <p class="muted" style="margin-top:6px">Súbor nahráte do internet bankingu
+     a všetky úhrady potvrdíte naraz.</p>
   {% else %}
   <p class="muted">Žiadne evidované nezaplatené platby.</p>
   {% endif %}

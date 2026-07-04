@@ -30,15 +30,126 @@ def _save_invoice_attachments(mail) -> None:
             fh.write(att.data)
 
 
-def cmd_fetch(cfg: Config, store: Store, args: argparse.Namespace) -> None:
-    from . import commands
+def _handle_new_mail(cfg: Config, store: Store, mail, account_name: str,
+                     own_addresses: list, counters: dict) -> None:
+    """Spracuje jeden nový e-mail: príkazy / AI extrakcia / uloženie."""
+    from . import commands, extractor
+
+    # odpoveď na pripomienku ("zaplatené 3") — vybavíme bez AI
+    if commands.is_command_email(mail, own_addresses):
+        for action in commands.apply(store, mail):
+            print(f"  ✉️ {action}")
+        store.mark_processed(mail.message_id)
+        return
+    # e-mail už v minulosti niečo vytvoril → nespracúvame druhýkrát
+    if store.has_records_from(mail.message_id):
+        store.mark_processed(mail.message_id)
+        return
+    try:
+        result = extractor.extract(cfg, mail)
+    except Exception as exc:
+        print(f"  ⚠ {mail.subject!r}: extrakcia zlyhala ({exc})", file=sys.stderr)
+        return
+    for p in result.payments:
+        note = p.note
+        # možná duplicita: rovnaké VS a suma ako už zaplatená platba
+        dup = store.find_paid_duplicate(
+            supplier=p.supplier, amount=p.amount,
+            variable_symbol=p.variable_symbol,
+        )
+        if dup:
+            warning = (f"Možná duplicita: platba č. {dup.id} s rovnakým "
+                       "VS a sumou už bola zaplatená — skontrolujte, "
+                       "či faktúru neplatíte druhýkrát.")
+            note = f"{warning} {note}".strip()
+            print(f"  ⚠️ {p.supplier}: možná duplicitná faktúra "
+                  f"(VS {p.variable_symbol}, už zaplatená č. {dup.id})")
+        # ochrana pred podvodom: iný IBAN než pri minulých faktúrach
+        # toho istého dodávateľa
+        if p.iban:
+            known = store.known_ibans_for_supplier(p.supplier)
+            if known and p.iban not in known:
+                warning = ("POZOR: iný IBAN než pri predchádzajúcich "
+                           "platbách tomuto dodávateľovi — overte pravosť faktúry!")
+                note = f"{warning} {note}".strip()
+                print(f"  ⚠️ {p.supplier}: IBAN sa líši od minulých faktúr "
+                      f"({p.iban} vs {', '.join(sorted(known))})")
+        pid = store.add_payment(
+            supplier=p.supplier, amount=p.amount, currency=p.currency,
+            iban=p.iban, variable_symbol=p.variable_symbol,
+            specific_symbol=p.specific_symbol, constant_symbol=p.constant_symbol,
+            due_date=p.due_date or None, note=note,
+            source_message_id=mail.message_id, source_subject=mail.subject,
+            source_account=account_name,
+        )
+        counters["payments"] += 1
+        print(f"  💸 [{pid}] {p.supplier} {p.amount:.2f} {p.currency}, "
+              f"splatnosť {p.due_date or '—'} (z: {mail.subject!r})")
+    if result.payments:
+        _save_invoice_attachments(mail)
+    for t in result.tasks:
+        tid = store.add_task(
+            description=t.description, due_date=t.due_date or None,
+            source_message_id=mail.message_id, source_account=account_name,
+        )
+        counters["tasks"] += 1
+        print(f"  📋 [{tid}] {t.description} (do {t.due_date or '—'})")
+    store.log_email(
+        message_id=mail.message_id, account=account_name,
+        sender=mail.sender, subject=mail.subject,
+        summary=result.summary, category=result.category,
+    )
+    # z výpisov a potvrdení o platbe automaticky odškrtávame zaplatené
+    for tr in result.paid_transactions:
+        match = store.match_bank_transaction(
+            amount=tr.amount, variable_symbol=tr.variable_symbol,
+            iban=tr.counterparty_iban,
+        )
+        if match:
+            store.set_payment_status(match.id, "paid")
+            print(f"  ✅ [{match.id}] {match.supplier} {match.amount:.2f} "
+                  f"{match.currency} — nájdené vo výpise, označené ako zaplatené")
+    store.mark_processed(mail.message_id)
+
+
+def _process_intake(cfg: Config, store: Store, own_addresses: list,
+                    counters: dict) -> None:
+    """Spracuje preposlané e-maily z adresára intake/ (plní ich `intake` beh)."""
     from . import emails as email_mod
-    from . import extractor
 
-    accounts = cfg.accounts()
-    own_addresses = [a.user.lower() for a in accounts] + [cfg.reminder_to.lower()]
+    if not os.path.isdir("intake"):
+        return
+    files = sorted(f for f in os.listdir("intake") if f.endswith(".eml"))
+    if not files:
+        return
+    print(f"📨 preposlané: {len(files)} e-mailov")
+    for name in files:
+        path = os.path.join("intake", name)
+        try:
+            with open(path, "rb") as fh:
+                mail = email_mod.parse_message(fh.read())
+            if mail.message_id and not store.is_processed(mail.message_id):
+                _handle_new_mail(cfg, store, mail, "preposlané",
+                                 own_addresses, counters)
+        except Exception as exc:
+            print(f"  ⚠ {name}: spracovanie zlyhalo ({exc})", file=sys.stderr)
+        os.remove(path)
 
-    n_payments = n_tasks = 0
+
+def cmd_fetch(cfg: Config, store: Store, args: argparse.Namespace) -> None:
+    from . import emails as email_mod
+
+    try:
+        accounts = cfg.accounts()
+    except SystemExit:
+        # klient bez pripojenej schránky — môže používať len preposielanie
+        accounts = []
+    own_addresses = [addr for addr in
+                     [a.user.lower() for a in accounts] + [cfg.reminder_to.lower()]
+                     if addr]
+
+    counters = {"payments": 0, "tasks": 0}
+    _process_intake(cfg, store, own_addresses, counters)
     for account in accounts:
         try:
             mails = email_mod.fetch_recent(account, cfg.email_lookback_days)
@@ -48,70 +159,8 @@ def cmd_fetch(cfg: Config, store: Store, args: argparse.Namespace) -> None:
         new = [m for m in mails if m.message_id and not store.is_processed(m.message_id)]
         print(f"📬 {account.name}: {len(mails)} e-mailov, nových na spracovanie: {len(new)}")
         for mail in new:
-            # odpoveď na pripomienku ("zaplatené 3") — vybavíme bez AI
-            if commands.is_command_email(mail, own_addresses):
-                for action in commands.apply(store, mail):
-                    print(f"  ✉️ {action}")
-                store.mark_processed(mail.message_id)
-                continue
-            # e-mail už v minulosti niečo vytvoril → nespracúvame druhýkrát
-            if store.has_records_from(mail.message_id):
-                store.mark_processed(mail.message_id)
-                continue
-            try:
-                result = extractor.extract(cfg, mail)
-            except Exception as exc:
-                print(f"  ⚠ {mail.subject!r}: extrakcia zlyhala ({exc})", file=sys.stderr)
-                continue
-            for p in result.payments:
-                # ochrana pred podvodom: iný IBAN než pri minulých faktúrach
-                # toho istého dodávateľa
-                note = p.note
-                if p.iban:
-                    known = store.known_ibans_for_supplier(p.supplier)
-                    if known and p.iban not in known:
-                        warning = ("POZOR: iný IBAN než pri predchádzajúcich "
-                                   "platbách tomuto dodávateľovi — overte pravosť faktúry!")
-                        note = f"{warning} {note}".strip()
-                        print(f"  ⚠️ {p.supplier}: IBAN sa líši od minulých faktúr "
-                              f"({p.iban} vs {', '.join(sorted(known))})")
-                pid = store.add_payment(
-                    supplier=p.supplier, amount=p.amount, currency=p.currency,
-                    iban=p.iban, variable_symbol=p.variable_symbol,
-                    specific_symbol=p.specific_symbol, constant_symbol=p.constant_symbol,
-                    due_date=p.due_date or None, note=note,
-                    source_message_id=mail.message_id, source_subject=mail.subject,
-                    source_account=account.name,
-                )
-                n_payments += 1
-                print(f"  💸 [{pid}] {p.supplier} {p.amount:.2f} {p.currency}, "
-                      f"splatnosť {p.due_date or '—'} (z: {mail.subject!r})")
-            if result.payments:
-                _save_invoice_attachments(mail)
-            for t in result.tasks:
-                tid = store.add_task(
-                    description=t.description, due_date=t.due_date or None,
-                    source_message_id=mail.message_id, source_account=account.name,
-                )
-                n_tasks += 1
-                print(f"  📋 [{tid}] {t.description} (do {t.due_date or '—'})")
-            store.log_email(
-                message_id=mail.message_id, account=account.name,
-                sender=mail.sender, subject=mail.subject,
-                summary=result.summary, category=result.category,
-            )
-            # z výpisov a potvrdení o platbe automaticky odškrtávame zaplatené
-            for tr in result.paid_transactions:
-                match = store.match_bank_transaction(
-                    amount=tr.amount, variable_symbol=tr.variable_symbol,
-                    iban=tr.counterparty_iban,
-                )
-                if match:
-                    store.set_payment_status(match.id, "paid")
-                    print(f"  ✅ [{match.id}] {match.supplier} {match.amount:.2f} "
-                          f"{match.currency} — nájdené vo výpise, označené ako zaplatené")
-            store.mark_processed(mail.message_id)
-    print(f"Hotovo: {n_payments} platieb, {n_tasks} úloh.")
+            _handle_new_mail(cfg, store, mail, account.name, own_addresses, counters)
+    print(f"Hotovo: {counters['payments']} platieb, {counters['tasks']} úloh.")
 
 
 def cmd_remind(cfg: Config, store: Store, args: argparse.Namespace) -> None:
@@ -142,6 +191,99 @@ def cmd_digest(cfg: Config, store: Store, args: argparse.Namespace) -> None:
         return
     sent = digest.send_digest(cfg, store, args.days)
     print(f"Zhrnutie odoslané na {cfg.reminder_to}." if sent else "Nie je čo zhrnúť.")
+
+
+def _load_master_env(package_root: str) -> dict:
+    """Načíta .env.master (zdieľané hodnoty servera) ako slovník."""
+    env: dict = {}
+    path = os.path.join(package_root, ".env.master")
+    if os.path.isfile(path):
+        for line in open(path, encoding="utf-8"):
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, _, value = line.partition("=")
+                env[key.strip()] = value.strip()
+    return env
+
+
+def cmd_intake(args: argparse.Namespace) -> None:
+    """Roztriedi e-maily zo zdieľanej preposielacej schránky klientom.
+
+    Klienti preposielajú faktúry na adresu s vlastným tokenom
+    (napr. prijem+a1b2c3d4@romarium.com). Tento beh stiahne neprečítané
+    správy, podľa tokenu v adrese ich uloží do clients/<klient>/intake/
+    a spracujú sa pri najbližšom fetchi daného klienta.
+    """
+    import email as email_lib
+    import imaplib
+    import re
+
+    package_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    env = {**_load_master_env(package_root), **os.environ}
+    host = env.get("FORWARD_IMAP_HOST", "")
+    user = env.get("FORWARD_IMAP_USER", "")
+    password = env.get("FORWARD_IMAP_PASSWORD", "")
+    port = int(env.get("FORWARD_IMAP_PORT", "993") or 993)
+    if not (host and user and password):
+        raise SystemExit(
+            "Preposielanie nie je nakonfigurované — doplňte FORWARD_IMAP_HOST/"
+            "FORWARD_IMAP_USER/FORWARD_IMAP_PASSWORD do .env.master."
+        )
+
+    # mapa token -> adresár klienta
+    tokens: dict[str, str] = {}
+    base = os.path.join(package_root, args.clients_dir)
+    if os.path.isdir(base):
+        for name in os.listdir(base):
+            env_file = os.path.join(base, name, ".env")
+            if not os.path.isfile(env_file):
+                continue
+            for line in open(env_file, encoding="utf-8"):
+                key, _, value = line.strip().partition("=")
+                if key == "FORWARD_TOKEN" and value:
+                    tokens[value.lower()] = name
+    if not tokens:
+        print("Žiadny klient nemá preposielací token — nie je komu triediť.")
+        return
+
+    imap = imaplib.IMAP4_SSL(host, port)
+    try:
+        imap.login(user, password)
+        imap.select("INBOX")
+        _, data = imap.search(None, "UNSEEN")
+        uids = data[0].split()
+        print(f"📥 preposielacia schránka: {len(uids)} nových správ")
+        routed = 0
+        for uid in uids:
+            _, msg_data = imap.fetch(uid, "(RFC822)")
+            raw = msg_data[0][1]
+            msg = email_lib.message_from_bytes(raw)
+            recipients = " ".join(
+                str(msg.get(h, "")) for h in
+                ("To", "Cc", "X-Original-To", "Delivered-To", "Envelope-To")
+            ).lower()
+            target = None
+            for token, client in tokens.items():
+                if re.search(rf"[+.]{re.escape(token)}@|^{re.escape(token)}@", recipients) \
+                        or f"+{token}@" in recipients or f"{token}@" in recipients:
+                    target = client
+                    break
+            if not target:
+                print(f"  ⚠ správa {uid.decode()} nemá rozpoznateľný token — preskakujem",
+                      file=sys.stderr)
+                continue
+            intake_dir = os.path.join(base, target, "intake")
+            os.makedirs(intake_dir, exist_ok=True)
+            with open(os.path.join(intake_dir, f"{uid.decode()}.eml"), "wb") as fh:
+                fh.write(raw)
+            routed += 1
+            print(f"  📨 → {target}")
+        print(f"Roztriedené: {routed}/{len(uids)}")
+    finally:
+        try:
+            imap.logout()
+        except Exception:
+            pass
 
 
 def cmd_run_all(args: argparse.Namespace) -> None:
@@ -177,13 +319,8 @@ def cmd_run_all(args: argparse.Namespace) -> None:
 
     # zdieľané hodnoty pre všetkých klientov (ACTION_BASE_URL, WEBAPP_SECRET...)
     # — cron ich nemá v prostredí, tak ich pridáme zo .env.master
-    master_env = os.path.join(package_root, ".env.master")
-    if os.path.isfile(master_env):
-        for line in open(master_env, encoding="utf-8"):
-            line = line.strip()
-            if line and not line.startswith("#") and "=" in line:
-                key, _, value = line.partition("=")
-                env.setdefault(key.strip(), value.strip())
+    for key, value in _load_master_env(package_root).items():
+        env.setdefault(key, value)
 
     failed = []
     for name in client_dirs:
@@ -193,7 +330,42 @@ def cmd_run_all(args: argparse.Namespace) -> None:
             failed.append(name)
     if failed:
         print(f"\n⚠ Zlyhali klienti: {', '.join(failed)}", file=sys.stderr)
+        _alert_admin(env, args.subcommand, failed)
         raise SystemExit(1)
+
+
+def _alert_admin(env: dict, subcommand: str, failed: list) -> None:
+    """Pošle správcovi e-mail o zlyhaných klientoch (best-effort)."""
+    import smtplib
+    from email.message import EmailMessage
+
+    admin = env.get("ADMIN_EMAIL", "")
+    if not admin or not env.get("SMTP_HOST") or not env.get("SMTP_PASSWORD"):
+        return
+    msg = EmailMessage()
+    msg["Subject"] = f"Romarium: zlyhalo spracovanie ({subcommand}) — {', '.join(failed)}"
+    msg["From"] = env.get("SMTP_USER", "")
+    msg["To"] = admin
+    msg.set_content(
+        f"Príkaz run-all {subcommand} zlyhal pre klientov: {', '.join(failed)}.\n\n"
+        "Podrobnosti sú v agent.log na serveri — najčastejšie ide o zlé heslo "
+        "schránky alebo nedostupný poštový server.\n"
+    )
+    try:
+        port = int(env.get("SMTP_PORT", "587") or 587)
+        if port == 465:
+            server = smtplib.SMTP_SSL(env["SMTP_HOST"], port, timeout=20)
+        else:
+            server = smtplib.SMTP(env["SMTP_HOST"], port, timeout=20)
+            server.starttls()
+        try:
+            server.login(env["SMTP_USER"], env["SMTP_PASSWORD"])
+            server.send_message(msg)
+        finally:
+            server.quit()
+        print(f"Upozornenie o poruche odoslané na {admin}.")
+    except Exception as exc:
+        print(f"⚠ Upozornenie správcovi sa nepodarilo odoslať: {exc}", file=sys.stderr)
 
 
 def cmd_list(cfg: Config, store: Store, args: argparse.Namespace) -> None:
@@ -314,6 +486,10 @@ def main(argv: list[str] | None = None) -> None:
     p_all.add_argument("--days", type=int, default=1, help="obdobie pre digest")
     p_all.add_argument("--clients-dir", default="clients", help="adresár s klientmi")
 
+    p_intake = sub.add_parser(
+        "intake", help="roztriedi preposlané e-maily zo zdieľanej schránky klientom")
+    p_intake.add_argument("--clients-dir", default="clients", help="adresár s klientmi")
+
     p_bank = sub.add_parser("import-bank", help="spáruje platby s CSV výpisom z banky")
     p_bank.add_argument("file", help="cesta k CSV výpisu")
     p_bank.add_argument("--amount-col", required=True, help="názov stĺpca so sumou")
@@ -324,9 +500,12 @@ def main(argv: list[str] | None = None) -> None:
 
     args = parser.parse_args(argv)
 
-    # run-all si spúšťa podprocesy s vlastnými konfiguráciami — bez cfg/store
+    # run-all a intake pracujú nad všetkými klientmi — bez cfg/store
     if args.command == "run-all":
         cmd_run_all(args)
+        return
+    if args.command == "intake":
+        cmd_intake(args)
         return
 
     cfg = Config()
