@@ -69,6 +69,9 @@ class Config:
         os.environ.get("CLIENT_SLUG", "") or os.path.basename(os.getcwd())
     ))
 
+    # typ účtu: business (firma/živnostník) | personal (súkromná osoba)
+    account_type: str = field(default_factory=lambda: os.environ.get("ACCOUNT_TYPE", "business"))
+
     # rozvrh e-mailov (per klient; vyhodnocuje príkaz notify raz za hodinu):
     # *_SCHEDULE: workdays | daily | weekly (len digest) | off
     remind_schedule: str = field(default_factory=lambda: os.environ.get("REMIND_SCHEDULE", "workdays"))

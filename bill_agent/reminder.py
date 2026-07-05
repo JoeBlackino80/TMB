@@ -184,6 +184,26 @@ def build_reminder(
             )
         html_parts.append("</ul>")
 
+    # blížiace sa konce platnosti (poistky, STK, domény...) — len informačne,
+    # samy o sebe pripomienku nespúšťajú
+    renewals = store.upcoming_renewals(45)
+    if renewals:
+        from .store import RENEWAL_LABELS
+
+        text_lines.append("\nKončí platnosť")
+        html_parts.append(
+            "<h3 style='margin:18px 0 6px;color:#97590a'>Končí platnosť</h3><ul>")
+        for r in renewals:
+            label = RENEWAL_LABELS.get(r["kind"], "Koniec platnosti")
+            line = f"{r['expires_on']}: {label}" + (f" — {r['subject']}" if r["subject"] else "")
+            text_lines.append(f"  {line}")
+            html_parts.append(
+                f"<li><b>{escape(r['expires_on'])}</b> — {escape(label)}"
+                + (f": {escape(r['subject'])}" if r["subject"] else "")
+                + (f" <small>({escape(r['note'])})</small>" if r["note"] else "")
+                + "</li>")
+        html_parts.append("</ul>")
+
     # daňové termíny podľa profilu klienta
     if tax_deadlines:
         text_lines.append("\nDaňové termíny")

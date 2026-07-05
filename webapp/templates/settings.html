@@ -4,6 +4,14 @@
 <h1>Nastavenia</h1>
 <div class="card">
   <form method="post" action="/settings">
+    <label>Typ účtu</label>
+    <select name="account_type" style="max-width:260px"
+            onchange="document.querySelectorAll('.biz-only').forEach(
+                      el => el.style.display = this.value === 'personal' ? 'none' : '')">
+      <option value="business" {% if settings['ACCOUNT_TYPE'] != 'personal' %}selected{% endif %}>firma / živnostník</option>
+      <option value="personal" {% if settings['ACCOUNT_TYPE'] == 'personal' %}selected{% endif %}>súkromná osoba</option>
+    </select>
+
     <label>Kam posielať prehľady a upozornenia</label>
     <input type="email" name="reminder_to" value="{{ settings['REMINDER_TO'] }}" required>
     <label>Heslá k chráneným PDF (výpisy z banky) — viac oddeľte čiarkou</label>
@@ -11,12 +19,14 @@
            placeholder="napr. rodné číslo alebo heslo z banky">
     <p class="muted">Heslo sa použije len lokálne na odomknutie PDF výpisov,
        aby Romarium vedelo samo odškrtnúť zaplatené platby.</p>
+    <div class="biz-only" {% if settings['ACCOUNT_TYPE'] == 'personal' %}style="display:none"{% endif %}>
     <label>IBAN vášho účtu (pre hromadný príkaz na úhradu)</label>
     <input name="own_iban" value="{{ settings['OWN_IBAN'] }}"
            placeholder="SK00 0000 0000 0000 0000 0000">
     <label>Názov firmy / meno (objaví sa v príkaze)</label>
     <input name="own_name" value="{{ settings['OWN_NAME'] }}"
            placeholder="Moja firma s.r.o.">
+    </div>
 
     <label style="margin-top:18px">Ranný prehľad platieb (s QR kódmi)</label>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -55,6 +65,7 @@
       Mesačný report výdavkov (1. deň v mesiaci)
     </label>
 
+    <div class="biz-only" {% if settings['ACCOUNT_TYPE'] == 'personal' %}style="display:none"{% endif %}>
     <label style="margin-top:18px">Daňový kalendár — čo sa vás týka</label>
     <p class="muted" style="margin-bottom:8px">Romarium pripomenie zákonné
        termíny (DPH, odvody, preddavky) v ranných prehľadoch.</p>
@@ -65,6 +76,7 @@
              {% if key in profile %}checked{% endif %}> {{ label }}
     </label>
     {% endfor %}
+    </div>
     <button type="submit">Uložiť</button>
   </form>
 </div>

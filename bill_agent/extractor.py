@@ -11,7 +11,14 @@ import anthropic
 from .config import Config
 from .emails import Email
 
-SYSTEM_PROMPT = """Si asistent slovenského podnikateľa. Analyzuješ prijaté e-maily
+def system_prompt(account_type: str = "business") -> str:
+    if account_type == "personal":
+        persona = ("Si asistent slovenskej domácnosti (súkromnej osoby). Typická "
+                   "pošta: vyúčtovania energií a telekomunikácií, nájom, poistky, "
+                   "splátky, predpisy platieb, školy a škôlky, predplatné.")
+    else:
+        persona = "Si asistent slovenského podnikateľa."
+    return persona + """ Analyzuješ prijaté e-maily
 (vrátane PDF príloh — faktúry, upomienky, výzvy na platbu, zálohové faktúry) a
 extrahuješ z nich:
 
@@ -35,12 +42,22 @@ extrahuješ z nich:
    automatické odškrtnutie už zaplatených záväzkov. Prijaté (kreditné) platby
    a poplatky banky neuvádzaj.
 
-4. SÚHRN (summary + category): 1–2 vety po slovensky, o čom e-mail je a či
+4. KONCE PLATNOSTI (expirations): ak e-mail hovorí, že niečo KONČÍ alebo treba
+   OBNOVIŤ — poistenie PZP/havarijné (uveď aj EČV vozidla, ak je známe), STK,
+   emisná kontrola, doména, predplatné, zmluva — extrahuj druh, predmet
+   (napr. "Škoda Octavia BA-123XY" alebo "romarium.com"), dátum konca platnosti
+   a krátku poznámku (napr. ponúknutá nová cena). Neuvádzaj bežné splatnosti
+   faktúr, tie patria do PLATIEB.
+
+5. SÚHRN (summary + category): 1–2 vety po slovensky, o čom e-mail je a či
    vyžaduje pozornosť. Kategória: faktura | banka | objednavka | uloha |
    marketing | ine.
 
 Ak e-mail neobsahuje nič relevantné (newsletter, spam, bežná konverzácia),
 vráť prázdne zoznamy (summary a category vyplň vždy)."""
+
+
+SYSTEM_PROMPT = system_prompt()
 
 OUTPUT_SCHEMA = {
     "type": "json_schema",
@@ -96,18 +113,40 @@ OUTPUT_SCHEMA = {
                     "additionalProperties": False,
                 },
             },
+            "expirations": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "kind": {
+                            "type": "string",
+                            "enum": ["pzp", "havarijne", "stk", "ek", "poistka",
+                                     "domena", "predplatne", "zmluva", "ine"],
+                        },
+                        "subject": {"type": "string",
+                                    "description": "Čoho sa to týka — napr. EČV vozidla, doména, názov zmluvy"},
+                        "expires_on": {"type": "string", "description": "YYYY-MM-DD alebo prázdny reťazec"},
+                        "note": {"type": "string"},
+                    },
+                    "required": ["kind", "subject", "expires_on", "note"],
+                    "additionalProperties": False,
+                },
+            },
             "summary": {"type": "string", "description": "1-2 vety po slovensky"},
             "category": {
                 "type": "string",
                 "enum": ["faktura", "banka", "objednavka", "uloha", "marketing", "ine"],
             },
         },
-        "required": ["payments", "tasks", "paid_transactions", "summary", "category"],
+        "required": ["payments", "tasks", "paid_transactions", "expirations",
+                     "summary", "category"],
         "additionalProperties": False,
     },
 }
 
 CATEGORIES = ("faktura", "banka", "objednavka", "uloha", "marketing", "ine")
+RENEWAL_KINDS = ("pzp", "havarijne", "stk", "ek", "poistka", "domena",
+                 "predplatne", "zmluva", "ine")
 
 
 @dataclass
@@ -139,10 +178,19 @@ class ExtractedPaid:
 
 
 @dataclass
+class ExtractedExpiration:
+    kind: str
+    subject: str = ""
+    expires_on: str = ""
+    note: str = ""
+
+
+@dataclass
 class Extraction:
     payments: list[ExtractedPayment] = field(default_factory=list)
     tasks: list[ExtractedTask] = field(default_factory=list)
     paid_transactions: list[ExtractedPaid] = field(default_factory=list)
+    expirations: list[ExtractedExpiration] = field(default_factory=list)
     summary: str = ""
     category: str = "ine"
 
@@ -250,7 +298,7 @@ def extract(cfg: Config, mail: Email, client: Optional[anthropic.Anthropic] = No
         return client.messages.create(
             model=cfg.claude_model,
             max_tokens=16000,
-            system=SYSTEM_PROMPT,
+            system=system_prompt(getattr(cfg, "account_type", "business")),
             output_config={"format": OUTPUT_SCHEMA},
             messages=[{"role": "user", "content": content}],
         )
@@ -314,10 +362,24 @@ def parse_extraction(data: dict) -> Extraction:
             date=tr.get("date", "").strip(),
             description=tr.get("description", "").strip(),
         ))
+    expirations = []
+    for e in data.get("expirations", []):
+        kind = (e.get("kind") or "ine").strip()
+        if kind not in RENEWAL_KINDS:
+            kind = "ine"
+        if not (e.get("subject", "").strip() or e.get("expires_on", "").strip()):
+            continue
+        expirations.append(ExtractedExpiration(
+            kind=kind,
+            subject=e.get("subject", "").strip(),
+            expires_on=e.get("expires_on", "").strip(),
+            note=e.get("note", "").strip(),
+        ))
     category = data.get("category", "ine")
     if category not in CATEGORIES:
         category = "ine"
     return Extraction(
         payments=payments, tasks=tasks, paid_transactions=paid,
+        expirations=expirations,
         summary=data.get("summary", "").strip(), category=category,
     )

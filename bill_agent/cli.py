@@ -87,6 +87,16 @@ def _handle_new_mail(cfg: Config, store: Store, mail, account_name: str,
               f"splatnosť {p.due_date or '—'} (z: {mail.subject!r})")
     if result.payments:
         _save_invoice_attachments(mail)
+    for e in result.expirations:
+        rid = store.add_renewal(
+            kind=e.kind, subject=e.subject, expires_on=e.expires_on or None,
+            note=e.note, source_message_id=mail.message_id,
+            source_account=account_name,
+        )
+        if rid:
+            from .store import RENEWAL_LABELS
+            print(f"  ⏳ [{rid}] {RENEWAL_LABELS.get(e.kind, e.kind)}: "
+                  f"{e.subject or '—'} končí {e.expires_on or '—'}")
     for t in result.tasks:
         tid = store.add_task(
             description=t.description, due_date=t.due_date or None,

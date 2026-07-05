@@ -137,8 +137,11 @@ def register_form(request: Request):
 
 
 @app.post("/register")
-def register(request: Request, email: str = Form(...), password: str = Form(...)):
+def register(request: Request, email: str = Form(...), password: str = Form(...),
+             account_type: str = Form("business")):
     email = email.strip().lower()
+    if account_type not in ("business", "personal"):
+        account_type = "business"
     if "@" not in email or len(password) < 8:
         return _render(request, "register.html",
                        error="Zadajte platný e-mail a heslo aspoň 8 znakov.")
@@ -150,7 +153,8 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
         user = users.create(email, password, verified=not mailer.smtp_configured())
     finally:
         users.close()
-    clientfs.ensure_client(user["client_dir"], reminder_to=email)
+    clientfs.ensure_client(user["client_dir"], reminder_to=email,
+                           account_type=account_type)
     # ukážkové dáta, nech nový účet nie je prázdny (zmiznú po pridaní schránky)
     store = Store(os.path.join(clientfs.client_path(user["client_dir"]), "bill_agent.db"))
     try:
@@ -298,7 +302,7 @@ def dashboard(request: Request, user=Depends(current_user)):
     if not user:
         return _render(request, "landing.html")
     db_path = _client_db(user)
-    payments, tasks, missing = [], [], []
+    payments, tasks, missing, renewals = [], [], [], []
     stats = {"overdue": 0, "pending": 0, "total": 0.0}
     if os.path.exists(db_path):
         store = Store(db_path)
@@ -310,6 +314,7 @@ def dashboard(request: Request, user=Depends(current_user)):
             tasks = store.active_tasks()
             missing = store.missing_recurring()
             all_pending = store.pending_payments()
+            renewals = store.upcoming_renewals(60)
         finally:
             store.close()
         stats["overdue"] = len(groups["overdue"])
@@ -341,14 +346,32 @@ def dashboard(request: Request, user=Depends(current_user)):
         months.append(f"{y:04d}-{m:02d}")
         y, m = (y, m - 1) if m > 1 else (y - 1, 12)
     from bill_agent import taxcal
+    from bill_agent.store import RENEWAL_LABELS
     settings = clientfs.read_settings(user["client_dir"])
+    account_type = settings["ACCOUNT_TYPE"] or "business"
     profile = {p for p in settings["TAX_PROFILE"].split(",") if p}
-    tax_deadlines = taxcal.upcoming(profile, 30)
+    tax_deadlines = taxcal.upcoming(profile, 30) if account_type != "personal" else []
     has_demo = any(p.get("source_subject") == "UKÁŽKA" for p in payments)
     return _render(request, "dashboard.html", user=user, payments=payments,
                    tasks=tasks, enabled=enabled, stats=stats, missing=missing,
                    months=months, tax_deadlines=tax_deadlines, has_demo=has_demo,
+                   renewals=renewals, renewal_labels=RENEWAL_LABELS,
+                   account_type=account_type,
                    mailboxes=clientfs.list_mailboxes(user["client_dir"]))
+
+
+@app.post("/renewals/done")
+def renewal_done(request: Request, user=Depends(current_user),
+                 renewal_id: int = Form(...)):
+    if not user:
+        return _redirect("/login")
+    if os.path.exists(_client_db(user)):
+        store = Store(_client_db(user))
+        try:
+            store.set_renewal_status(renewal_id, "done")
+        finally:
+            store.close()
+    return _redirect("/")
 
 
 @app.post("/payments/set-status")
@@ -732,6 +755,7 @@ async def save_settings(request: Request, user=Depends(current_user),
         value = str(form.get(name, ""))
         return value if value in allowed else default
 
+    account_type = pick("account_type", {"business", "personal"}, "business")
     hours = {str(h) for h in range(5, 22)}
     schedule = {
         "REMIND_SCHEDULE": pick("remind_schedule", {"workdays", "daily", "off"}, "workdays"),
@@ -746,7 +770,8 @@ async def save_settings(request: Request, user=Depends(current_user),
                        own_iban=own_iban.replace(" ", "").upper(),
                        own_name=own_name.strip(),
                        tax_profile=profile,
-                       schedule=schedule)
+                       schedule=schedule,
+                       account_type=account_type)
     return _redirect("/settings")
 
 

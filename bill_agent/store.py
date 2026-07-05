@@ -48,6 +48,18 @@ CREATE TABLE IF NOT EXISTS meta (
     value TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS renewals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    kind TEXT NOT NULL DEFAULT 'ine',   -- pzp | havarijne | stk | ek | poistka | domena | predplatne | zmluva | ine
+    subject TEXT NOT NULL DEFAULT '',   -- EČV vozidla, doména, názov zmluvy...
+    expires_on TEXT,                    -- YYYY-MM-DD alebo NULL
+    note TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'pending',  -- pending | done | ignored
+    source_message_id TEXT NOT NULL DEFAULT '',
+    source_account TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS email_log (
     message_id TEXT PRIMARY KEY,
     account TEXT NOT NULL DEFAULT '',
@@ -95,6 +107,18 @@ class Task:
     status: str
     snoozed_until: Optional[str] = None
 
+
+RENEWAL_LABELS = {
+    "pzp": "PZP poistenie",
+    "havarijne": "Havarijné poistenie",
+    "stk": "STK",
+    "ek": "Emisná kontrola",
+    "poistka": "Poistka",
+    "domena": "Doména",
+    "predplatne": "Predplatné",
+    "zmluva": "Zmluva",
+    "ine": "Koniec platnosti",
+}
 
 _LEGAL_SUFFIXES = sorted(
     ("spol s r o", "s r o", "a s", "gmbh", "k s", "sro", "as", "se"),
@@ -153,7 +177,7 @@ class Store:
         return row is not None
 
     def has_records_from(self, message_id: str) -> bool:
-        """Vytvoril už tento e-mail nejaké platby/úlohy?
+        """Vytvoril už tento e-mail nejaké platby/úlohy/konce platnosti?
 
         Chráni pred duplicitami, keď sa e-mail spracuje opakovane (napr. po
         vyčistení processed_emails) — AI text zakaždým sformuluje trochu inak,
@@ -163,8 +187,9 @@ class Store:
             return False
         row = self.conn.execute(
             "SELECT 1 FROM payments WHERE source_message_id = ? "
-            "UNION SELECT 1 FROM tasks WHERE source_message_id = ? LIMIT 1",
-            (message_id, message_id),
+            "UNION SELECT 1 FROM tasks WHERE source_message_id = ? "
+            "UNION SELECT 1 FROM renewals WHERE source_message_id = ? LIMIT 1",
+            (message_id, message_id, message_id),
         ).fetchone()
         return row is not None
 
@@ -295,6 +320,45 @@ class Store:
             "SELECT supplier, iban FROM payments WHERE iban != ''"
         ).fetchall()
         return {r["iban"] for r in rows if normalize_supplier(r["supplier"]) == key}
+
+    # -- konce platnosti (poistky, STK, domény...) -----------------------------
+
+    def add_renewal(self, *, kind: str, subject: str = "", expires_on: Optional[str] = None,
+                    note: str = "", source_message_id: str = "",
+                    source_account: str = "") -> Optional[int]:
+        """Uloží koniec platnosti; duplicitu (rovnaký druh+predmet+dátum) preskočí."""
+        existing = self.conn.execute(
+            "SELECT id FROM renewals WHERE kind = ? AND lower(subject) = lower(?) "
+            "AND COALESCE(expires_on, '') = ?",
+            (kind, subject, expires_on or ""),
+        ).fetchone()
+        if existing:
+            return None
+        cur = self.conn.execute(
+            "INSERT INTO renewals (kind, subject, expires_on, note, "
+            "source_message_id, source_account, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (kind, subject, expires_on, note, source_message_id, source_account,
+             datetime.now().isoformat(timespec="seconds")),
+        )
+        self.conn.commit()
+        return cur.lastrowid
+
+    def upcoming_renewals(self, days_ahead: int = 60) -> list[sqlite3.Row]:
+        """Neuzavreté konce platnosti do days_ahead dní (vrátane 7 dní po termíne)."""
+        today = date.today()
+        low = (today - timedelta(days=7)).isoformat()
+        high = (today + timedelta(days=days_ahead)).isoformat()
+        return self.conn.execute(
+            "SELECT * FROM renewals WHERE status = 'pending' AND expires_on IS NOT NULL "
+            "AND expires_on != '' AND expires_on BETWEEN ? AND ? ORDER BY expires_on",
+            (low, high),
+        ).fetchall()
+
+    def set_renewal_status(self, renewal_id: int, status: str) -> bool:
+        cur = self.conn.execute(
+            "UPDATE renewals SET status = ? WHERE id = ?", (status, renewal_id))
+        self.conn.commit()
+        return cur.rowcount > 0
 
     def get_meta(self, key: str, default: str = "") -> str:
         row = self.conn.execute("SELECT value FROM meta WHERE key = ?", (key,)).fetchone()

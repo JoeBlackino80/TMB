@@ -136,13 +136,39 @@ skončilo. <a href="/billing">Aktivujte si predplatné</a>.</div>
   </div>
   <p class="muted">QR kódy na zaplatenie nájdete v e-mailových prehľadoch.
      Zaplatené odškrtne aj výpis z banky alebo odpoveď „zaplatené č.“ na e-mail.</p>
+  {% if account_type != 'personal' %}
   <a class="btn" href="/sepa">Hromadný príkaz na úhradu (SEPA XML)</a>
   <p class="muted" style="margin-top:6px">Súbor nahráte do internet bankingu
      a všetky úhrady potvrdíte naraz.</p>
+  {% endif %}
   {% else %}
   <p class="muted">Žiadne evidované nezaplatené platby.</p>
   {% endif %}
 </div>
+
+{% if renewals %}
+<div class="card" style="border-color:#ecd9a8">
+  <h2>Končí platnosť</h2>
+  <table>
+    {% for r in renewals %}
+    <tr>
+      <td style="white-space:nowrap"><b>{{ r.expires_on }}</b></td>
+      <td><b>{{ renewal_labels.get(r.kind, 'Koniec platnosti') }}</b>
+          {% if r.subject %} — {{ r.subject }}{% endif %}
+          {% if r.note %}<br><span class="muted">{{ r.note }}</span>{% endif %}</td>
+      <td class="actions" style="text-align:right">
+        <form method="post" action="/renewals/done">
+          <input type="hidden" name="renewal_id" value="{{ r.id }}">
+          <button class="small">Vybavené</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="muted">Poistky, STK, domény a predplatné, ktoré Romarium našlo
+     vo vašej pošte. Vybavené odškrtnite, nech vám ich nepripomíname.</p>
+</div>
+{% endif %}
 
 {% if tax_deadlines %}
 <div class="card">
@@ -155,6 +181,7 @@ skončilo. <a href="/billing">Aktivujte si predplatné</a>.</div>
 </div>
 {% endif %}
 
+{% if account_type != 'personal' %}
 <div class="card">
   <h2>Podklady pre účtovníctvo</h2>
   <p class="muted">ZIP s faktúrami (PDF) a prehľadom platieb za mesiac —
@@ -163,6 +190,7 @@ skončilo. <a href="/billing">Aktivujte si predplatné</a>.</div>
     <a class="btn" style="margin-right:10px;margin-top:6px" href="/bundle?month={{ m }}">{{ m }}</a>
   {% endfor %}
 </div>
+{% endif %}
 
 <div class="card">
   <h2>Úlohy</h2>
