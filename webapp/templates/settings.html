@@ -8,8 +8,9 @@
     <select name="account_type" style="max-width:260px"
             onchange="document.querySelectorAll('.biz-only').forEach(
                       el => el.style.display = this.value === 'personal' ? 'none' : '')">
-      <option value="business" {% if settings['ACCOUNT_TYPE'] != 'personal' %}selected{% endif %}>firma / živnostník</option>
+      <option value="business" {% if settings['ACCOUNT_TYPE'] not in ('personal', 'both') %}selected{% endif %}>firma / živnostník</option>
       <option value="personal" {% if settings['ACCOUNT_TYPE'] == 'personal' %}selected{% endif %}>súkromná osoba</option>
+      <option value="both" {% if settings['ACCOUNT_TYPE'] == 'both' %}selected{% endif %}>obidvoje — firma aj súkromné</option>
     </select>
 
     <label>Kam posielať prehľady a upozornenia</label>

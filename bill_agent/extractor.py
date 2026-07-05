@@ -16,6 +16,10 @@ def system_prompt(account_type: str = "business") -> str:
         persona = ("Si asistent slovenskej domácnosti (súkromnej osoby). Typická "
                    "pošta: vyúčtovania energií a telekomunikácií, nájom, poistky, "
                    "splátky, predpisy platieb, školy a škôlky, predplatné.")
+    elif account_type == "both":
+        persona = ("Si asistent slovenského podnikateľa, ktorý v tej istej schránke "
+                   "dostáva aj súkromnú poštu domácnosti (energie, nájom, poistky, "
+                   "splátky, školy) — spracúvaj firemné aj súkromné položky.")
     else:
         persona = "Si asistent slovenského podnikateľa."
     return persona + """ Analyzuješ prijaté e-maily

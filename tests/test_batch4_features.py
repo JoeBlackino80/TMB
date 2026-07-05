@@ -15,6 +15,8 @@ def test_system_prompt_by_account_type():
     assert "podnikateľa" in extractor.system_prompt("business")
     assert "domácnosti" in extractor.system_prompt("personal")
     assert "KONCE PLATNOSTI" in extractor.system_prompt("personal")
+    both = extractor.system_prompt("both")
+    assert "podnikateľa" in both and "súkromnú poštu" in both
 
 
 def test_parse_extraction_expirations():
@@ -105,6 +107,16 @@ def test_personal_account_flow(client, tmp_path):
     }, cookies={"session": session})
     env = (tmp_path / "clients" / "osoba-x-sk" / ".env").read_text()
     assert "ACCOUNT_TYPE=business" in env
+    r = client.get("/", cookies={"session": session})
+    assert "Podklady pre účtovníctvo" in r.text
+
+    # "obidvoje" vidí všetko firemné
+    client.post("/settings", data={
+        "reminder_to": "osoba@x.sk", "pdf_passwords": "", "own_iban": "",
+        "own_name": "", "account_type": "both",
+    }, cookies={"session": session})
+    env = (tmp_path / "clients" / "osoba-x-sk" / ".env").read_text()
+    assert "ACCOUNT_TYPE=both" in env
     r = client.get("/", cookies={"session": session})
     assert "Podklady pre účtovníctvo" in r.text
 

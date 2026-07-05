@@ -140,7 +140,7 @@ def register_form(request: Request):
 def register(request: Request, email: str = Form(...), password: str = Form(...),
              account_type: str = Form("business")):
     email = email.strip().lower()
-    if account_type not in ("business", "personal"):
+    if account_type not in ("business", "personal", "both"):
         account_type = "business"
     if "@" not in email or len(password) < 8:
         return _render(request, "register.html",
@@ -755,7 +755,7 @@ async def save_settings(request: Request, user=Depends(current_user),
         value = str(form.get(name, ""))
         return value if value in allowed else default
 
-    account_type = pick("account_type", {"business", "personal"}, "business")
+    account_type = pick("account_type", {"business", "personal", "both"}, "business")
     hours = {str(h) for h in range(5, 22)}
     schedule = {
         "REMIND_SCHEDULE": pick("remind_schedule", {"workdays", "daily", "off"}, "workdays"),

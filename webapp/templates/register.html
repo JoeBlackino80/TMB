@@ -7,7 +7,7 @@
      14 dní zadarmo — bez platobnej karty, potom 4,99 €/mesiac alebo 49 €/rok.</p>
   <form method="post" action="/register">
     <label>Používam Romarium ako</label>
-    <div style="display:flex;gap:16px;margin:4px 0 6px">
+    <div style="display:flex;gap:14px;margin:4px 0 6px;flex-wrap:wrap">
       <label style="display:flex;align-items:center;gap:7px;font-weight:500;margin:0">
         <input type="radio" name="account_type" value="business" checked
                style="width:auto"> firma / živnostník
@@ -15,6 +15,10 @@
       <label style="display:flex;align-items:center;gap:7px;font-weight:500;margin:0">
         <input type="radio" name="account_type" value="personal"
                style="width:auto"> súkromná osoba
+      </label>
+      <label style="display:flex;align-items:center;gap:7px;font-weight:500;margin:0">
+        <input type="radio" name="account_type" value="both"
+               style="width:auto"> obidvoje
       </label>
     </div>
     <label>Váš e-mail (sem budú chodiť prehľady)</label>
