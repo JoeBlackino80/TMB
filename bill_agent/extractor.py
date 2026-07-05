@@ -197,6 +197,8 @@ class Extraction:
     expirations: list[ExtractedExpiration] = field(default_factory=list)
     summary: str = ""
     category: str = "ine"
+    # prílohy, ktoré sa nepodarilo odomknúť žiadnym heslom z PDF_PASSWORDS
+    locked_pdfs: list = field(default_factory=list)
 
 
 def _maybe_decrypt_pdf(data: bytes, passwords: list[str]) -> Optional[bytes]:
@@ -250,7 +252,10 @@ def _sniff_media_type(data: bytes) -> Optional[str]:
     return None
 
 
-def _build_content(mail: Email, pdf_passwords: Optional[list[str]] = None) -> list[dict]:
+def _build_content(
+    mail: Email, pdf_passwords: Optional[list[str]] = None,
+    locked: Optional[list] = None,
+) -> list[dict]:
     content: list[dict] = []
     for att in mail.attachments:
         media_type = _sniff_media_type(att.data)
@@ -262,6 +267,8 @@ def _build_content(mail: Email, pdf_passwords: Optional[list[str]] = None) -> li
                     "žiadne heslo z PDF_PASSWORDS — preskakujem",
                     file=sys.stderr,
                 )
+                if locked is not None:
+                    locked.append(att.filename)
                 continue
             content.append({
                 "type": "document",
@@ -307,7 +314,8 @@ def extract(cfg: Config, mail: Email, client: Optional[anthropic.Anthropic] = No
             messages=[{"role": "user", "content": content}],
         )
 
-    content = _build_content(mail, cfg.pdf_passwords)
+    locked: list = []
+    content = _build_content(mail, cfg.pdf_passwords, locked)
     try:
         response = _call(content)
     except anthropic.BadRequestError:
@@ -319,11 +327,13 @@ def extract(cfg: Config, mail: Email, client: Optional[anthropic.Anthropic] = No
         response = _call(text_only)
 
     if response.stop_reason == "refusal":
-        return Extraction()
+        return Extraction(locked_pdfs=locked)
 
     text = next((b.text for b in response.content if b.type == "text"), "")
     data = json.loads(text)
-    return parse_extraction(data)
+    result = parse_extraction(data)
+    result.locked_pdfs = locked
+    return result
 
 
 def parse_extraction(data: dict) -> Extraction:

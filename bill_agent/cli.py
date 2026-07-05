@@ -87,6 +87,17 @@ def _handle_new_mail(cfg: Config, store: Store, mail, account_name: str,
               f"splatnosť {p.due_date or '—'} (z: {mail.subject!r})")
     if result.payments:
         _save_invoice_attachments(mail)
+    # zamknuté PDF, ktoré nesadlo na žiadne heslo → úloha pre používateľa
+    for filename in result.locked_pdfs:
+        tid = store.add_task(
+            description=(f"Nepodarilo sa otvoriť zaheslované PDF „{filename}“ "
+                         f"(e-mail: {mail.subject[:60]}). Doplňte heslo "
+                         "v Nastaveniach a prepošlite si e-mail znova."),
+            due_date=None, source_message_id=mail.message_id,
+            source_account=account_name,
+        )
+        counters["tasks"] += 1
+        print(f"  🔒 [{tid}] zamknuté PDF {filename!r} — vytvorená úloha")
     for e in result.expirations:
         rid = store.add_renewal(
             kind=e.kind, subject=e.subject, expires_on=e.expires_on or None,
