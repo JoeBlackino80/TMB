@@ -69,6 +69,14 @@ class Config:
         os.environ.get("CLIENT_SLUG", "") or os.path.basename(os.getcwd())
     ))
 
+    # rozvrh e-mailov (per klient; vyhodnocuje príkaz notify raz za hodinu):
+    # *_SCHEDULE: workdays | daily | weekly (len digest) | off
+    remind_schedule: str = field(default_factory=lambda: os.environ.get("REMIND_SCHEDULE", "workdays"))
+    remind_hour: int = field(default_factory=lambda: _int_env("REMIND_HOUR", 7))
+    digest_schedule: str = field(default_factory=lambda: os.environ.get("DIGEST_SCHEDULE", "workdays"))
+    digest_hour: int = field(default_factory=lambda: _int_env("DIGEST_HOUR", 17))
+    report_enabled: bool = field(default_factory=lambda: os.environ.get("REPORT_ENABLED", "1") != "0")
+
     # daňový kalendár: dph_monthly | dph_quarterly | szco | sro (čiarkami oddelené)
     tax_profile: set = field(default_factory=lambda: {
         p.strip() for p in os.environ.get("TAX_PROFILE", "").split(",") if p.strip()

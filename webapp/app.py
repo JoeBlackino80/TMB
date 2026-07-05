@@ -719,12 +719,26 @@ async def save_settings(request: Request, user=Depends(current_user),
     form = await request.form()
     from bill_agent import taxcal
     profile = ",".join(p for p in taxcal.PROFILES if form.get(f"tax_{p}"))
+
+    def pick(name, allowed, default):
+        value = str(form.get(name, ""))
+        return value if value in allowed else default
+
+    hours = {str(h) for h in range(5, 22)}
+    schedule = {
+        "REMIND_SCHEDULE": pick("remind_schedule", {"workdays", "daily", "off"}, "workdays"),
+        "REMIND_HOUR": pick("remind_hour", hours, "7"),
+        "DIGEST_SCHEDULE": pick("digest_schedule", {"workdays", "daily", "weekly", "off"}, "workdays"),
+        "DIGEST_HOUR": pick("digest_hour", hours, "17"),
+        "REPORT_ENABLED": "1" if form.get("report_enabled") else "0",
+    }
     clientfs.write_env(user["client_dir"],
                        reminder_to=reminder_to.strip() or user["email"],
                        pdf_passwords=pdf_passwords.strip(),
                        own_iban=own_iban.replace(" ", "").upper(),
                        own_name=own_name.strip(),
-                       tax_profile=profile)
+                       tax_profile=profile,
+                       schedule=schedule)
     return _redirect("/settings")
 
 

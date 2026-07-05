@@ -35,8 +35,10 @@ def ensure_client(client_dir: str, reminder_to: str) -> str:
 
 def write_env(client_dir: str, *, reminder_to: str, pdf_passwords: str,
               own_iban: str = "", own_name: str = "",
-              tax_profile: str | None = None) -> None:
+              tax_profile: str | None = None,
+              schedule: dict | None = None) -> None:
     current = read_settings(client_dir)
+    sched = {**{k: current[k] for k in _SCHEDULE_KEYS}, **(schedule or {})}
     lines = [f"{key}={os.environ.get(key, '')}" for key in MASTER_KEYS]
     lines += [
         f"REMINDER_TO={reminder_to}",
@@ -45,6 +47,9 @@ def write_env(client_dir: str, *, reminder_to: str, pdf_passwords: str,
         f"OWN_NAME={own_name or current['OWN_NAME']}",
         f"TAX_PROFILE={current['TAX_PROFILE'] if tax_profile is None else tax_profile}",
         f"FORWARD_TOKEN={current['FORWARD_TOKEN']}",
+    ]
+    lines += [f"{k}={v}" for k, v in sched.items() if v != ""]
+    lines += [
         "REMINDER_DAYS_AHEAD=7",
         "EMAIL_LOOKBACK_DAYS=7",
         "DB_PATH=bill_agent.db",
@@ -53,10 +58,15 @@ def write_env(client_dir: str, *, reminder_to: str, pdf_passwords: str,
         fh.write("\n".join(lines) + "\n")
 
 
+_SCHEDULE_KEYS = ("REMIND_SCHEDULE", "REMIND_HOUR",
+                  "DIGEST_SCHEDULE", "DIGEST_HOUR", "REPORT_ENABLED")
+
+
 def read_settings(client_dir: str) -> dict:
     settings = {"REMINDER_TO": "", "PDF_PASSWORDS": "",
                 "OWN_IBAN": "", "OWN_NAME": "", "TAX_PROFILE": "",
-                "FORWARD_TOKEN": ""}
+                "FORWARD_TOKEN": "",
+                **{k: "" for k in _SCHEDULE_KEYS}}
     env_file = os.path.join(client_path(client_dir), ".env")
     if os.path.exists(env_file):
         for line in open(env_file, encoding="utf-8"):

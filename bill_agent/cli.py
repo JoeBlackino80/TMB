@@ -286,6 +286,59 @@ def cmd_intake(args: argparse.Namespace) -> None:
             pass
 
 
+def run_notify(cfg: Config, store: Store, now) -> list[str]:
+    """Odošle e-maily, ktoré sú podľa rozvrhu klienta práve na rade.
+
+    Volá sa raz za hodinu (cron `run-all notify`). Značky v meta tabuľke
+    zaručia, že sa nič nepošle dvakrát za deň.
+    """
+    from . import digest as digest_mod
+    from . import reminder
+
+    actions: list[str] = []
+    today = now.date().isoformat()
+    workday = now.weekday() < 5
+
+    def scheduled(schedule: str) -> bool:
+        return (schedule == "daily"
+                or (schedule == "workdays" and workday)
+                or (schedule == "weekly" and now.weekday() == 4))
+
+    if (cfg.remind_schedule != "off" and scheduled(cfg.remind_schedule)
+            and now.hour == cfg.remind_hour
+            and store.get_meta("last_remind") != today):
+        store.set_meta("last_remind", today)
+        if reminder.send_reminder(cfg, store):
+            actions.append("pripomienka platieb odoslaná")
+
+    if (cfg.digest_schedule != "off" and scheduled(cfg.digest_schedule)
+            and now.hour == cfg.digest_hour
+            and store.get_meta("last_digest") != today):
+        store.set_meta("last_digest", today)
+        # v piatok zhrnutie celého týždňa, inak dňa
+        days = 7 if (now.weekday() == 4 or cfg.digest_schedule == "weekly") else 1
+        if digest_mod.send_digest(cfg, store, days):
+            actions.append("zhrnutie odoslané")
+
+    month = now.strftime("%Y-%m")
+    if (cfg.report_enabled and now.day == 1 and now.hour >= 8
+            and store.get_meta("last_report") != month):
+        store.set_meta("last_report", month)
+        if digest_mod.send_monthly_report(cfg, store):
+            actions.append("mesačný report odoslaný")
+
+    return actions
+
+
+def cmd_notify(cfg: Config, store: Store, args: argparse.Namespace) -> None:
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    now = datetime.now(ZoneInfo(os.environ.get("APP_TZ", "Europe/Bratislava")))
+    actions = run_notify(cfg, store, now)
+    print("; ".join(actions) if actions else "Podľa rozvrhu teraz nie je čo poslať.")
+
+
 def cmd_report(cfg: Config, store: Store, args: argparse.Namespace) -> None:
     from . import digest
 
@@ -489,7 +542,8 @@ def main(argv: list[str] | None = None) -> None:
 
     p_all = sub.add_parser("run-all", help="spustí príkaz pre všetkých klientov v clients/")
     p_all.add_argument("subcommand", nargs="?", default="run",
-                       choices=["run", "fetch", "remind", "digest", "report", "list"],
+                       choices=["run", "fetch", "remind", "digest", "report",
+                                "notify", "list"],
                        help="čo spustiť pre každého klienta (predvolene run)")
     p_all.add_argument("--days", type=int, default=1, help="obdobie pre digest")
     p_all.add_argument("--clients-dir", default="clients", help="adresár s klientmi")
@@ -500,6 +554,9 @@ def main(argv: list[str] | None = None) -> None:
 
     p_report = sub.add_parser(  # noqa: F841 — registruje podpríkaz
         "report", help="pošle mesačný report výdavkov za predchádzajúci mesiac")
+
+    sub.add_parser("notify",
+                   help="pošle e-maily podľa rozvrhu klienta (spúšťa cron raz za hodinu)")
 
     p_bank = sub.add_parser("import-bank", help="spáruje platby s CSV výpisom z banky")
     p_bank.add_argument("file", help="cesta k CSV výpisu")
@@ -528,6 +585,7 @@ def main(argv: list[str] | None = None) -> None:
             "run": cmd_run,
             "digest": cmd_digest,
             "report": cmd_report,
+            "notify": cmd_notify,
             "list": cmd_list,
             "paid": cmd_paid,
             "ignore": cmd_ignore,

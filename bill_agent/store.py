@@ -43,6 +43,11 @@ CREATE TABLE IF NOT EXISTS processed_emails (
     processed_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS meta (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS email_log (
     message_id TEXT PRIMARY KEY,
     account TEXT NOT NULL DEFAULT '',
@@ -290,6 +295,15 @@ class Store:
             "SELECT supplier, iban FROM payments WHERE iban != ''"
         ).fetchall()
         return {r["iban"] for r in rows if normalize_supplier(r["supplier"]) == key}
+
+    def get_meta(self, key: str, default: str = "") -> str:
+        row = self.conn.execute("SELECT value FROM meta WHERE key = ?", (key,)).fetchone()
+        return row["value"] if row else default
+
+    def set_meta(self, key: str, value: str) -> None:
+        self.conn.execute("INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)",
+                          (key, value))
+        self.conn.commit()
 
     def seed_demo(self, today: Optional[date] = None) -> None:
         """Ukážkové dáta pre nový účet — zmiznú po pripojení schránky."""

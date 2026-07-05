@@ -18,6 +18,43 @@
     <input name="own_name" value="{{ settings['OWN_NAME'] }}"
            placeholder="Moja firma s.r.o.">
 
+    <label style="margin-top:18px">Ranný prehľad platieb (s QR kódmi)</label>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <select name="remind_schedule" style="max-width:220px">
+        <option value="workdays" {% if settings['REMIND_SCHEDULE'] in ('', 'workdays') %}selected{% endif %}>pracovné dni</option>
+        <option value="daily" {% if settings['REMIND_SCHEDULE'] == 'daily' %}selected{% endif %}>každý deň</option>
+        <option value="off" {% if settings['REMIND_SCHEDULE'] == 'off' %}selected{% endif %}>neposielať</option>
+      </select>
+      <select name="remind_hour" style="max-width:120px">
+        {% for h in range(5, 22) %}
+        <option value="{{ h }}" {% if (settings['REMIND_HOUR'] or '7') == h|string %}selected{% endif %}>o {{ h }}:00</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <label style="margin-top:14px">Zhrnutie prijatej pošty</label>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <select name="digest_schedule" style="max-width:220px">
+        <option value="workdays" {% if settings['DIGEST_SCHEDULE'] in ('', 'workdays') %}selected{% endif %}>pracovné dni</option>
+        <option value="daily" {% if settings['DIGEST_SCHEDULE'] == 'daily' %}selected{% endif %}>každý deň</option>
+        <option value="weekly" {% if settings['DIGEST_SCHEDULE'] == 'weekly' %}selected{% endif %}>len v piatok (za týždeň)</option>
+        <option value="off" {% if settings['DIGEST_SCHEDULE'] == 'off' %}selected{% endif %}>neposielať</option>
+      </select>
+      <select name="digest_hour" style="max-width:120px">
+        {% for h in range(5, 22) %}
+        <option value="{{ h }}" {% if (settings['DIGEST_HOUR'] or '17') == h|string %}selected{% endif %}>o {{ h }}:00</option>
+        {% endfor %}
+      </select>
+    </div>
+    <p class="muted" style="margin-top:6px">V piatok príde vždy zhrnutie celého
+       týždňa. E-mail sa posiela, len keď je čo povedať.</p>
+
+    <label style="display:flex;align-items:center;gap:8px;margin:12px 0;font-weight:500">
+      <input type="checkbox" name="report_enabled" value="1" style="width:auto"
+             {% if settings['REPORT_ENABLED'] != '0' %}checked{% endif %}>
+      Mesačný report výdavkov (1. deň v mesiaci)
+    </label>
+
     <label style="margin-top:18px">Daňový kalendár — čo sa vás týka</label>
     <p class="muted" style="margin-bottom:8px">Romarium pripomenie zákonné
        termíny (DPH, odvody, preddavky) v ranných prehľadoch.</p>
