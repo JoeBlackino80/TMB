@@ -192,6 +192,7 @@ def test_dashboard_cashflow(client, tmp_path):
     client.post("/register", data={"email": "cf@x.sk", "password": "tajneheslo"})
     session = client.post("/login", data={"email": "cf@x.sk", "password": "tajneheslo"}).cookies["session"]
     store = Store(str(tmp_path / "clients" / "cf-x-sk" / "bill_agent.db"))
+    store.clear_demo()
     this_month = date.today().strftime("%Y-%m")
     store.add_payment(supplier="A", amount=100.0, currency="EUR", iban="SK1",
                       variable_symbol="1", due_date=f"{this_month}-28")

@@ -69,6 +69,11 @@ class Config:
         os.environ.get("CLIENT_SLUG", "") or os.path.basename(os.getcwd())
     ))
 
+    # daňový kalendár: dph_monthly | dph_quarterly | szco | sro (čiarkami oddelené)
+    tax_profile: set = field(default_factory=lambda: {
+        p.strip() for p in os.environ.get("TAX_PROFILE", "").split(",") if p.strip()
+    })
+
     db_path: str = field(default_factory=lambda: os.environ.get("DB_PATH", "bill_agent.db"))
     accounts_file: str = field(default_factory=lambda: os.environ.get("ACCOUNTS_FILE", "accounts.ini"))
     # heslá na odomknutie chránených PDF (bankové výpisy, poistky...) — skúšajú sa postupne

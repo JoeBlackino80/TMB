@@ -6,6 +6,11 @@
 <title>{% block title %}Romarium — AI strážca faktúr, platieb a termínov{% endblock %}</title>
 <meta name="description" content="Romarium číta vašu poštu, vytiahne z faktúr čo, kedy a kam zaplatiť, postráži termíny a pošle prehľad s QR kódom na platbu.">
 <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230a0c10'/><path d='M9 16.5l5 5 9-11' stroke='%2310b981' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0a0c10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Romarium">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -206,5 +211,8 @@
 </main>
 {% endif %}
 
+<script>
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
+</script>
 </body>
 </html>

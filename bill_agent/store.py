@@ -291,6 +291,30 @@ class Store:
         ).fetchall()
         return {r["iban"] for r in rows if normalize_supplier(r["supplier"]) == key}
 
+    def seed_demo(self, today: Optional[date] = None) -> None:
+        """Ukážkové dáta pre nový účet — zmiznú po pripojení schránky."""
+        today = today or date.today()
+        samples = [
+            ("Ukážka — Energie SK, a. s.", 184.20, (today - timedelta(days=2)),
+             "202600412"),
+            ("Ukážka — Webhouse s.r.o.", 14.90, today, "778001"),
+            ("Ukážka — Poistenie auta", 38.42, (today + timedelta(days=5)), "55123"),
+        ]
+        for supplier, amount, due, vs in samples:
+            self.add_payment(supplier=supplier, amount=amount, currency="EUR",
+                             iban="", variable_symbol=vs,
+                             due_date=due.isoformat(),
+                             note="Ukážkové dáta — zmiznú po pripojení schránky.",
+                             source_message_id="demo", source_subject="UKÁŽKA")
+        self.add_task(description="Ukážka — poslať podklady účtovníčke",
+                      due_date=(today + timedelta(days=3)).isoformat(),
+                      source_message_id="demo")
+
+    def clear_demo(self) -> None:
+        self.conn.execute("DELETE FROM payments WHERE source_message_id = 'demo'")
+        self.conn.execute("DELETE FROM tasks WHERE source_message_id = 'demo'")
+        self.conn.commit()
+
     def find_paid_duplicate(
         self, *, supplier: str, amount: float, variable_symbol: str,
     ) -> Optional[Payment]:

@@ -69,6 +69,7 @@ def test_payment_and_task_actions(client, tmp_path):
 
     db = tmp_path / "clients" / "akcie-x-sk" / "bill_agent.db"
     store = Store(str(db))
+    store.clear_demo()
     pid = store.add_payment(supplier="Test s.r.o.", amount=12.5, currency="EUR",
                             iban="SK000", variable_symbol="1", due_date=None)
     tid = store.add_task(description="zavolať účtovníčke", due_date=None)
@@ -110,6 +111,7 @@ def test_email_action_links(client, tmp_path):
     client.post("/register", data={"email": "klik@x.sk", "password": "tajneheslo"})
     db = tmp_path / "clients" / "klik-x-sk" / "bill_agent.db"
     store = Store(str(db))
+    store.clear_demo()
     pid = store.add_payment(supplier="Energo", amount=9.9, currency="EUR",
                             iban="SK1", variable_symbol="7", due_date=None)
     store.close()

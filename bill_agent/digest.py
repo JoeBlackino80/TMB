@@ -128,6 +128,86 @@ def build_digest(cfg: Config, store: Store, days: int) -> tuple[str, str, str] |
     return subject, "\n".join(text_lines), "".join(html)
 
 
+_MONTHS_SK = ["január", "február", "marec", "apríl", "máj", "jún", "júl",
+              "august", "september", "október", "november", "december"]
+
+
+def _fmt_eur(amount: float) -> str:
+    return f"{amount:,.2f}".replace(",", " ").replace(".", ",") + " €"
+
+
+def build_monthly_report(cfg: Config, store: Store) -> tuple[str, str, str] | None:
+    """Mesačný report výdavkov za predchádzajúci mesiac (predmet, text, html)."""
+    today = date.today()
+    first_this = today.replace(day=1)
+    last_prev = first_this - timedelta(days=1)
+    month = last_prev.strftime("%Y-%m")
+    prev_prev = last_prev.replace(day=1) - timedelta(days=1)
+    month_before = prev_prev.strftime("%Y-%m")
+
+    def paid_rows(m: str):
+        return [r for r in store.payments_in_month(m)
+                if r["status"] == "paid" and (r["paid_at"] or "").startswith(m)
+                and r["currency"] == "EUR"]
+
+    rows = paid_rows(month)
+    if not rows:
+        return None
+    total = sum(r["amount"] for r in rows)
+    total_before = sum(r["amount"] for r in paid_rows(month_before))
+
+    by_supplier: dict[str, float] = {}
+    for r in rows:
+        key = r["supplier"] or "(neznámy)"
+        by_supplier[key] = by_supplier.get(key, 0.0) + r["amount"]
+    top = sorted(by_supplier.items(), key=lambda kv: -kv[1])
+
+    title = f"Mesačný report — {_MONTHS_SK[last_prev.month - 1]} {last_prev.year}"
+    subject = f"Romarium: {title}"
+
+    compare = ""
+    if total_before > 0:
+        diff = total - total_before
+        pct = abs(diff) / total_before * 100
+        compare = (f"o {_fmt_eur(abs(diff))} ({pct:.0f} %) "
+                   + ("viac" if diff > 0 else "menej")
+                   + f" než v predchádzajúcom mesiaci ({_fmt_eur(total_before)})")
+
+    text = [title, "", f"Zaplatené spolu: {_fmt_eur(total)} ({len(rows)} platieb)"]
+    if compare:
+        text.append(compare)
+    text += ["", "Podľa dodávateľov:"]
+    html = [f"<h2>{title}</h2>",
+            f"<p style='font-size:22px;margin:6px 0'><b>{_fmt_eur(total)}</b> "
+            f"<small style='color:#666'>· {len(rows)} platieb</small></p>"]
+    if compare:
+        html.append(f"<p style='color:#666'>{escape(compare)}</p>")
+    html.append("<table style='border-collapse:collapse;min-width:340px'>")
+    for supplier, amount in top:
+        text.append(f"  {supplier}: {_fmt_eur(amount)}")
+        html.append(
+            "<tr><td style='padding:4px 14px 4px 0;border-bottom:1px solid #eee'>"
+            f"{escape(supplier)}</td>"
+            "<td style='padding:4px 0;border-bottom:1px solid #eee;"
+            f"text-align:right'><b>{escape(_fmt_eur(amount))}</b></td></tr>")
+    html.append("</table>")
+    html.append("<p style='color:#666'><small>Kompletné podklady (faktúry + CSV) "
+                "si stiahnete na prehľade v aplikácii — Podklady pre účtovníctvo."
+                "</small></p>")
+    return subject, "\n".join(text) + "\n", "".join(html)
+
+
+def send_monthly_report(cfg: Config, store: Store) -> bool:
+    from .reminder import send_email
+
+    built = build_monthly_report(cfg, store)
+    if built is None:
+        return False
+    subject, text, html = built
+    send_email(cfg, subject, text, html)
+    return True
+
+
 def send_digest(cfg: Config, store: Store, days: int) -> bool:
     from .reminder import send_email
 

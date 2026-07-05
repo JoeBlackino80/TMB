@@ -36,6 +36,15 @@ skončilo. <a href="/billing">Aktivujte si predplatné</a>.</div>
 </div>
 {% endif %}
 
+{% if has_demo %}
+<div class="notice">Toto sú <b>ukážkové dáta</b>, nech vidíte, ako bude prehľad
+  vyzerať. Zmiznú automaticky po pridaní schránky.
+  <form method="post" action="/demo/clear" style="display:inline">
+    <button class="small" type="submit">Zmazať ukážku</button>
+  </form>
+</div>
+{% endif %}
+
 <div class="stats">
   <div class="stat{% if stats.overdue %} warn{% endif %}">
     <div class="num">{{ stats.overdue }}</div>
@@ -134,6 +143,17 @@ skončilo. <a href="/billing">Aktivujte si predplatné</a>.</div>
   <p class="muted">Žiadne evidované nezaplatené platby.</p>
   {% endif %}
 </div>
+
+{% if tax_deadlines %}
+<div class="card">
+  <h2>Daňové termíny (najbližších 30 dní)</h2>
+  <table>
+    {% for d in tax_deadlines %}
+    <tr><td style="white-space:nowrap"><b>{{ d.date }}</b></td><td>{{ d.label }}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
 
 <div class="card">
   <h2>Podklady pre účtovníctvo</h2>

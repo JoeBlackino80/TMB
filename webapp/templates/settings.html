@@ -17,7 +17,29 @@
     <label>Názov firmy / meno (objaví sa v príkaze)</label>
     <input name="own_name" value="{{ settings['OWN_NAME'] }}"
            placeholder="Moja firma s.r.o.">
+
+    <label style="margin-top:18px">Daňový kalendár — čo sa vás týka</label>
+    <p class="muted" style="margin-bottom:8px">Romarium pripomenie zákonné
+       termíny (DPH, odvody, preddavky) v ranných prehľadoch.</p>
+    {% set profile = settings['TAX_PROFILE'].split(',') %}
+    {% for key, label in tax_profiles.items() %}
+    <label style="display:flex;align-items:center;gap:8px;margin:6px 0;font-weight:500">
+      <input type="checkbox" name="tax_{{ key }}" value="1" style="width:auto"
+             {% if key in profile %}checked{% endif %}> {{ label }}
+    </label>
+    {% endfor %}
     <button type="submit">Uložiť</button>
   </form>
+</div>
+
+<div class="card">
+  <h2>Mobilná aplikácia</h2>
+  <p class="muted">Romarium si nainštalujete na plochu telefónu — funguje ako
+     bežná appka, bez App Store.</p>
+  <p style="margin-top:10px"><b>iPhone:</b> otvorte romarium.com v Safari →
+     tlačidlo Zdieľať <span class="muted">(štvorec so šípkou)</span> →
+     <b>Pridať na plochu</b>.</p>
+  <p><b>Android:</b> otvorte romarium.com v Chrome → menu ⋮ →
+     <b>Pridať na plochu / Inštalovať aplikáciu</b>.</p>
 </div>
 {% endblock %}

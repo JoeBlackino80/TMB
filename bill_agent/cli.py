@@ -286,6 +286,14 @@ def cmd_intake(args: argparse.Namespace) -> None:
             pass
 
 
+def cmd_report(cfg: Config, store: Store, args: argparse.Namespace) -> None:
+    from . import digest
+
+    sent = digest.send_monthly_report(cfg, store)
+    print(f"Mesačný report odoslaný na {cfg.reminder_to}." if sent
+          else "Žiadne zaplatené platby za minulý mesiac — report sa neposiela.")
+
+
 def cmd_run_all(args: argparse.Namespace) -> None:
     """Spustí príkaz pre každého klienta v adresári clients/ (mini-SaaS režim).
 
@@ -481,7 +489,7 @@ def main(argv: list[str] | None = None) -> None:
 
     p_all = sub.add_parser("run-all", help="spustí príkaz pre všetkých klientov v clients/")
     p_all.add_argument("subcommand", nargs="?", default="run",
-                       choices=["run", "fetch", "remind", "digest", "list"],
+                       choices=["run", "fetch", "remind", "digest", "report", "list"],
                        help="čo spustiť pre každého klienta (predvolene run)")
     p_all.add_argument("--days", type=int, default=1, help="obdobie pre digest")
     p_all.add_argument("--clients-dir", default="clients", help="adresár s klientmi")
@@ -489,6 +497,9 @@ def main(argv: list[str] | None = None) -> None:
     p_intake = sub.add_parser(
         "intake", help="roztriedi preposlané e-maily zo zdieľanej schránky klientom")
     p_intake.add_argument("--clients-dir", default="clients", help="adresár s klientmi")
+
+    p_report = sub.add_parser(  # noqa: F841 — registruje podpríkaz
+        "report", help="pošle mesačný report výdavkov za predchádzajúci mesiac")
 
     p_bank = sub.add_parser("import-bank", help="spáruje platby s CSV výpisom z banky")
     p_bank.add_argument("file", help="cesta k CSV výpisu")
@@ -516,6 +527,7 @@ def main(argv: list[str] | None = None) -> None:
             "remind": cmd_remind,
             "run": cmd_run,
             "digest": cmd_digest,
+            "report": cmd_report,
             "list": cmd_list,
             "paid": cmd_paid,
             "ignore": cmd_ignore,

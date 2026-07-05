@@ -17,6 +17,9 @@
 30 17 * * 1-5 cd /root/TMB && .venv/bin/python -m bill_agent run-all digest >> agent.log 2>&1
 0 17 * * 5    cd /root/TMB && .venv/bin/python -m bill_agent run-all digest --days 7 >> agent.log 2>&1
 
+# Mesačný report výdavkov — 1. deň v mesiaci ráno
+0 8 1 * *     cd /root/TMB && .venv/bin/python -m bill_agent run-all report >> agent.log 2>&1
+
 # Vypnutie klientov s vypršaným trialom
 15 7 * * *    cd /root/TMB && .venv/bin/python -m webapp.expire >> agent.log 2>&1
 

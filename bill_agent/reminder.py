@@ -112,7 +112,12 @@ def build_reminder(
     groups = store.payments_due(days_ahead)
     tasks = store.active_tasks()
     total_payments = sum(len(v) for v in groups.values())
-    if total_payments == 0 and not tasks:
+    tax_deadlines = []
+    if cfg is not None and getattr(cfg, "tax_profile", None):
+        from . import taxcal
+
+        tax_deadlines = taxcal.upcoming(cfg.tax_profile, days_ahead)
+    if total_payments == 0 and not tasks and not tax_deadlines:
         return None
 
     text_lines: list[str] = []
@@ -177,6 +182,16 @@ def build_reminder(
                 f" &nbsp;<small>(hotovo? odpovedzte: <b>hotovo {t.id}</b>)</small>"
                 f"{_action_buttons(cfg, 't', t.id)}</li>"
             )
+        html_parts.append("</ul>")
+
+    # daňové termíny podľa profilu klienta
+    if tax_deadlines:
+        text_lines.append("\nDaňové termíny")
+        html_parts.append("<h3 style='margin:18px 0 6px'>Daňové termíny</h3><ul>")
+        for d in tax_deadlines:
+            text_lines.append(f"  {d['date']}: {d['label']}")
+            html_parts.append(
+                f"<li><b>{escape(d['date'])}</b> — {escape(d['label'])}</li>")
         html_parts.append("</ul>")
 
     html_parts.append(

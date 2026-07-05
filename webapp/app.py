@@ -148,6 +148,12 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
     finally:
         users.close()
     clientfs.ensure_client(user["client_dir"], reminder_to=email)
+    # ukážkové dáta, nech nový účet nie je prázdny (zmiznú po pridaní schránky)
+    store = Store(os.path.join(clientfs.client_path(user["client_dir"]), "bill_agent.db"))
+    try:
+        store.seed_demo()
+    finally:
+        store.close()
     if not user["verified"]:
         _send_welcome(request, user)
     response = _redirect("/")
@@ -331,9 +337,14 @@ def dashboard(request: Request, user=Depends(current_user)):
     for _ in range(3):
         months.append(f"{y:04d}-{m:02d}")
         y, m = (y, m - 1) if m > 1 else (y - 1, 12)
+    from bill_agent import taxcal
+    settings = clientfs.read_settings(user["client_dir"])
+    profile = {p for p in settings["TAX_PROFILE"].split(",") if p}
+    tax_deadlines = taxcal.upcoming(profile, 30)
+    has_demo = any(p.get("source_subject") == "UKÁŽKA" for p in payments)
     return _render(request, "dashboard.html", user=user, payments=payments,
                    tasks=tasks, enabled=enabled, stats=stats, missing=missing,
-                   months=months,
+                   months=months, tax_deadlines=tax_deadlines, has_demo=has_demo,
                    mailboxes=clientfs.list_mailboxes(user["client_dir"]))
 
 
@@ -346,6 +357,19 @@ def payment_set_status(request: Request, user=Depends(current_user),
         store = Store(_client_db(user))
         try:
             store.set_payment_status(payment_id, status)
+        finally:
+            store.close()
+    return _redirect("/")
+
+
+@app.post("/demo/clear")
+def demo_clear(request: Request, user=Depends(current_user)):
+    if not user:
+        return _redirect("/login")
+    if os.path.exists(_client_db(user)):
+        store = Store(_client_db(user))
+        try:
+            store.clear_demo()
         finally:
             store.close()
     return _redirect("/")
@@ -481,6 +505,88 @@ def action_execute(request: Request, c: str = Form(...), k: str = Form(...),
                    label=_ACTION_LABELS[(k, do)])
 
 
+# -- PWA (mobilná aplikácia) --------------------------------------------------------
+
+_ICON_CACHE: dict = {}
+
+
+def _app_icon(size: int) -> bytes:
+    """Ikona appky (tmavý zaoblený štvorec so zelenou fajkou) ako PNG."""
+    if size in _ICON_CACHE:
+        return _ICON_CACHE[size]
+    import io
+
+    from PIL import Image, ImageDraw
+
+    scale = 4  # kreslíme väčšie a zmenšíme — hladké hrany
+    s = size * scale
+    img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    draw.rounded_rectangle([0, 0, s - 1, s - 1], radius=s // 4,
+                           fill=(10, 12, 16, 255))
+    w = s // 9
+    pts = [(s * 0.28, s * 0.52), (s * 0.44, s * 0.68), (s * 0.72, s * 0.34)]
+    draw.line(pts, fill=(16, 185, 129, 255), width=w, joint="curve")
+    r = w // 2
+    for x, y in (pts[0], pts[-1]):
+        draw.ellipse([x - r, y - r, x + r, y + r], fill=(16, 185, 129, 255))
+    img = img.resize((size, size), Image.LANCZOS)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    _ICON_CACHE[size] = buf.getvalue()
+    return _ICON_CACHE[size]
+
+
+@app.get("/icon-{size}.png")
+def app_icon(size: int):
+    if size not in (180, 192, 512):
+        return Response(status_code=404)
+    return Response(content=_app_icon(size), media_type="image/png",
+                    headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/apple-touch-icon.png")
+def apple_icon():
+    return Response(content=_app_icon(180), media_type="image/png",
+                    headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/manifest.webmanifest")
+def manifest():
+    data = {
+        "name": "Romarium",
+        "short_name": "Romarium",
+        "description": "AI strážca faktúr, platieb a termínov",
+        "start_url": "/",
+        "display": "standalone",
+        "background_color": "#f7f8fa",
+        "theme_color": "#0a0c10",
+        "lang": "sk",
+        "icons": [
+            {"src": "/icon-192.png", "sizes": "192x192", "type": "image/png"},
+            {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png"},
+        ],
+    }
+    return Response(content=json.dumps(data),
+                    media_type="application/manifest+json",
+                    headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/sw.js")
+def service_worker():
+    js = (
+        "self.addEventListener('install', e => self.skipWaiting());\n"
+        "self.addEventListener('activate', e => self.clients.claim());\n"
+        "self.addEventListener('fetch', e => {\n"
+        "  e.respondWith(fetch(e.request).catch(() =>\n"
+        "    new Response('<h1>Ste offline</h1><p>Romarium potrebuje pripojenie.</p>',\n"
+        "      {headers: {'Content-Type': 'text/html; charset=utf-8'}})));\n"
+        "});\n"
+    )
+    return Response(content=js, media_type="application/javascript",
+                    headers={"Cache-Control": "public, max-age=3600"})
+
+
 # -- právne stránky ----------------------------------------------------------------
 
 @app.get("/podmienky", response_class=HTMLResponse)
@@ -574,6 +680,13 @@ def add_mailbox(request: Request, user=Depends(current_user),
         host=host.strip(), port=port, user=imap_user.strip(),
         password=password, security=security,
     )
+    # prvá skutočná schránka — ukážkové dáta už netreba
+    if os.path.exists(_client_db(user)):
+        store = Store(_client_db(user))
+        try:
+            store.clear_demo()
+        finally:
+            store.close()
     return _redirect("/mailboxes")
 
 
@@ -591,21 +704,27 @@ def delete_mailbox(request: Request, user=Depends(current_user), name: str = For
 def settings(request: Request, user=Depends(current_user)):
     if not user:
         return _redirect("/login")
+    from bill_agent import taxcal
     return _render(request, "settings.html", user=user,
+                   tax_profiles=taxcal.PROFILES,
                    settings=clientfs.read_settings(user["client_dir"]))
 
 
 @app.post("/settings")
-def save_settings(request: Request, user=Depends(current_user),
-                  reminder_to: str = Form(...), pdf_passwords: str = Form(""),
-                  own_iban: str = Form(""), own_name: str = Form("")):
+async def save_settings(request: Request, user=Depends(current_user),
+                        reminder_to: str = Form(...), pdf_passwords: str = Form(""),
+                        own_iban: str = Form(""), own_name: str = Form("")):
     if not user:
         return _redirect("/login")
+    form = await request.form()
+    from bill_agent import taxcal
+    profile = ",".join(p for p in taxcal.PROFILES if form.get(f"tax_{p}"))
     clientfs.write_env(user["client_dir"],
                        reminder_to=reminder_to.strip() or user["email"],
                        pdf_passwords=pdf_passwords.strip(),
                        own_iban=own_iban.replace(" ", "").upper(),
-                       own_name=own_name.strip())
+                       own_name=own_name.strip(),
+                       tax_profile=profile)
     return _redirect("/settings")
 
 
