@@ -155,12 +155,7 @@
 <div class="shell">
   <aside class="side">
     <a class="brand" href="/">
-      <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true">
-        <rect width="32" height="32" rx="8" fill="#0a0c10"/>
-        <path d="M10.5 9.5l5.5 13 5.5-13" stroke="#f5f2ea" stroke-width="3.5" fill="none"
-              stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      voru
+      {% include "_logo.html" %}
     </a>
     <nav>
       <a href="/" class="{% if request.url.path == '/' %}on{% endif %}">
@@ -194,12 +189,7 @@
 {% else %}
 <header class="public">
   <a class="brand" href="/">
-    <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true">
-      <rect width="32" height="32" rx="8" fill="#0a0c10"/>
-      <path d="M10.5 9.5l5.5 13 5.5-13" stroke="#f5f2ea" stroke-width="3.5" fill="none"
-            stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-    voru
+    {% include "_logo.html" %}
   </a>
   <div class="push">
     <a class="plain" href="/login">Prihlásiť sa</a>
