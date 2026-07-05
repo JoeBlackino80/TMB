@@ -95,8 +95,14 @@ def test_multilang_landing_and_register(client, tmp_path):
     assert 'hreflang="pl"' in r.text
     r = client.get("/pl")
     assert r.status_code == 200 and "Faktury pod kontrolą" in r.text
+    # nemecká a maďarská mutácia
+    r = client.get("/de")
+    assert r.status_code == 200 and "Rechnungen im Griff" in r.text
+    r = client.get("/hu")
+    assert r.status_code == 200 and "Számlák kontroll alatt" in r.text
     # sitemap obsahuje mutácie
-    assert "/cs" in client.get("/sitemap.xml").text
+    sitemap = client.get("/sitemap.xml").text
+    assert "/cs" in sitemap and "/de" in sitemap and "/hu" in sitemap
 
     # registrácia z českej stránky uloží jazyk klienta
     r = client.get("/register?lang=cs")

@@ -59,6 +59,36 @@ def test_sepa_xml():
                            payments=[_payment(iban=""), _payment(currency="CZK")])
 
 
+# -- EPC QR (Girocode pre AT/DE) -------------------------------------------------------
+
+def test_epc_qr():
+    code = pay_by_square.epc(iban="AT61 1904 3002 3457 3201", amount=184.2,
+                             beneficiary_name="Wien Energie GmbH",
+                             remittance="Rechnung 2026078")
+    lines = code.split("\n")
+    assert lines[0] == "BCD" and lines[3] == "SCT"
+    assert lines[6] == "AT611904300234573201"
+    assert lines[7] == "EUR184.20"
+    assert "Rechnung 2026078" in code
+    assert pay_by_square.qr_png(code)[:8] == b"\x89PNG\r\n\x1a\n"
+
+
+def test_qr_routing_by_country(tmp_path):
+    from types import SimpleNamespace as NS
+
+    from bill_agent import reminder
+
+    def pay(iban, currency="EUR"):
+        return NS(iban=iban, amount=10.0, currency=currency, due_date=None,
+                  variable_symbol="1", constant_symbol="", specific_symbol="",
+                  note="", supplier="X", source_subject="f")
+
+    assert reminder._payment_qr(pay("AT611904300234573201")) is not None
+    assert reminder._payment_qr(pay("DE89370400440532013000")) is not None
+    # maďarské forinty — bez jednotného QR štandardu sa kód neposiela
+    assert reminder._payment_qr(pay("HU42117730161111101800000000", "HUF")) is None
+
+
 # -- SPAYD (české QR) ---------------------------------------------------------------
 
 def test_spayd():

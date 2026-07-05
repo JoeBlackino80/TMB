@@ -40,8 +40,9 @@ def _payment_qr(p: Payment) -> bytes | None:
             due = date.fromisoformat(p.due_date)
         except ValueError:
             pass
+    country = p.iban.replace(" ", "").upper()[:2]
     try:
-        if p.iban.replace(" ", "").upper().startswith("CZ"):
+        if country == "CZ":
             # české účty: QR Platba (SPAYD) — PAY by square by česká appka neprečítala
             code = pay_by_square.spayd(
                 iban=p.iban, amount=p.amount,
@@ -49,6 +50,15 @@ def _payment_qr(p: Payment) -> bytes | None:
                 variable_symbol=p.variable_symbol, due_date=due,
                 message=(p.supplier or "")[:60],
             )
+        elif country not in ("SK", "") and p.currency == "EUR":
+            # ostatné EÚ účty (AT, DE...): EPC QR / Girocode
+            code = pay_by_square.epc(
+                iban=p.iban, amount=p.amount,
+                beneficiary_name=p.supplier,
+                remittance=(p.note or p.source_subject or p.supplier)[:140],
+            )
+        elif country not in ("SK", "") and p.currency != "EUR":
+            return None  # napr. maďarské forinty — jednotný QR štandard chýba
         else:
             code = pay_by_square.generate_code(
                 amount=p.amount,

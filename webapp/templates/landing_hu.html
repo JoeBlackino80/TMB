@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VORU — AI számlaőr: számlák, fizetések, határidők</title>
+<meta name="description" content="A VORU elolvassa az e-mail postafiókját, kigyűjti a számlákból, hogy mit, mikor és hova kell fizetni, figyeli a határidőket, és minden reggel elküldi a fizetnivalók áttekintését. A bankszámlakivonat magától kipipálja a kifizetetteket. 14 nap ingyen.">
+<meta name="keywords" content="számlák, fizetések, fizetési emlékeztető, AI asszisztens, fizetési határidő, vállalkozó, KATA, kkv">
+<link rel="canonical" href="https://voru.hu/">
+<link rel="alternate" hreflang="sk" href="https://voru.sk/">
+<link rel="alternate" hreflang="cs" href="https://voru.cz/">
+<link rel="alternate" hreflang="pl" href="https://voru.pl/">
+<link rel="alternate" hreflang="de" href="https://voru.at/">
+<link rel="alternate" hreflang="hu" href="https://voru.hu/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="VORU">
+<meta property="og:title" content="VORU — AI számlaőr: számlák, fizetések, határidők">
+<meta property="og:description" content="Csatlakoztatja a postafiókját, és a VORU figyeli a számlákat, fizetési határidőket és teendőket Ön helyett.">
+<meta property="og:url" content="https://voru.hu/">
+<meta property="og:locale" content="hu_HU">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="index, follow">
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230a0c10'/><path d='M10.5 9.5l5.5 13 5.5-13' stroke='%23f5f2ea' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0a0c10">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "VORU",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Web",
+  "url": "https://voru.hu/",
+  "description": "AI asszisztens, amely elolvassa a beérkező számlákat, figyeli a fizetési határidőket és napi áttekintéseket küld.",
+  "inLanguage": "hu",
+  "offers": [
+    {"@type": "Offer", "price": "4.99", "priceCurrency": "EUR",
+     "description": "Havi előfizetés, az első 14 nap ingyenes"},
+    {"@type": "Offer", "price": "49", "priceCurrency": "EUR",
+     "description": "Éves előfizetés, az első 14 nap ingyenes"}
+  ],
+  "provider": {"@type": "Organization", "name": "SORB XT s.r.o.",
+               "email": "obchod@sorbxt.sk"}
+}
+</script>
+{% include "_landing_style.html" %}
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap navrow">
+    <a class="brand" href="/hu">
+      {% include "_logo.html" %}
+    </a>
+    <nav class="navlinks">
+      <a href="#funkcie">Funkciók</a>
+      <a href="#ako">Hogyan működik</a>
+      <a href="#cennik">Árak</a>
+    </nav>
+    <div class="navcta">
+      <a class="signin" href="/">SK</a>
+      <a class="signin" href="/de">DE</a>
+      <a class="signin" href="/login">Bejelentkezés</a>
+      <a class="btn sm" href="/register?lang=hu">Ingyenes próba</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="pill rv in"><span class="dot"></span> AI asszisztens vállalkozóknak és háztartásoknak</div>
+    <h1 class="rv in">Számlák kontroll alatt.<br><span class="acc">A posta olvasása nélkül.</span></h1>
+    <p class="lead rv in d1">A VORU elolvassa a postafiókját, kigyűjti a számlákból
+       az összeget, a számlaszámot és a határidőt — és minden reggel elküldi
+       az áttekintést az előkészített utalási adatokkal. A bankszámlakivonat
+       magától kipipálja a kifizetetteket.</p>
+    <div class="ctarow rv in d1">
+      <a class="btn lg" href="/register?lang=hu">14 nap ingyenes próba</a>
+      <a class="btn lg ghost" href="#ako">Hogyan működik</a>
+    </div>
+    <div class="subnote rv in d2">Bankkártya nélkül · beállítás 2 perc alatt</div>
+  </div>
+
+  <div class="stagewrap">
+    <div class="wrap">
+      <div class="window rv in d2" aria-hidden="true">
+        <div class="winbar"><i></i><i></i><i></i><span class="url">voru.hu</span></div>
+        <div class="app">
+          <aside>
+            <div class="abrand">
+              {% include "_logo.html" %}
+            </div>
+            <nav>
+              <a class="on">Áttekintés</a><a>Postafiókok</a><a>Beállítások</a><a>Előfizetés</a>
+            </nav>
+          </aside>
+          <main>
+            <h2>Áttekintés</h2>
+            <div class="tiles">
+              <div class="tile bad"><b>1</b><span>lejárt</span></div>
+              <div class="tile"><b>4</b><span>kifizetetlen</span></div>
+              <div class="tile"><b>245 000 Ft</b><span>hónap végéig</span></div>
+              <div class="tile"><b>86 000 Ft</b><span>jövő hónap</span></div>
+            </div>
+            <div class="lst">
+              <div class="lrow">
+                <span class="sup">MVM Next Zrt.</span>
+                <span class="chip red">lejárt</span>
+                <span class="amt">68 400 Ft</span>
+                <span class="mbtn">Utalási adatok</span>
+              </div>
+              <div class="lrow">
+                <span class="sup">Rackhost Zrt.</span>
+                <span class="chip amber">ma</span>
+                <span class="amt">5 990 Ft</span>
+                <span class="mbtn">Utalási adatok</span>
+              </div>
+              <div class="lrow">
+                <span class="sup">Építőanyag Kft.</span>
+                <span class="chip red">más számlaszám — ellenőrizze!</span>
+                <span class="amt">156 000 Ft</span>
+                <span class="mbtn">Utalási adatok</span>
+              </div>
+              <div class="lrow">
+                <span class="sup">Telekom HU</span>
+                <span class="chip green">kifizetve (kivonat)</span>
+                <span class="amt" style="text-decoration:line-through;color:var(--faint)">9 200 Ft</span>
+                <span class="mbtn" style="opacity:.4">✓</span>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+
+      <div class="trust rv">
+        <span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#98a1b2" stroke-width="1.8"><path d="M10 2l7 3v5c0 4.5-3 7.5-7 8-4-.5-7-3.5-7-8V5z"/></svg> A jelszavak titkosítva tárolva</span>
+        <span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#98a1b2" stroke-width="1.8"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M7 10l2 2 4-4"/></svg> Figyelmeztetés számlaszám-cserés csalásra</span>
+        <span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#98a1b2" stroke-width="1.8"><circle cx="10" cy="10" r="7.5"/><path d="M10 5.5V10l3 2"/></svg> Szerverek az EU-ban · GDPR</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="funkcie" style="padding-top: 40px">
+  <div class="wrap">
+    <div class="kick rv">Funkciók</div>
+    <h2 class="sec rv">Minden fizetnivaló elintézve,<br>mire megissza a kávéját</h2>
+    <p class="sub rv d1">A VORU a háttérben dolgozik — Ön kész eredményeket kap
+       a postafiókjába, és egy kattintással elintézi őket.</p>
+    <div class="bento">
+      <div class="cell w3 rv">
+        <h3>Előkészített utalási adatok minden számlához</h3>
+        <p>Összeg, számlaszám, közlemény és határidő — a számlából kigyűjtve,
+           tálcán kínálva e-mailben és az alkalmazásban. Másolja, utalja, kész —
+           nincs több gépelés PDF-ekből.</p>
+        <div class="demo">
+          <b>VORU: fizetések és teendők — 2 sürgős</b><br>
+          MVM Next — 68 400 Ft · határidő ma<br>
+          <span style="color:var(--accent);font-weight:600">✓ Megjelölés fizetettként</span> ·
+          Halasztás 3 nappal
+        </div>
+      </div>
+      <div class="cell w3 rv d1">
+        <h3>Védelem a számlaszám-csere ellen</h3>
+        <p>A csalók lecserélik a számlákon a bankszámlaszámot. A VORU megjegyzi
+           minden beszállítója számlaszámát — ha egy számla a megszokottól
+           eltérő számlaszámmal érkezik, figyelmezteti, mielőtt utalna.</p>
+        <div class="demo">
+          <span class="chip red" style="float:none">FIGYELEM: más számlaszám</span><br>
+          Az „Építőanyag Kft." beszállító az előző 12 számlától eltérő
+          számlaszámot adott meg. Ellenőrizze telefonon.
+        </div>
+      </div>
+      <div class="cell rv">
+        <h3>A kivonat magától pipál</h3>
+        <p>Továbbítsa a bankszámlakivonatot — akár jelszóvédettet is —, és a
+           kifizetett tételek automatikusan párosulnak.</p>
+      </div>
+      <div class="cell rv d1">
+        <h3>Csoportos átutalás</h3>
+        <p>Egy fájl az összes utalással a netbankba töltve, és mindent egyszerre
+           hagy jóvá (SEPA XML, euró utalásokhoz).</p>
+      </div>
+      <div class="cell rv d2">
+        <h3>Cashflow egy pillantásra</h3>
+        <p>Mennyi megy ki a hónap végéig és mennyi a következőben — tudja,
+           mielőtt a kivonat megérkezne.</p>
+        <div class="bars"><i style="height:38%"></i><i style="height:62%"></i><i class="hi" style="height:88%"></i><i style="height:46%"></i><i style="height:30%"></i><i style="height:55%"></i></div>
+      </div>
+      <div class="cell rv">
+        <h3>Napi és heti összefoglaló</h3>
+        <p>Este rövid AI-összefoglaló a teljes postáról — mi jött, mi sürgős,
+           mi várhat. A marketing egy mondatban.</p>
+      </div>
+      <div class="cell rv d1">
+        <h3>Rendszeres számlák őre</h3>
+        <p>Ha a havi számla nem érkezik meg, tudni fog róla — még a késedelmi
+           kamat előtt.</p>
+      </div>
+      <div class="cell rv d2">
+        <h3>Több cég, több postafiók</h3>
+        <p>Korlátlan számú postafiók egy fiókban. A számlákat egyszerűen
+           továbbíthatja is a saját egyedi címére.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ako" style="padding-top: 30px">
+  <div class="wrap">
+    <div class="kick rv">Hogyan működik</div>
+    <h2 class="sec rv">Egyszer beállítja, mindig működik</h2>
+    <div class="steps" style="margin-top: 40px">
+      <div class="step rv">
+        <h3>Csatlakoztatja a postafiókját</h3>
+        <p>Az e-mail címet, amelyre a számlái érkeznek — Gmail, Freemail vagy
+           céges posta. Vagy csak továbbítja a számlákat, jelszó megadása nélkül.</p>
+      </div>
+      <div class="step rv d1">
+        <h3>Az AI elolvassa a postát Ön helyett</h3>
+        <p>A számlákból és PDF-mellékletekből kigyűjti az összegeket,
+           számlaszámokat és határidőket. Felismeri a teendőket és a
+           bankszámlakivonatokat is.</p>
+      </div>
+      <div class="step rv d2">
+        <h3>Kész áttekintéseket kap</h3>
+        <p>Reggel a fizetnivalók az utalási adatokkal, este a nap összefoglalója.
+           A kifizetettek maguktól kipipálódnak — kattintással, válasszal vagy
+           kivonattal.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="cennik" style="padding-top: 30px">
+  <div class="wrap">
+    <div class="kick rv">Árak</div>
+    <h2 class="sec rv">Kevesebb, mint egy kávé havonta</h2>
+    <p class="sub rv d1">Egyetlen késedelmi kamat többe kerül, mint egy év VORU.</p>
+    <div class="plans">
+      <div class="plan rv">
+        <h3>Havonta</h3>
+        <div class="price">4,99 € <small>/ hó (kb. 2 000 Ft)</small></div>
+        <div class="per">bármikor lemondható</div>
+        <ul>
+          <li>14 nap ingyen, bankkártya nélkül</li>
+          <li>minden funkció korlátozás nélkül</li>
+          <li>korlátlan postafiók és cég</li>
+        </ul>
+        <a class="btn" href="/register?lang=hu">Ingyenes kezdés</a>
+      </div>
+      <div class="plan hot rv d1">
+        <div class="tag">17 % megtakarítás</div>
+        <h3>Évente</h3>
+        <div class="price">49 € <small>/ év (kb. 19 600 Ft)</small></div>
+        <div class="per">havi 4,08 €-nak felel meg</div>
+        <ul>
+          <li>14 nap ingyen, bankkártya nélkül</li>
+          <li>minden funkció korlátozás nélkül</li>
+          <li>korlátlan postafiók és cég</li>
+        </ul>
+        <a class="btn" href="/register?lang=hu">Ingyenes kezdés</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq" style="padding-top: 20px; padding-bottom: 70px">
+  <div class="wrap">
+    <div class="kick rv">Gyakori kérdések</div>
+    <h2 class="sec rv">Amit tudni szeretne</h2>
+    <div class="faq rv d1">
+      <details>
+        <summary>Biztonságos megadni a postafiók jelszavát?</summary>
+        <p>A jelszót titkosítva tároljuk, és kizárólag a posta olvasására
+           használjuk titkosított IMAP-kapcsolaton keresztül. Alkalmazásjelszót
+           ajánlunk, amelyet bármikor visszavonhat. Ha pedig nem szeretne
+           jelszót megadni — a számlákat egyszerűen továbbíthatja a saját
+           egyedi VORU-címére.</p>
+      </details>
+      <details>
+        <summary>Hogyan jelölöm meg, hogy már fizettem?</summary>
+        <p>A legkényelmesebb: továbbítsa a bankszámlakivonatot, és a VORU
+           magától párosítja a befizetéseket. Vagy kattintson a gombra közvetlenül
+           az e-mailben, illetve pipálja ki az alkalmazásban.</p>
+      </details>
+      <details>
+        <summary>Kell bankkártya a próbaidőszakhoz?</summary>
+        <p>Nem. A regisztráció kártya nélküli, 14 napig minden ingyenes.
+           Ha marad, kártyával fizet a Stripe-on keresztül.</p>
+      </details>
+      <details>
+        <summary>Több cégem van — kezeli?</summary>
+        <p>Igen. Egy fiókhoz tetszőleges számú postafiókot adhat különböző
+           cégektől, és minden egy áttekintésben és egy e-mailben fut össze.</p>
+      </details>
+      <details>
+        <summary>Van mobilalkalmazás?</summary>
+        <p>Igen — a VORU-t közvetlenül a böngészőből telepítheti a telefon
+           kezdőképernyőjére, App Store nélkül. iPhone: Safari → Megosztás →
+           Hozzáadás a Főképernyőhöz. Android: Chrome → menü → Alkalmazás
+           telepítése.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<div class="band">
+  <div class="in">
+    <h2>A határidőket ne fejben tartsa</h2>
+    <p>A postafiók csatlakoztatása két perc. Az első áttekintés még ma megérkezik.</p>
+    <a class="btn lg" href="/register?lang=hu">14 nap ingyenes próba</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="/hu">
+      {% include "_logo.html" %}
+    </a>
+    <span>© SORB XT s.r.o.</span>
+    <a href="mailto:obchod@sorbxt.sk">obchod@sorbxt.sk</a>
+    <a href="/login">Bejelentkezés</a>
+    <a href="/register?lang=hu">Regisztráció</a>
+    <a href="/podmienky">ÁSZF</a>
+    <a href="/gdpr">Adatvédelem</a>
+    <a href="/">Slovensky</a>
+    <a href="/cs">Česky</a>
+    <a href="/pl">Polski</a>
+    <a href="/de">Deutsch</a>
+  </div>
+</footer>
+
+<script>
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) {
+      e.target.classList.add("in"); io.unobserve(e.target);
+    }
+  }, { threshold: 0.12 });
+  document.querySelectorAll(".rv:not(.in)").forEach((el) => io.observe(el));
+</script>
+</body>
+</html>

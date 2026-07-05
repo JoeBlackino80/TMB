@@ -111,6 +111,30 @@ def spayd(
     return "*".join(parts)
 
 
+def epc(
+    *, iban: str, amount: float, beneficiary_name: str = "",
+    remittance: str = "", currency: str = "EUR",
+) -> str:
+    """EPC QR (Girocode) — celoeurópsky štandard SEPA prevodov.
+
+    Skenujú ho rakúske a nemecké bankové appky (George, Erste, Sparkasse,
+    Raiffeisen ELBA...). Len pre EUR.
+    """
+    name = (beneficiary_name or "Zahlungsempfaenger").strip()[:70]
+    text = (remittance or "").strip()[:140]
+    lines = [
+        "BCD", "002", "1", "SCT",
+        "",                       # BIC (vo verzii 002 nepovinný)
+        name,
+        iban.replace(" ", "").upper(),
+        f"{currency.upper()}{amount:.2f}",
+        "",                       # purpose
+        "",                       # štruktúrovaná referencia
+        text,                     # nešpecifikovaný účel platby
+    ]
+    return "\n".join(lines)
+
+
 def qr_png(code: str) -> bytes:
     """Vyrenderuje PAY by square reťazec do QR kódu (PNG bajty)."""
     import qrcode

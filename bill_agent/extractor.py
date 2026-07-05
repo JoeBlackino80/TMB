@@ -11,7 +11,11 @@ import anthropic
 from .config import Config
 from .emails import Email
 
-def system_prompt(account_type: str = "business") -> str:
+_SUMMARY_LANGS = {"sk": "slovenčine", "cs": "češtine", "pl": "poľštine",
+                  "de": "nemčine", "hu": "maďarčine"}
+
+
+def system_prompt(account_type: str = "business", lang: str = "sk") -> str:
     if account_type == "personal":
         persona = ("Si asistent slovenskej domácnosti (súkromnej osoby). Typická "
                    "pošta: vyúčtovania energií a telekomunikácií, nájom, poistky, "
@@ -58,7 +62,9 @@ extrahuješ z nich:
    marketing | ine.
 
 Ak e-mail neobsahuje nič relevantné (newsletter, spam, bežná konverzácia),
-vráť prázdne zoznamy (summary a category vyplň vždy)."""
+vráť prázdne zoznamy (summary a category vyplň vždy).""" + (
+        f"\n\nSúhrn (summary) a popisy úloh píš v {_SUMMARY_LANGS[lang]}."
+        if lang in _SUMMARY_LANGS and lang != "sk" else "")
 
 
 SYSTEM_PROMPT = system_prompt()
@@ -309,7 +315,8 @@ def extract(cfg: Config, mail: Email, client: Optional[anthropic.Anthropic] = No
         return client.messages.create(
             model=cfg.claude_model,
             max_tokens=16000,
-            system=system_prompt(getattr(cfg, "account_type", "business")),
+            system=system_prompt(getattr(cfg, "account_type", "business"),
+                                 getattr(cfg, "lang", "sk")),
             output_config={"format": OUTPUT_SCHEMA},
             messages=[{"role": "user", "content": content}],
         )

@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VORU — KI-Wächter für Rechnungen, Zahlungen und Fristen</title>
+<meta name="description" content="VORU liest Ihr E-Mail-Postfach, holt aus Rechnungen was, wann und wohin zu zahlen ist, überwacht Fristen und schickt jeden Morgen eine Übersicht mit QR-Code (Girocode). Der Kontoauszug hakt Bezahltes automatisch ab. 14 Tage gratis.">
+<meta name="keywords" content="Rechnungen, Zahlungen, Zahlungserinnerung, Girocode, EPC QR, KI-Assistent, Zahlungsfrist, Unternehmer, EPU, KMU">
+<link rel="canonical" href="https://voru.at/">
+<link rel="alternate" hreflang="sk" href="https://voru.sk/">
+<link rel="alternate" hreflang="cs" href="https://voru.cz/">
+<link rel="alternate" hreflang="pl" href="https://voru.pl/">
+<link rel="alternate" hreflang="de" href="https://voru.at/">
+<link rel="alternate" hreflang="hu" href="https://voru.hu/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="VORU">
+<meta property="og:title" content="VORU — KI-Wächter für Rechnungen, Zahlungen und Fristen">
+<meta property="og:description" content="Postfach verbinden — VORU überwacht Rechnungen, Zahlungsfristen und Aufgaben für Sie. Übersicht mit QR-Code: scannen und bezahlen.">
+<meta property="og:url" content="https://voru.at/">
+<meta property="og:locale" content="de_AT">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="index, follow">
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230a0c10'/><path d='M10.5 9.5l5.5 13 5.5-13' stroke='%23f5f2ea' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0a0c10">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "VORU",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Web",
+  "url": "https://voru.at/",
+  "description": "KI-Assistent, der eingehende Rechnungen liest, Zahlungsfristen überwacht und tägliche Übersichten mit QR-Code (Girocode) sendet.",
+  "inLanguage": "de",
+  "offers": [
+    {"@type": "Offer", "price": "4.99", "priceCurrency": "EUR",
+     "description": "Monatsabo, die ersten 14 Tage gratis"},
+    {"@type": "Offer", "price": "49", "priceCurrency": "EUR",
+     "description": "Jahresabo, die ersten 14 Tage gratis"}
+  ],
+  "provider": {"@type": "Organization", "name": "SORB XT s.r.o.",
+               "email": "obchod@sorbxt.sk"}
+}
+</script>
+{% include "_landing_style.html" %}
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap navrow">
+    <a class="brand" href="/de">
+      {% include "_logo.html" %}
+    </a>
+    <nav class="navlinks">
+      <a href="#funkcie">Funktionen</a>
+      <a href="#ako">So funktioniert's</a>
+      <a href="#cennik">Preise</a>
+    </nav>
+    <div class="navcta">
+      <a class="signin" href="/">SK</a>
+      <a class="signin" href="/cs">CZ</a>
+      <a class="signin" href="/login">Anmelden</a>
+      <a class="btn sm" href="/register?lang=de">Gratis testen</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="pill rv in"><span class="dot"></span> KI-Assistent für Unternehmer und Haushalte</div>
+    <h1 class="rv in">Rechnungen im Griff.<br><span class="acc">Ohne Posteingang zu lesen.</span></h1>
+    <p class="lead rv in d1">VORU liest Ihr Postfach, holt aus Rechnungen Betrag,
+       IBAN und Frist — und schickt jeden Morgen eine Übersicht mit QR-Code
+       (Girocode). Scannen, bezahlen — der Kontoauszug hakt Bezahltes selbst ab.</p>
+    <div class="ctarow rv in d1">
+      <a class="btn lg" href="/register?lang=de">14 Tage gratis testen</a>
+      <a class="btn lg ghost" href="#ako">So funktioniert's</a>
+    </div>
+    <div class="subnote rv in d2">Ohne Kreditkarte · Einrichtung in 2 Minuten</div>
+  </div>
+
+  <div class="stagewrap">
+    <div class="wrap">
+      <div class="window rv in d2" aria-hidden="true">
+        <div class="winbar"><i></i><i></i><i></i><span class="url">voru.at</span></div>
+        <div class="app">
+          <aside>
+            <div class="abrand">
+              {% include "_logo.html" %}
+            </div>
+            <nav>
+              <a class="on">Übersicht</a><a>Postfächer</a><a>Einstellungen</a><a>Abo</a>
+            </nav>
+          </aside>
+          <main>
+            <h2>Übersicht</h2>
+            <div class="tiles">
+              <div class="tile bad"><b>1</b><span>überfällig</span></div>
+              <div class="tile"><b>4</b><span>offen</span></div>
+              <div class="tile"><b>642,10 €</b><span>bis Monatsende</span></div>
+              <div class="tile"><b>218,00 €</b><span>nächster Monat</span></div>
+            </div>
+            <div class="lst">
+              <div class="lrow">
+                <span class="sup">Wien Energie GmbH</span>
+                <span class="chip red">überfällig</span>
+                <span class="amt">184,20 €</span>
+                <span class="mbtn">QR-Code</span>
+              </div>
+              <div class="lrow">
+                <span class="sup">World4You GmbH</span>
+                <span class="chip amber">heute</span>
+                <span class="amt">14,90 €</span>
+                <span class="mbtn">QR-Code</span>
+              </div>
+              <div class="lrow">
+                <span class="sup">Baustoffe Huber</span>
+                <span class="chip red">anderes Konto — prüfen!</span>
+                <span class="amt">420,00 €</span>
+                <span class="mbtn">QR-Code</span>
+              </div>
+              <div class="lrow">
+                <span class="sup">A1 Telekom</span>
+                <span class="chip green">bezahlt (Auszug)</span>
+                <span class="amt" style="text-decoration:line-through;color:var(--faint)">25,00 €</span>
+                <span class="mbtn" style="opacity:.4">✓</span>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+
+      <div class="trust rv">
+        <span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#98a1b2" stroke-width="1.8"><path d="M10 2l7 3v5c0 4.5-3 7.5-7 8-4-.5-7-3.5-7-8V5z"/></svg> Passwörter verschlüsselt gespeichert</span>
+        <span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#98a1b2" stroke-width="1.8"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M7 10l2 2 4-4"/></svg> Girocode — alle österreichischen Banken-Apps</span>
+        <span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#98a1b2" stroke-width="1.8"><circle cx="10" cy="10" r="7.5"/><path d="M10 5.5V10l3 2"/></svg> Server in der EU · DSGVO</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="funkcie" style="padding-top: 40px">
+  <div class="wrap">
+    <div class="kick rv">Funktionen</div>
+    <h2 class="sec rv">Alles rund um Zahlungen erledigt,<br>bevor der Kaffee kalt wird</h2>
+    <p class="sub rv d1">VORU arbeitet im Hintergrund — Sie bekommen fertige
+       Ergebnisse ins Postfach und erledigen sie mit einem Klick.</p>
+    <div class="bento">
+      <div class="cell w3 rv">
+        <h3>QR-Code für jede Rechnung</h3>
+        <p>Girocode (EPC-QR) mit vorausgefülltem Betrag, IBAN und Verwendungszweck —
+           in der E-Mail und in der App. In der Banking-App scannen, bestätigen,
+           fertig. Kein Abtippen mehr.</p>
+        <div class="demo">
+          <b>VORU: Zahlungen und Aufgaben — 2 dringend</b><br>
+          Wien Energie — 184,20 € · fällig heute<br>
+          <span style="color:var(--accent);font-weight:600">✓ Als bezahlt markieren</span> ·
+          3 Tage aufschieben
+        </div>
+      </div>
+      <div class="cell w3 rv d1">
+        <h3>Schutz vor IBAN-Betrug</h3>
+        <p>Betrüger tauschen auf Rechnungen die IBAN aus. VORU merkt sich die
+           Konten all Ihrer Lieferanten — kommt eine Rechnung mit anderer IBAN
+           als bisher, werden Sie gewarnt, bevor Geld fließt.</p>
+        <div class="demo">
+          <span class="chip red" style="float:none">ACHTUNG: andere IBAN</span><br>
+          Lieferant „Baustoffe Huber" gab ein anderes Konto an als bei den
+          letzten 12 Rechnungen. Rechnung telefonisch prüfen.
+        </div>
+      </div>
+      <div class="cell rv">
+        <h3>Der Kontoauszug hakt selbst ab</h3>
+        <p>Auszug weiterleiten — auch passwortgeschützt — und bezahlte Posten
+           werden automatisch abgehakt.</p>
+      </div>
+      <div class="cell rv d1">
+        <h3>Sammelüberweisung</h3>
+        <p>Eine Datei mit allen Überweisungen ins Online-Banking laden und alles
+           auf einmal freigeben (SEPA XML).</p>
+      </div>
+      <div class="cell rv d2">
+        <h3>Cashflow auf einen Blick</h3>
+        <p>Was bis Monatsende rausgeht und was im nächsten — Sie wissen es,
+           bevor der Auszug kommt.</p>
+        <div class="bars"><i style="height:38%"></i><i style="height:62%"></i><i class="hi" style="height:88%"></i><i style="height:46%"></i><i style="height:30%"></i><i style="height:55%"></i></div>
+      </div>
+      <div class="cell rv">
+        <h3>Tages- und Wochenzusammenfassung</h3>
+        <p>Abends eine kurze KI-Zusammenfassung der ganzen Post — was kam,
+           was brennt, was warten kann.</p>
+      </div>
+      <div class="cell rv d1">
+        <h3>Wächter für wiederkehrende Rechnungen</h3>
+        <p>Kommt die Monatsrechnung nicht, erfahren Sie es — bevor Mahnspesen
+           anfallen.</p>
+      </div>
+      <div class="cell rv d2">
+        <h3>Mehrere Firmen, mehrere Postfächer</h3>
+        <p>Unbegrenzt viele Postfächer in einem Konto. Rechnungen können Sie
+           auch einfach an Ihre persönliche Adresse weiterleiten.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ako" style="padding-top: 30px">
+  <div class="wrap">
+    <div class="kick rv">So funktioniert's</div>
+    <h2 class="sec rv">Einmal einrichten, läuft für immer</h2>
+    <div class="steps" style="margin-top: 40px">
+      <div class="step rv">
+        <h3>Postfach verbinden</h3>
+        <p>Die E-Mail-Adresse, an die Ihre Rechnungen kommen — Gmail, GMX, A1
+           oder Firmenpost. Oder Sie leiten Rechnungen einfach weiter, ganz
+           ohne Passwort.</p>
+      </div>
+      <div class="step rv d1">
+        <h3>KI liest die Post für Sie</h3>
+        <p>Aus Rechnungen und PDF-Anhängen holt sie Beträge, IBANs und Fristen.
+           Erkennt auch Aufgaben, Termine und Kontoauszüge.</p>
+      </div>
+      <div class="step rv d2">
+        <h3>Fertige Übersichten erhalten</h3>
+        <p>Morgens was zu zahlen ist mit QR-Codes, abends die Zusammenfassung.
+           Bezahltes wird automatisch abgehakt — per Klick, Antwort oder Auszug.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="cennik" style="padding-top: 30px">
+  <div class="wrap">
+    <div class="kick rv">Preise</div>
+    <h2 class="sec rv">Weniger als ein Kaffee im Monat</h2>
+    <p class="sub rv d1">Eine einzige Mahngebühr kostet mehr als ein Jahr VORU.</p>
+    <div class="plans">
+      <div class="plan rv">
+        <h3>Monatlich</h3>
+        <div class="price">4,99 € <small>/ Monat</small></div>
+        <div class="per">jederzeit kündbar</div>
+        <ul>
+          <li>14 Tage gratis, ohne Kreditkarte</li>
+          <li>alle Funktionen ohne Limits</li>
+          <li>unbegrenzt Postfächer und Firmen</li>
+        </ul>
+        <a class="btn" href="/register?lang=de">Gratis starten</a>
+      </div>
+      <div class="plan hot rv d1">
+        <div class="tag">17 % sparen</div>
+        <h3>Jährlich</h3>
+        <div class="price">49 € <small>/ Jahr</small></div>
+        <div class="per">entspricht 4,08 € pro Monat</div>
+        <ul>
+          <li>14 Tage gratis, ohne Kreditkarte</li>
+          <li>alle Funktionen ohne Limits</li>
+          <li>unbegrenzt Postfächer und Firmen</li>
+        </ul>
+        <a class="btn" href="/register?lang=de">Gratis starten</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq" style="padding-top: 20px; padding-bottom: 70px">
+  <div class="wrap">
+    <div class="kick rv">Häufige Fragen</div>
+    <h2 class="sec rv">Was Sie wissen wollen</h2>
+    <div class="faq rv d1">
+      <details>
+        <summary>Ist es sicher, mein Postfach-Passwort anzugeben?</summary>
+        <p>Das Passwort wird verschlüsselt gespeichert und ausschließlich zum
+           Lesen der Post über eine verschlüsselte IMAP-Verbindung verwendet.
+           Wir empfehlen ein App-Passwort, das Sie jederzeit widerrufen können.
+           Und wer kein Passwort angeben möchte, leitet Rechnungen einfach an
+           seine persönliche VORU-Adresse weiter.</p>
+      </details>
+      <details>
+        <summary>Mit welchen Banken funktionieren die QR-Codes?</summary>
+        <p>Mit allen Banking-Apps, die den Girocode (EPC-QR) lesen — George,
+           Erste, Raiffeisen ELBA, BAWAG, bank99 und praktisch alle
+           österreichischen und deutschen Banken.</p>
+      </details>
+      <details>
+        <summary>Wie markiere ich eine Rechnung als bezahlt?</summary>
+        <p>Am bequemsten: Kontoauszug weiterleiten, VORU gleicht die Zahlungen
+           selbst ab. Oder Sie klicken den Button direkt in der E-Mail bzw.
+           haken in der App ab.</p>
+      </details>
+      <details>
+        <summary>Brauche ich für den Testzeitraum eine Kreditkarte?</summary>
+        <p>Nein. Die Registrierung ist ohne Karte, 14 Tage lang ist alles
+           gratis. Wenn Sie bleiben, zahlen Sie per Karte über Stripe.</p>
+      </details>
+      <details>
+        <summary>Gibt es eine mobile App?</summary>
+        <p>Ja — VORU installieren Sie direkt aus dem Browser auf den
+           Startbildschirm, ohne App Store. iPhone: Safari → Teilen → Zum
+           Home-Bildschirm. Android: Chrome → Menü → App installieren.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<div class="band">
+  <div class="in">
+    <h2>Fristen gehören nicht in den Kopf</h2>
+    <p>Das Postfach ist in zwei Minuten verbunden. Die erste Übersicht kommt noch heute.</p>
+    <a class="btn lg" href="/register?lang=de">14 Tage gratis testen</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="/de">
+      {% include "_logo.html" %}
+    </a>
+    <span>© SORB XT s.r.o.</span>
+    <a href="mailto:obchod@sorbxt.sk">obchod@sorbxt.sk</a>
+    <a href="/login">Anmelden</a>
+    <a href="/register?lang=de">Registrieren</a>
+    <a href="/podmienky">AGB</a>
+    <a href="/gdpr">Datenschutz</a>
+    <a href="/">Slovensky</a>
+    <a href="/cs">Česky</a>
+    <a href="/pl">Polski</a>
+    <a href="/hu">Magyar</a>
+  </div>
+</footer>
+
+<script>
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) {
+      e.target.classList.add("in"); io.unobserve(e.target);
+    }
+  }, { threshold: 0.12 });
+  document.querySelectorAll(".rv:not(.in)").forEach((el) => io.observe(el));
+</script>
+</body>
+</html>

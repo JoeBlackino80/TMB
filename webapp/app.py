@@ -140,6 +140,39 @@ _WELCOME = {
         "guide": "Szczegółowa instrukcja podłączenia skrzynki",
         "questions": "Pytania? Odpowiedz na tego e-maila.",
     },
+    "de": {
+        "subject": "Willkommen bei VORU — bestätigen Sie Ihre Adresse",
+        "title": "Willkommen bei VORU!",
+        "confirm": "E-Mail-Adresse bestätigen",
+        "confirm_line": "Bitte bestätigen Sie Ihre Adresse per Klick",
+        "how": "So starten Sie",
+        "steps": [
+            "Melden Sie sich an und fügen Sie unter Postfächer die E-Mail-Adresse "
+            "hinzu, an die Ihre Rechnungen kommen. Für Gmail ein App-Passwort "
+            "verwenden.",
+            "In den Einstellungen können Sie das Passwort für PDF-Kontoauszüge "
+            "hinterlegen — VORU hakt Bezahltes dann selbst ab.",
+            "Übersichten mit QR-Codes kommen jeden Morgen per E-Mail.",
+        ],
+        "guide": "Ausführliche Anleitung zum Verbinden des Postfachs",
+        "questions": "Fragen? Antworten Sie einfach auf diese E-Mail.",
+    },
+    "hu": {
+        "subject": "Üdvözli a VORU — erősítse meg a címét",
+        "title": "Üdvözli a VORU!",
+        "confirm": "E-mail-cím megerősítése",
+        "confirm_line": "Kérjük, erősítse meg a címét kattintással",
+        "how": "Így kezdje",
+        "steps": [
+            "Jelentkezzen be, és a Postafiókok részben adja hozzá az e-mail-címet, "
+            "amelyre a számlái érkeznek. Gmailhez alkalmazásjelszót használjon.",
+            "A Beállításokban megadhatja a PDF-kivonatok jelszavát — a VORU "
+            "ezután magától kipipálja a kifizetetteket.",
+            "Az áttekintések minden reggel e-mailben érkeznek.",
+        ],
+        "guide": "Részletes útmutató a postafiók csatlakoztatásához",
+        "questions": "Kérdése van? Válaszoljon erre az e-mailre.",
+    },
 }
 
 
@@ -174,7 +207,7 @@ def _render(request: Request, template: str, **ctx) -> HTMLResponse:
 @app.get("/register", response_class=HTMLResponse)
 def register_form(request: Request, lang: str = "sk"):
     return _render(request, "register.html",
-                   lang=lang if lang in ("sk", "cs", "pl") else "sk")
+                   lang=lang if lang in ("sk", "cs", "pl", "de", "hu") else "sk")
 
 
 @app.post("/register")
@@ -183,7 +216,7 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
     email = email.strip().lower()
     if account_type not in ("business", "personal", "both"):
         account_type = "business"
-    if lang not in ("sk", "cs", "pl"):
+    if lang not in ("sk", "cs", "pl", "de", "hu"):
         lang = "sk"
     if "@" not in email or len(password) < 8:
         return _render(request, "register.html",
@@ -351,12 +384,26 @@ def landing_pl(request: Request):
     return _render(request, "landing_pl.html")
 
 
+@app.get("/de", response_class=HTMLResponse)
+def landing_de(request: Request):
+    return _render(request, "landing_de.html")
+
+
+@app.get("/hu", response_class=HTMLResponse)
+def landing_hu(request: Request):
+    return _render(request, "landing_hu.html")
+
+
 def _landing_for_host(request: Request) -> str:
     host = (request.url.hostname or "").lower()
     if host.endswith("voru.cz"):
         return "landing_cs.html"
     if host.endswith("voru.pl"):
         return "landing_pl.html"
+    if host.endswith("voru.at"):
+        return "landing_de.html"
+    if host.endswith("voru.hu"):
+        return "landing_hu.html"
     return "landing.html"
 
 
@@ -709,7 +756,7 @@ def sitemap(request: Request):
     host = request.url.hostname or "voru.sk"
     urls = "".join(
         f"<url><loc>https://{host}{path}</loc></url>"
-        for path in ("/", "/cs", "/pl", "/register", "/login", "/navod",
+        for path in ("/", "/cs", "/pl", "/de", "/hu", "/register", "/login", "/navod",
                      "/podmienky", "/gdpr")
     )
     xml = ('<?xml version="1.0" encoding="UTF-8"?>'
