@@ -88,6 +88,49 @@ def client(tmp_path, monkeypatch):
     return TestClient(app_module.app, follow_redirects=False)
 
 
+def test_multilang_landing_and_register(client, tmp_path):
+    # jazykové mutácie landing page
+    r = client.get("/cs")
+    assert r.status_code == 200 and "Faktury pod kontrolou" in r.text
+    assert 'hreflang="pl"' in r.text
+    r = client.get("/pl")
+    assert r.status_code == 200 and "Faktury pod kontrolą" in r.text
+    # sitemap obsahuje mutácie
+    assert "/cs" in client.get("/sitemap.xml").text
+
+    # registrácia z českej stránky uloží jazyk klienta
+    r = client.get("/register?lang=cs")
+    assert 'value="cs"' in r.text
+    client.post("/register", data={"email": "cesko@x.cz", "password": "tajneheslo",
+                                   "lang": "cs"})
+    env = (tmp_path / "clients" / "cesko-x-cz" / ".env").read_text()
+    assert "APP_LANG=cs" in env
+
+
+def test_czech_polish_commands(tmp_path):
+    from bill_agent import commands
+    from bill_agent.emails import Email
+
+    store = Store(str(tmp_path / "t.db"))
+    p1 = store.add_payment(supplier="A", amount=1, currency="EUR", iban="",
+                           variable_symbol="1", due_date=None)
+    p2 = store.add_payment(supplier="B", amount=2, currency="EUR", iban="",
+                           variable_symbol="2", due_date=None)
+    tid = store.add_task(description="úkol", due_date=None)
+
+    mail = Email(message_id="c1", subject="Re: Romarium: platby a úlohy",
+                 sender="ja@x.cz", date="", body=f"zaplaceno {p1}\ngotowe {tid}\n")
+    actions = commands.apply(store, mail)
+    assert len(actions) == 2
+    assert store.get_payment(p1).status == "paid"
+
+    mail2 = Email(message_id="c2", subject="Re: Romarium: platby a úlohy",
+                  sender="ja@x.pl", date="", body="zapłacone wszystko\n")
+    commands.apply(store, mail2)
+    assert store.get_payment(p2).status == "paid"
+    store.close()
+
+
 def test_personal_account_flow(client, tmp_path):
     client.post("/register", data={"email": "osoba@x.sk", "password": "tajneheslo",
                                    "account_type": "personal"})

@@ -22,13 +22,19 @@ SUBJECT_MARKER = "platby a úlohy"
 
 _REPLY_PREFIXES = ("re:", "odp:", "odp.:", "aw:", "sv:", "fwd:", "fw:")
 
-_PAID_RE = re.compile(r"^(?:zaplat|uhrad|paid)\S*\s+(\d+|v[sš]etko)[.!]?\s*$", re.I)
+# rozumieme aj českým a poľským tvarom (zaplaceno, zapłacone, gotowe, odłóż...)
+_PAID_RE = re.compile(
+    r"^(?:zaplat|zaplac|zap[łl]ac|op[łl]ac|uhrad|uhraz|paid)\S*\s+"
+    r"(\d+|v[sš]etko|v[sš]e(?:chno)?|wszystko)[.!]?\s*$", re.I)
 _IGNORE_RE = re.compile(r"^ignor\S*\s+(\d+)[.!]?\s*$", re.I)
-_TASK_RE = re.compile(r"^(?:hotovo?|splnen)\S*\s+(\d+)[.!]?\s*$", re.I)
+_TASK_RE = re.compile(r"^(?:hotovo?|splnen|gotowe|zrobion)\S*\s+(\d+)[.!]?\s*$", re.I)
+_SNOOZE_WORD = r"(?:odlo[zž]|od[łl][oó][żz]|prze[łl][oó][żz])"
 # "odlož úlohu 2 o 5" pred všeobecným "odlož 4 o 5" (platba)
 _SNOOZE_TASK_RE = re.compile(
-    r"^odlo[zž]\S*\s+[uú]loh\S*\s+(\d+)(?:\s+o\s+(\d+))?[.!]?\s*$", re.I)
-_SNOOZE_RE = re.compile(r"^odlo[zž]\S*\s+(\d+)(?:\s+o\s+(\d+))?[.!]?\s*$", re.I)
+    _SNOOZE_WORD + r"\S*\s+(?:[uú]loh|[uú]kol|zadani)\S*\s+(\d+)(?:\s+o\s+(\d+))?[.!]?\s*$", re.I)
+_SNOOZE_RE = re.compile(_SNOOZE_WORD + r"\S*\s+(\d+)(?:\s+o\s+(\d+))?[.!]?\s*$", re.I)
+
+_ALL_WORDS = {"vsetko", "všetko", "vše", "vse", "všechno", "vsechno", "wszystko"}
 
 DEFAULT_SNOOZE_DAYS = 3
 
@@ -55,7 +61,7 @@ def apply(store: Store, mail: Email) -> list[str]:
         m = _PAID_RE.match(line)
         if m:
             target = m.group(1).lower()
-            if target in ("vsetko", "všetko"):
+            if target in _ALL_WORDS:
                 for p in store.pending_payments():
                     store.set_payment_status(p.id, "paid")
                     actions.append(f"platba [{p.id}] {p.supplier} → zaplatená")

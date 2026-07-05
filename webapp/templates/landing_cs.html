@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Romarium — AI hlídač faktur, plateb a termínů</title>
+<meta name="description" content="Romarium čte vaši e-mailovou poštu, z faktur vytáhne co, kdy a kam zaplatit, pohlídá termíny a pošle vám přehled s QR Platbou. Výpis z banky odškrtne zaplacené sám. 14 dní zdarma.">
+<meta name="keywords" content="faktury, platby, připomínky plateb, QR Platba, AI asistent, úhrada faktur, splatnost, podnikatel, OSVČ, s.r.o.">
+<link rel="canonical" href="https://romarium.com/cs">
+<link rel="alternate" hreflang="sk" href="https://romarium.com/">
+<link rel="alternate" hreflang="cs" href="https://romarium.com/cs">
+<link rel="alternate" hreflang="pl" href="https://romarium.com/pl">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Romarium">
+<meta property="og:title" content="Romarium — AI hlídač faktur, plateb a termínů">
+<meta property="og:description" content="Připojíte schránku a Romarium hlídá faktury, splatnosti a termíny za vás. Přehled s QR Platbou — naskenujete a zaplatíte.">
+<meta property="og:url" content="https://romarium.com/cs">
+<meta property="og:locale" content="cs_CZ">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="index, follow">
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230a0c10'/><path d='M9 16.5l5 5 9-11' stroke='%2310b981' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0a0c10">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Romarium",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Web",
+  "url": "https://romarium.com/cs",
+  "description": "AI asistent, který čte přijaté faktury, hlídá splatnosti a termíny a posílá přehledy s QR Platbou.",
+  "inLanguage": "cs",
+  "offers": [
+    {"@type": "Offer", "price": "4.99", "priceCurrency": "EUR",
+     "description": "Měsíční předplatné, prvních 14 dní zdarma"},
+    {"@type": "Offer", "price": "49", "priceCurrency": "EUR",
+     "description": "Roční předplatné, prvních 14 dní zdarma"}
+  ],
+  "provider": {"@type": "Organization", "name": "SORB XT s.r.o.",
+               "email": "obchod@sorbxt.sk"}
+}
+</script>
+{% include "_landing_style.html" %}
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap navrow">
+    <a class="brand" href="/cs">
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="#0a0c10"/>
+        <path d="M9 16.5l5 5 9-11" stroke="#10b981" stroke-width="3.5" fill="none"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      romarium
+    </a>
+    <nav class="navlinks">
+      <a href="#funkcie">Funkce</a>
+      <a href="#ako">Jak to funguje</a>
+      <a href="#cennik">Ceník</a>
+    </nav>
+    <div class="navcta">
+      <a class="signin" href="/">SK</a>
+      <a class="signin" href="/pl">PL</a>
+      <a class="signin" href="/login">Přihlásit se</a>
+      <a class="btn sm" href="/register?lang=cs">Vyzkoušet zdarma</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="pill rv in"><span class="dot"></span> AI asistent pro podnikatele i domácnosti</div>
+    <h1 class="rv in">Faktury pod kontrolou.<br><span class="acc">Bez čtení pošty.</span></h1>
+    <p class="lead rv in d1">Romarium čte vaši schránku, z faktur vytáhne částku, číslo
+       účtu i splatnost a každé ráno pošle přehled s QR Platbou. Naskenujete,
+       zaplatíte — výpis z banky odškrtne zaplacené sám.</p>
+    <div class="ctarow rv in d1">
+      <a class="btn lg" href="/register?lang=cs">Vyzkoušet 14 dní zdarma</a>
+      <a class="btn lg ghost" href="#ako">Jak to funguje</a>
+    </div>
+    <div class="subnote rv in d2">Bez platební karty · nastavení za 2 minuty</div>
+  </div>
+
+  <div class="stagewrap">
+    <div class="wrap">
+      <div class="window rv in d2" aria-hidden="true">
+        <div class="winbar"><i></i><i></i><i></i><span class="url">romarium.com</span></div>
+        <div class="app">
+          <aside>
+            <div class="abrand">
+              <svg width="18" height="18" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#0a0c10"/><path d="M9 16.5l5 5 9-11" stroke="#10b981" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              romarium
+            </div>
+            <nav>
+              <a class="on">Přehled</a><a>Schránky</a><a>Nastavení</a><a>Předplatné</a>
+            </nav>
+          </aside>
+          <main>
+            <h2>Přehled</h2>
+            <div class="tiles">
+              <div class="tile bad"><b>1</b><span>po splatnosti</span></div>
+              <div class="tile"><b>4</b><span>nezaplacené</span></div>
+              <div class="tile"><b>15 890 Kč</b><span>do konce měsíce</span></div>
+              <div class="tile"><b>5 420 Kč</b><span>příští měsíc</span></div>
+            </div>
+            <div class="lst">
+              <div class="lrow">
+                <span class="sup">ČEZ Prodej, a. s.</span>
+                <span class="chip red">po splatnosti</span>
+                <span class="amt">4 620 Kč</span>
+                <span class="mbtn">QR Platba</span>
+              </div>
+              <div class="lrow">
+                <span class="sup">Wedos a.s.</span>
+                <span class="chip amber">dnes</span>
+                <span class="amt">363 Kč</span>
+                <span class="mbtn">QR Platba</span>
+              </div>
+              <div class="lrow">
+                <span class="sup">Stavebniny CZ</span>
+                <span class="chip red">jiný účet — ověřit!</span>
+                <span class="amt">10 480 Kč</span>
+                <span class="mbtn">QR Platba</span>
+              </div>
+              <div class="lrow">
+                <span class="sup">O2 Czech Republic</span>
+                <span class="chip green">zaplaceno výpisem</span>
+                <span class="amt" style="text-decoration:line-through;color:var(--faint)">625 Kč</span>
+                <span class="mbtn" style="opacity:.4">✓</span>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+
+      <div class="trust rv">
+        <span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#98a1b2" stroke-width="1.8"><path d="M10 2l7 3v5c0 4.5-3 7.5-7 8-4-.5-7-3.5-7-8V5z"/></svg> Hesla uložena šifrovaně</span>
+        <span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#98a1b2" stroke-width="1.8"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M7 10l2 2 4-4"/></svg> QR Platba — všechny české banky</span>
+        <span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#98a1b2" stroke-width="1.8"><circle cx="10" cy="10" r="7.5"/><path d="M10 5.5V10l3 2"/></svg> Servery v EU · GDPR</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="funkcie" style="padding-top: 40px">
+  <div class="wrap">
+    <div class="kick rv">Funkce</div>
+    <h2 class="sec rv">Všechno kolem plateb vyřízené,<br>než dopijete kávu</h2>
+    <p class="sub rv d1">Romarium pracuje na pozadí — vy dostáváte hotové výsledky
+       do schránky a jedním kliknutím je odbavíte.</p>
+    <div class="bento">
+      <div class="cell w3 rv">
+        <h3>QR Platba na každou fakturu</h3>
+        <p>QR kód s předvyplněnou částkou, číslem účtu i variabilním symbolem —
+           v e-mailu i na webu. Naskenujete v bankovní aplikaci, potvrdíte, hotovo.</p>
+        <div class="demo">
+          <svg class="qrbox" width="66" height="66" viewBox="0 0 21 21" shape-rendering="crispEdges"><rect width="21" height="21" fill="#fff"/><path fill="#0d1117" d="M0 0h7v7H0zM14 0h7v7h-7zM0 14h7v7H0zM2 2h3v3H2zM16 2h3v3h-3zM2 16h3v3H2zM9 0h1v2H9zM11 1h2v1h-2zM9 3h3v1H9zM12 4h1v2h-1zM8 5h2v1H8zM9 7h1v2H9zM0 9h2v1H0zM3 8h2v2H3zM6 9h3v1H6zM11 8h2v1h-2zM14 9h2v1h-2zM17 8h1v2h-1zM19 9h2v1h-2zM1 11h1v2H1zM4 11h2v1H4zM7 12h2v1H7zM10 11h1v3h-1zM12 12h2v1h-2zM15 11h2v2h-2zM18 12h3v1h-3zM8 14h2v2H8zM11 15h2v1h-2zM14 14h1v2h-1zM16 15h2v1h-2zM19 14h2v2h-2zM9 17h1v2H9zM11 18h3v1h-3zM15 17h2v2h-2zM18 18h2v1h-2zM8 20h4v1H8zM14 20h3v1h-3z"/></svg>
+          <b>Romarium: platby a úkoly — 2 urgentní</b><br>
+          ČEZ — 4 620 Kč · splatnost dnes · VS 202600412<br>
+          <span style="color:var(--accent);font-weight:600">✓ Označit jako zaplacené</span> ·
+          Odložit o 3 dny
+        </div>
+      </div>
+      <div class="cell w3 rv d1">
+        <h3>Hlídač podvodů s číslem účtu</h3>
+        <p>Romarium si pamatuje účty všech vašich dodavatelů. Když faktura přijde
+           s jiným číslem účtu než dosud, varuje vás dřív, než pošlete peníze
+           podvodníkovi.</p>
+        <div class="demo">
+          <span class="chip red" style="float:none">POZOR: jiný účet</span><br>
+          Dodavatel „Stavebniny CZ" uvedl jiné číslo účtu než u minulých 12 faktur.
+          Ověřte pravost faktury telefonicky.
+        </div>
+      </div>
+      <div class="cell rv">
+        <h3>Banka odškrtává sama</h3>
+        <p>Přepošlete výpis z účtu — i chráněný heslem — a zaplacené položky se
+           spárují automaticky.</p>
+      </div>
+      <div class="cell rv d1">
+        <h3>Hromadný příkaz</h3>
+        <p>Jeden soubor se všemi úhradami nahrajete do internetového bankovnictví
+           a vše potvrdíte najednou (SEPA XML).</p>
+      </div>
+      <div class="cell rv d2">
+        <h3>Cashflow na první pohled</h3>
+        <p>Kolik odejde do konce měsíce a kolik příští — víte to dřív, než přijde
+           výpis.</p>
+        <div class="bars"><i style="height:38%"></i><i style="height:62%"></i><i class="hi" style="height:88%"></i><i style="height:46%"></i><i style="height:30%"></i><i style="height:55%"></i></div>
+      </div>
+      <div class="cell rv">
+        <h3>Shrnutí dne a týdne</h3>
+        <p>Večer krátké AI shrnutí celé pošty — co přišlo, co hoří, co počká.
+           Marketing jednou větou.</p>
+      </div>
+      <div class="cell rv d1">
+        <h3>Hlídač pravidelných faktur</h3>
+        <p>Když měsíční faktura nepřijde, dozvíte se to — dřív než penále
+           za prodlení.</p>
+      </div>
+      <div class="cell rv d2">
+        <h3>Více firem, více schránek</h3>
+        <p>Neomezený počet schránek v jednom účtu. Faktury můžete i jen
+           přeposílat na unikátní adresu.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ako" style="padding-top: 30px">
+  <div class="wrap">
+    <div class="kick rv">Jak to funguje</div>
+    <h2 class="sec rv">Nastavíte jednou, funguje pořád</h2>
+    <div class="steps" style="margin-top: 40px">
+      <div class="step rv">
+        <h3>Připojíte schránku</h3>
+        <p>E-mail, kam vám chodí faktury — Gmail, Seznam či firemní pošta.
+           Nebo faktury jen přeposíláte, bez zadávání hesla.</p>
+      </div>
+      <div class="step rv d1">
+        <h3>AI čte poštu za vás</h3>
+        <p>Z faktur a PDF příloh vytáhne částky, čísla účtů, symboly a splatnosti.
+           Rozpozná i úkoly, termíny a výpisy z banky.</p>
+      </div>
+      <div class="step rv d2">
+        <h3>Dostáváte hotové přehledy</h3>
+        <p>Ráno co zaplatit s QR Platbami, večer shrnutí dne. Zaplacené se odškrtne
+           samo — kliknutím, odpovědí nebo výpisem.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="cennik" style="padding-top: 30px">
+  <div class="wrap">
+    <div class="kick rv">Ceník</div>
+    <h2 class="sec rv">Méně než jedna káva měsíčně</h2>
+    <p class="sub rv d1">Jedno zmeškané penále stojí víc než rok Romaria.</p>
+    <div class="plans">
+      <div class="plan rv">
+        <h3>Měsíčně</h3>
+        <div class="price">4,99 € <small>/ měsíc (cca 125 Kč)</small></div>
+        <div class="per">zrušíte kdykoli</div>
+        <ul>
+          <li>14 dní zdarma, bez platební karty</li>
+          <li>všechny funkce bez omezení</li>
+          <li>neomezený počet schránek a firem</li>
+        </ul>
+        <a class="btn" href="/register?lang=cs">Začít zdarma</a>
+      </div>
+      <div class="plan hot rv d1">
+        <div class="tag">Ušetříte 17 %</div>
+        <h3>Ročně</h3>
+        <div class="price">49 € <small>/ rok (cca 1 225 Kč)</small></div>
+        <div class="per">vychází 4,08 € měsíčně</div>
+        <ul>
+          <li>14 dní zdarma, bez platební karty</li>
+          <li>všechny funkce bez omezení</li>
+          <li>neomezený počet schránek a firem</li>
+        </ul>
+        <a class="btn" href="/register?lang=cs">Začít zdarma</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq" style="padding-top: 20px; padding-bottom: 70px">
+  <div class="wrap">
+    <div class="kick rv">Časté otázky</div>
+    <h2 class="sec rv">Na co se ptáte</h2>
+    <div class="faq rv d1">
+      <details>
+        <summary>Je bezpečné zadat heslo ke schránce?</summary>
+        <p>Heslo se ukládá šifrovaně a používá výhradně ke čtení pošty přes
+           šifrované IMAP připojení. Doporučujeme heslo aplikace (App Password),
+           které můžete kdykoli zrušit. A pokud heslo zadat nechcete, faktury
+           můžete jen přeposílat na svou unikátní adresu.</p>
+      </details>
+      <details>
+        <summary>Se kterými bankami QR Platba funguje?</summary>
+        <p>Se všemi českými bankovními aplikacemi — Česká spořitelna, ČSOB,
+           Komerční banka, Raiffeisenbank, Fio, Air Bank, Moneta, mBank a další.
+           Slovenské faktury dostanou PAY by square pro slovenské banky.</p>
+      </details>
+      <details>
+        <summary>Jak se označí, že jsem už zaplatil?</summary>
+        <p>Nejpohodlněji: přepošlete výpis z účtu a Romarium spáruje platby samo.
+           Nebo kliknete na tlačítko přímo v e-mailu, odpovíte „zaplaceno 3",
+           či odškrtnete v aplikaci — jak vám vyhovuje.</p>
+      </details>
+      <details>
+        <summary>Potřebuji na zkušební dobu platební kartu?</summary>
+        <p>Ne. Registrace je bez karty, 14 dní máte vše zdarma. Pokud se
+           rozhodnete pokračovat, zaplatíte kartou přes Stripe.</p>
+      </details>
+      <details>
+        <summary>Mám více firem — zvládne to?</summary>
+        <p>Ano. Do jednoho účtu přidáte libovolný počet schránek různých firem
+           a vše se sejde v jednom přehledu i v jednom e-mailu.</p>
+      </details>
+      <details>
+        <summary>Existuje mobilní aplikace?</summary>
+        <p>Ano — Romarium si nainstalujete na plochu telefonu přímo z prohlížeče,
+           bez App Store. iPhone: Safari → Sdílet → Přidat na plochu.
+           Android: Chrome → menu → Instalovat aplikaci. Navíc vše podstatné
+           vám chodí e-mailem, takže aplikaci ani nemusíte otevírat.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<div class="band">
+  <div class="in">
+    <h2>Přestaňte hlídat splatnosti v hlavě</h2>
+    <p>Připojení schránky trvá dvě minuty. První přehled přijde ještě dnes.</p>
+    <a class="btn lg" href="/register?lang=cs">Vyzkoušet 14 dní zdarma</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="/cs">
+      <svg width="20" height="20" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#0a0c10"/><path d="M9 16.5l5 5 9-11" stroke="#10b981" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      romarium
+    </a>
+    <span>© SORB XT s.r.o.</span>
+    <a href="mailto:obchod@sorbxt.sk">obchod@sorbxt.sk</a>
+    <a href="/login">Přihlášení</a>
+    <a href="/register?lang=cs">Registrace</a>
+    <a href="/podmienky">Obchodní podmínky</a>
+    <a href="/gdpr">Ochrana osobních údajů</a>
+    <a href="/">Slovensky</a>
+    <a href="/pl">Polski</a>
+  </div>
+</footer>
+
+<script>
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) {
+      e.target.classList.add("in"); io.unobserve(e.target);
+    }
+  }, { threshold: 0.12 });
+  document.querySelectorAll(".rv:not(.in)").forEach((el) => io.observe(el));
+</script>
+</body>
+</html>

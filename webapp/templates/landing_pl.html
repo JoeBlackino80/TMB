@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Romarium — AI strażnik faktur, płatności i terminów</title>
+<meta name="description" content="Romarium czyta Twoją skrzynkę e-mail, wyciąga z faktur co, kiedy i na jakie konto zapłacić, pilnuje terminów i codziennie rano wysyła przegląd płatności. Wyciąg z banku sam odhacza zapłacone. 14 dni za darmo.">
+<meta name="keywords" content="faktury, płatności, przypomnienia o płatnościach, AI asystent, termin płatności, przedsiębiorca, JDG, spółka">
+<link rel="canonical" href="https://romarium.com/pl">
+<link rel="alternate" hreflang="sk" href="https://romarium.com/">
+<link rel="alternate" hreflang="cs" href="https://romarium.com/cs">
+<link rel="alternate" hreflang="pl" href="https://romarium.com/pl">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Romarium">
+<meta property="og:title" content="Romarium — AI strażnik faktur, płatności i terminów">
+<meta property="og:description" content="Podłączasz skrzynkę, a Romarium pilnuje faktur, terminów płatności i zadań za Ciebie.">
+<meta property="og:url" content="https://romarium.com/pl">
+<meta property="og:locale" content="pl_PL">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="index, follow">
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230a0c10'/><path d='M9 16.5l5 5 9-11' stroke='%2310b981' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0a0c10">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Romarium",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Web",
+  "url": "https://romarium.com/pl",
+  "description": "Asystent AI, który czyta przychodzące faktury, pilnuje terminów płatności i wysyła codzienne przeglądy.",
+  "inLanguage": "pl",
+  "offers": [
+    {"@type": "Offer", "price": "4.99", "priceCurrency": "EUR",
+     "description": "Abonament miesięczny, pierwsze 14 dni za darmo"},
+    {"@type": "Offer", "price": "49", "priceCurrency": "EUR",
+     "description": "Abonament roczny, pierwsze 14 dni za darmo"}
+  ],
+  "provider": {"@type": "Organization", "name": "SORB XT s.r.o.",
+               "email": "obchod@sorbxt.sk"}
+}
+</script>
+{% include "_landing_style.html" %}
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap navrow">
+    <a class="brand" href="/pl">
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="#0a0c10"/>
+        <path d="M9 16.5l5 5 9-11" stroke="#10b981" stroke-width="3.5" fill="none"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      romarium
+    </a>
+    <nav class="navlinks">
+      <a href="#funkcie">Funkcje</a>
+      <a href="#ako">Jak to działa</a>
+      <a href="#cennik">Cennik</a>
+    </nav>
+    <div class="navcta">
+      <a class="signin" href="/">SK</a>
+      <a class="signin" href="/cs">CZ</a>
+      <a class="signin" href="/login">Zaloguj się</a>
+      <a class="btn sm" href="/register?lang=pl">Wypróbuj za darmo</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="pill rv in"><span class="dot"></span> Asystent AI dla przedsiębiorców i gospodarstw domowych</div>
+    <h1 class="rv in">Faktury pod kontrolą.<br><span class="acc">Bez czytania poczty.</span></h1>
+    <p class="lead rv in d1">Romarium czyta Twoją skrzynkę, wyciąga z faktur kwotę,
+       numer konta i termin płatności, a każdego ranka wysyła przegląd z gotowymi
+       danymi do przelewu. Wyciąg z banku sam odhacza zapłacone.</p>
+    <div class="ctarow rv in d1">
+      <a class="btn lg" href="/register?lang=pl">Wypróbuj 14 dni za darmo</a>
+      <a class="btn lg ghost" href="#ako">Jak to działa</a>
+    </div>
+    <div class="subnote rv in d2">Bez karty płatniczej · konfiguracja w 2 minuty</div>
+  </div>
+
+  <div class="stagewrap">
+    <div class="wrap">
+      <div class="window rv in d2" aria-hidden="true">
+        <div class="winbar"><i></i><i></i><i></i><span class="url">romarium.com</span></div>
+        <div class="app">
+          <aside>
+            <div class="abrand">
+              <svg width="18" height="18" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#0a0c10"/><path d="M9 16.5l5 5 9-11" stroke="#10b981" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              romarium
+            </div>
+            <nav>
+              <a class="on">Przegląd</a><a>Skrzynki</a><a>Ustawienia</a><a>Abonament</a>
+            </nav>
+          </aside>
+          <main>
+            <h2>Przegląd</h2>
+            <div class="tiles">
+              <div class="tile bad"><b>1</b><span>po terminie</span></div>
+              <div class="tile"><b>4</b><span>niezapłacone</span></div>
+              <div class="tile"><b>2 840 zł</b><span>do końca miesiąca</span></div>
+              <div class="tile"><b>960 zł</b><span>przyszły miesiąc</span></div>
+            </div>
+            <div class="lst">
+              <div class="lrow">
+                <span class="sup">PGE Obrót S.A.</span>
+                <span class="chip red">po terminie</span>
+                <span class="amt">820 zł</span>
+                <span class="mbtn">Dane przelewu</span>
+              </div>
+              <div class="lrow">
+                <span class="sup">home.pl S.A.</span>
+                <span class="chip amber">dzisiaj</span>
+                <span class="amt">65 zł</span>
+                <span class="mbtn">Dane przelewu</span>
+              </div>
+              <div class="lrow">
+                <span class="sup">Hurtownia Bud-Mat</span>
+                <span class="chip red">inne konto — sprawdź!</span>
+                <span class="amt">1 870 zł</span>
+                <span class="mbtn">Dane przelewu</span>
+              </div>
+              <div class="lrow">
+                <span class="sup">Orange Polska</span>
+                <span class="chip green">opłacone (wyciąg)</span>
+                <span class="amt" style="text-decoration:line-through;color:var(--faint)">110 zł</span>
+                <span class="mbtn" style="opacity:.4">✓</span>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+
+      <div class="trust rv">
+        <span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#98a1b2" stroke-width="1.8"><path d="M10 2l7 3v5c0 4.5-3 7.5-7 8-4-.5-7-3.5-7-8V5z"/></svg> Hasła przechowywane w postaci zaszyfrowanej</span>
+        <span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#98a1b2" stroke-width="1.8"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M7 10l2 2 4-4"/></svg> Ostrzeżenie przed podmianą numeru konta</span>
+        <span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#98a1b2" stroke-width="1.8"><circle cx="10" cy="10" r="7.5"/><path d="M10 5.5V10l3 2"/></svg> Serwery w UE · RODO</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="funkcie" style="padding-top: 40px">
+  <div class="wrap">
+    <div class="kick rv">Funkcje</div>
+    <h2 class="sec rv">Wszystko wokół płatności załatwione,<br>zanim dopijesz kawę</h2>
+    <p class="sub rv d1">Romarium pracuje w tle — Ty dostajesz gotowe wyniki
+       na skrzynkę i załatwiasz je jednym kliknięciem.</p>
+    <div class="bento">
+      <div class="cell w3 rv">
+        <h3>Gotowe dane do każdego przelewu</h3>
+        <p>Kwota, numer konta, tytuł przelewu i termin — wyciągnięte z faktury
+           i podane na tacy w e-mailu oraz w aplikacji. Kopiujesz, wysyłasz,
+           gotowe — koniec z przepisywaniem numerów z PDF-ów.</p>
+        <div class="demo">
+          <b>Romarium: płatności i zadania — 2 pilne</b><br>
+          PGE — 820 zł · termin dzisiaj · konto 12 1140...<br>
+          <span style="color:var(--accent);font-weight:600">✓ Oznacz jako zapłacone</span> ·
+          Odłóż o 3 dni
+        </div>
+      </div>
+      <div class="cell w3 rv d1">
+        <h3>Ochrona przed podmianą konta</h3>
+        <p>Oszustwo „na fakturę" kosztuje polskie firmy miliony. Romarium pamięta
+           numery kont wszystkich Twoich dostawców — gdy faktura przyjdzie
+           z innym kontem niż zwykle, ostrzeże Cię, zanim wyślesz pieniądze.</p>
+        <div class="demo">
+          <span class="chip red" style="float:none">UWAGA: inne konto</span><br>
+          Dostawca „Bud-Mat" podał inny numer konta niż na 12 poprzednich
+          fakturach. Zweryfikuj fakturę telefonicznie.
+        </div>
+      </div>
+      <div class="cell rv">
+        <h3>Bank odhacza sam</h3>
+        <p>Prześlij wyciąg z konta — nawet chroniony hasłem — a zapłacone
+           pozycje sparują się automatycznie.</p>
+      </div>
+      <div class="cell rv d1">
+        <h3>Zbiorcze zlecenie</h3>
+        <p>Jeden plik ze wszystkimi przelewami wgrywasz do bankowości
+           internetowej i zatwierdzasz wszystko naraz (SEPA XML).</p>
+      </div>
+      <div class="cell rv d2">
+        <h3>Cashflow na pierwszy rzut oka</h3>
+        <p>Ile wyjdzie do końca miesiąca, a ile w przyszłym — wiesz to,
+           zanim przyjdzie wyciąg.</p>
+        <div class="bars"><i style="height:38%"></i><i style="height:62%"></i><i class="hi" style="height:88%"></i><i style="height:46%"></i><i style="height:30%"></i><i style="height:55%"></i></div>
+      </div>
+      <div class="cell rv">
+        <h3>Podsumowanie dnia i tygodnia</h3>
+        <p>Wieczorem krótkie AI podsumowanie całej poczty — co przyszło, co pilne,
+           co może poczekać. Marketing jednym zdaniem.</p>
+      </div>
+      <div class="cell rv d1">
+        <h3>Strażnik cyklicznych faktur</h3>
+        <p>Gdy miesięczna faktura nie przyjdzie, dowiesz się o tym — zanim
+           naliczą odsetki za zwłokę.</p>
+      </div>
+      <div class="cell rv d2">
+        <h3>Wiele firm, wiele skrzynek</h3>
+        <p>Nieograniczona liczba skrzynek na jednym koncie. Faktury możesz też
+           po prostu przesyłać na swój unikalny adres.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ako" style="padding-top: 30px">
+  <div class="wrap">
+    <div class="kick rv">Jak to działa</div>
+    <h2 class="sec rv">Konfigurujesz raz, działa zawsze</h2>
+    <div class="steps" style="margin-top: 40px">
+      <div class="step rv">
+        <h3>Podłączasz skrzynkę</h3>
+        <p>E-mail, na który przychodzą faktury — Gmail, WP, Onet czy poczta
+           firmowa. Albo faktury po prostu przesyłasz dalej, bez podawania hasła.</p>
+      </div>
+      <div class="step rv d1">
+        <h3>AI czyta pocztę za Ciebie</h3>
+        <p>Z faktur i załączników PDF wyciąga kwoty, numery kont, tytuły
+           i terminy. Rozpoznaje też zadania, terminy i wyciągi bankowe.</p>
+      </div>
+      <div class="step rv d2">
+        <h3>Dostajesz gotowe przeglądy</h3>
+        <p>Rano co zapłacić z danymi do przelewu, wieczorem podsumowanie dnia.
+           Zapłacone odhacza się samo — kliknięciem, odpowiedzią lub wyciągiem.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="cennik" style="padding-top: 30px">
+  <div class="wrap">
+    <div class="kick rv">Cennik</div>
+    <h2 class="sec rv">Mniej niż jedna kawa miesięcznie</h2>
+    <p class="sub rv d1">Jedne odsetki za zwłokę kosztują więcej niż rok Romarium.</p>
+    <div class="plans">
+      <div class="plan rv">
+        <h3>Miesięcznie</h3>
+        <div class="price">4,99 € <small>/ mies. (ok. 21 zł)</small></div>
+        <div class="per">rezygnujesz kiedy chcesz</div>
+        <ul>
+          <li>14 dni za darmo, bez karty płatniczej</li>
+          <li>wszystkie funkcje bez ograniczeń</li>
+          <li>nieograniczona liczba skrzynek i firm</li>
+        </ul>
+        <a class="btn" href="/register?lang=pl">Zacznij za darmo</a>
+      </div>
+      <div class="plan hot rv d1">
+        <div class="tag">Oszczędzasz 17 %</div>
+        <h3>Rocznie</h3>
+        <div class="price">49 € <small>/ rok (ok. 210 zł)</small></div>
+        <div class="per">wychodzi 4,08 € miesięcznie</div>
+        <ul>
+          <li>14 dni za darmo, bez karty płatniczej</li>
+          <li>wszystkie funkcje bez ograniczeń</li>
+          <li>nieograniczona liczba skrzynek i firm</li>
+        </ul>
+        <a class="btn" href="/register?lang=pl">Zacznij za darmo</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq" style="padding-top: 20px; padding-bottom: 70px">
+  <div class="wrap">
+    <div class="kick rv">Częste pytania</div>
+    <h2 class="sec rv">O co pytacie</h2>
+    <div class="faq rv d1">
+      <details>
+        <summary>Czy podanie hasła do skrzynki jest bezpieczne?</summary>
+        <p>Hasło jest przechowywane w postaci zaszyfrowanej i używane wyłącznie
+           do odczytu poczty przez szyfrowane połączenie IMAP. Zalecamy hasło
+           aplikacji (App Password), które możesz w każdej chwili unieważnić.
+           A jeśli nie chcesz podawać hasła — faktury możesz po prostu przesyłać
+           na swój unikalny adres.</p>
+      </details>
+      <details>
+        <summary>Jak oznaczyć, że już zapłaciłem?</summary>
+        <p>Najwygodniej: prześlij wyciąg z konta, a Romarium samo sparuje
+           płatności. Możesz też kliknąć przycisk w e-mailu, odpowiedzieć
+           „zapłacone 3" albo odhaczyć w aplikacji.</p>
+      </details>
+      <details>
+        <summary>Czy potrzebuję karty na okres próbny?</summary>
+        <p>Nie. Rejestracja jest bez karty, przez 14 dni masz wszystko za darmo.
+           Jeśli zdecydujesz się zostać, zapłacisz kartą przez Stripe.</p>
+      </details>
+      <details>
+        <summary>Mam kilka firm — czy to obsłuży?</summary>
+        <p>Tak. Do jednego konta dodasz dowolną liczbę skrzynek różnych firm
+           i wszystko zbierze się w jednym przeglądzie oraz jednym e-mailu.</p>
+      </details>
+      <details>
+        <summary>Czy jest aplikacja mobilna?</summary>
+        <p>Tak — Romarium instalujesz na ekranie telefonu prosto z przeglądarki,
+           bez App Store. iPhone: Safari → Udostępnij → Dodaj do ekranu głównego.
+           Android: Chrome → menu → Zainstaluj aplikację. A wszystko, co ważne,
+           i tak przychodzi e-mailem.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<div class="band">
+  <div class="in">
+    <h2>Przestań pilnować terminów w głowie</h2>
+    <p>Podłączenie skrzynki zajmuje dwie minuty. Pierwszy przegląd przyjdzie jeszcze dziś.</p>
+    <a class="btn lg" href="/register?lang=pl">Wypróbuj 14 dni za darmo</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="/pl">
+      <svg width="20" height="20" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#0a0c10"/><path d="M9 16.5l5 5 9-11" stroke="#10b981" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      romarium
+    </a>
+    <span>© SORB XT s.r.o.</span>
+    <a href="mailto:obchod@sorbxt.sk">obchod@sorbxt.sk</a>
+    <a href="/login">Logowanie</a>
+    <a href="/register?lang=pl">Rejestracja</a>
+    <a href="/podmienky">Regulamin</a>
+    <a href="/gdpr">Ochrona danych</a>
+    <a href="/">Slovensky</a>
+    <a href="/cs">Česky</a>
+  </div>
+</footer>
+
+<script>
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) {
+      e.target.classList.add("in"); io.unobserve(e.target);
+    }
+  }, { threshold: 0.12 });
+  document.querySelectorAll(".rv:not(.in)").forEach((el) => io.observe(el));
+</script>
+</body>
+</html>

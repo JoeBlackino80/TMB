@@ -69,6 +69,12 @@ class Config:
         os.environ.get("CLIENT_SLUG", "") or os.path.basename(os.getcwd())
     ))
 
+    # jazyk klienta pre e-maily: sk | cs | pl (APP_LANG — systémový LANG je locale)
+    lang: str = field(default_factory=lambda: (
+        os.environ.get("APP_LANG", "sk")
+        if os.environ.get("APP_LANG", "sk") in ("sk", "cs", "pl") else "sk"
+    ))
+
     # typ účtu: business (firma/živnostník) | personal (súkromná osoba)
     account_type: str = field(default_factory=lambda: os.environ.get("ACCOUNT_TYPE", "business"))
 

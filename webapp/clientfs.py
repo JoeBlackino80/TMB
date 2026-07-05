@@ -25,13 +25,13 @@ def client_path(client_dir: str) -> str:
 
 
 def ensure_client(client_dir: str, reminder_to: str,
-                  account_type: str = "business") -> str:
+                  account_type: str = "business", lang: str = "sk") -> str:
     """Vytvorí adresár klienta s .env (zdieľané kľúče + jeho e-mail)."""
     path = client_path(client_dir)
     os.makedirs(path, exist_ok=True)
     if not os.path.exists(os.path.join(path, ".env")):
         write_env(client_dir, reminder_to=reminder_to, pdf_passwords="",
-                  account_type=account_type)
+                  account_type=account_type, lang=lang)
     return path
 
 
@@ -39,7 +39,8 @@ def write_env(client_dir: str, *, reminder_to: str, pdf_passwords: str,
               own_iban: str = "", own_name: str = "",
               tax_profile: str | None = None,
               schedule: dict | None = None,
-              account_type: str | None = None) -> None:
+              account_type: str | None = None,
+              lang: str | None = None) -> None:
     current = read_settings(client_dir)
     sched = {**{k: current[k] for k in _SCHEDULE_KEYS}, **(schedule or {})}
     lines = [f"{key}={os.environ.get(key, '')}" for key in MASTER_KEYS]
@@ -47,6 +48,7 @@ def write_env(client_dir: str, *, reminder_to: str, pdf_passwords: str,
         f"REMINDER_TO={reminder_to}",
         f"PDF_PASSWORDS={pdf_passwords}",
         f"ACCOUNT_TYPE={account_type or current['ACCOUNT_TYPE'] or 'business'}",
+        f"APP_LANG={lang or current['APP_LANG'] or 'sk'}",
         f"OWN_IBAN={own_iban or current['OWN_IBAN']}",
         f"OWN_NAME={own_name or current['OWN_NAME']}",
         f"TAX_PROFILE={current['TAX_PROFILE'] if tax_profile is None else tax_profile}",
@@ -69,7 +71,7 @@ _SCHEDULE_KEYS = ("REMIND_SCHEDULE", "REMIND_HOUR",
 def read_settings(client_dir: str) -> dict:
     settings = {"REMINDER_TO": "", "PDF_PASSWORDS": "",
                 "OWN_IBAN": "", "OWN_NAME": "", "TAX_PROFILE": "",
-                "ACCOUNT_TYPE": "", "FORWARD_TOKEN": "",
+                "ACCOUNT_TYPE": "", "APP_LANG": "", "FORWARD_TOKEN": "",
                 **{k: "" for k in _SCHEDULE_KEYS}}
     env_file = os.path.join(client_path(client_dir), ".env")
     if os.path.exists(env_file):

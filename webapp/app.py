@@ -91,37 +91,77 @@ def _base_url(request: Request) -> str:
     return configured or str(request.base_url).rstrip("/")
 
 
-def _send_welcome(request: Request, user) -> None:
+_WELCOME = {
+    "sk": {
+        "subject": "Vitajte v Romariu — potvrďte svoju adresu",
+        "title": "Vitajte v Romariu!",
+        "confirm": "Potvrdiť e-mailovú adresu",
+        "confirm_line": "Potvrďte prosím svoju adresu kliknutím",
+        "how": "Ako začať",
+        "steps": [
+            "Prihláste sa a v sekcii Schránky pridajte e-mail, kam vám chodia "
+            "faktúry. Pre Gmail použite App Password (heslo aplikácie).",
+            "V Nastaveniach môžete doplniť heslo k PDF výpisom z banky — "
+            "Romarium potom samo odškrtáva zaplatené platby.",
+            "Prehľady s QR kódmi vám budú chodiť e-mailom každé ráno.",
+        ],
+        "guide": "Podrobný návod na pripojenie schránky",
+        "questions": "Otázky? Odpovedzte na tento e-mail.",
+    },
+    "cs": {
+        "subject": "Vítejte v Romariu — potvrďte svou adresu",
+        "title": "Vítejte v Romariu!",
+        "confirm": "Potvrdit e-mailovou adresu",
+        "confirm_line": "Potvrďte prosím svou adresu kliknutím",
+        "how": "Jak začít",
+        "steps": [
+            "Přihlaste se a v sekci Schránky přidejte e-mail, kam vám chodí "
+            "faktury. Pro Gmail použijte App Password (heslo aplikace).",
+            "V Nastavení můžete doplnit heslo k PDF výpisům z banky — "
+            "Romarium pak samo odškrtává zaplacené platby.",
+            "Přehledy s QR Platbami vám budou chodit e-mailem každé ráno.",
+        ],
+        "guide": "Podrobný návod na připojení schránky",
+        "questions": "Otázky? Odpovězte na tento e-mail.",
+    },
+    "pl": {
+        "subject": "Witamy w Romarium — potwierdź swój adres",
+        "title": "Witamy w Romarium!",
+        "confirm": "Potwierdź adres e-mail",
+        "confirm_line": "Potwierdź proszę swój adres, klikając",
+        "how": "Jak zacząć",
+        "steps": [
+            "Zaloguj się i w sekcji Skrzynki dodaj e-mail, na który przychodzą "
+            "faktury. Dla Gmaila użyj App Password (hasła aplikacji).",
+            "W Ustawieniach możesz dodać hasło do wyciągów PDF z banku — "
+            "Romarium samo odhaczy zapłacone.",
+            "Przeglądy płatności będą przychodzić e-mailem każdego ranka.",
+        ],
+        "guide": "Szczegółowa instrukcja podłączenia skrzynki",
+        "questions": "Pytania? Odpowiedz na tego e-maila.",
+    },
+}
+
+
+def _send_welcome(request: Request, user, lang: str = "sk") -> None:
+    t = _WELCOME.get(lang, _WELCOME["sk"])
     verify_url = f"{_base_url(request)}/verify?t={_make_token('verify', user['id'])}"
-    text = (
-        "Vitajte v Romariu!\n\n"
-        f"Potvrďte prosím svoju adresu kliknutím: {verify_url}\n\n"
-        f"Podrobný návod: {_base_url(request)}/navod\n\n"
-        "Ako začať:\n"
-        "1. Prihláste sa a v sekcii Schránky pridajte e-mail, kam vám chodia faktúry.\n"
-        "   Pre Gmail použite App Password (Google účet → Zabezpečenie → Heslá aplikácií).\n"
-        "2. V Nastaveniach môžete doplniť heslo k PDF výpisom z banky —\n"
-        "   Romarium potom samo odškrtáva zaplatené platby.\n"
-        "3. Prehľady s QR kódmi vám budú chodiť e-mailom každé ráno.\n\n"
-        "Otázky? Odpovedzte na tento e-mail.\n"
-    )
+    guide_url = f"{_base_url(request)}/navod"
+    steps_text = "\n".join(f"{i}. {s}" for i, s in enumerate(t["steps"], 1))
+    text = (f"{t['title']}\n\n{t['confirm_line']}: {verify_url}\n\n"
+            f"{t['guide']}: {guide_url}\n\n{t['how']}:\n{steps_text}\n\n"
+            f"{t['questions']}\n")
+    steps_html = "".join(f"<li>{s}</li>" for s in t["steps"])
     html = (
-        "<h2>Vitajte v Romariu!</h2>"
+        f"<h2>{t['title']}</h2>"
         f"<p><a href='{verify_url}' style='display:inline-block;padding:10px 20px;"
         "background:#0b7a51;color:#fff;border-radius:8px;text-decoration:none;"
-        "font-weight:bold'>Potvrdiť e-mailovú adresu</a></p>"
-        "<p><b>Ako začať:</b></p><ol>"
-        "<li>Prihláste sa a v sekcii <b>Schránky</b> pridajte e-mail, kam vám chodia "
-        "faktúry. Pre Gmail použite App Password (Google účet → Zabezpečenie → "
-        "Heslá aplikácií).</li>"
-        "<li>V <b>Nastaveniach</b> môžete doplniť heslo k PDF výpisom z banky — "
-        "Romarium potom samo odškrtáva zaplatené platby.</li>"
-        "<li>Prehľady s QR kódmi vám budú chodiť e-mailom každé ráno.</li></ol>"
-        f"<p><a href='{_base_url(request)}/navod'>Podrobný návod na pripojenie "
-        "schránky</a></p>"
-        "<p>Otázky? Odpovedzte na tento e-mail.</p>"
+        f"font-weight:bold'>{t['confirm']}</a></p>"
+        f"<p><b>{t['how']}:</b></p><ol>{steps_html}</ol>"
+        f"<p><a href='{guide_url}'>{t['guide']}</a></p>"
+        f"<p>{t['questions']}</p>"
     )
-    mailer.send(user["email"], "Vitajte v Romariu — potvrďte svoju adresu", text, html)
+    mailer.send(user["email"], t["subject"], text, html)
 
 
 def _render(request: Request, template: str, **ctx) -> HTMLResponse:
@@ -132,16 +172,19 @@ def _render(request: Request, template: str, **ctx) -> HTMLResponse:
 # -- registrácia a prihlásenie ------------------------------------------------
 
 @app.get("/register", response_class=HTMLResponse)
-def register_form(request: Request):
-    return _render(request, "register.html")
+def register_form(request: Request, lang: str = "sk"):
+    return _render(request, "register.html",
+                   lang=lang if lang in ("sk", "cs", "pl") else "sk")
 
 
 @app.post("/register")
 def register(request: Request, email: str = Form(...), password: str = Form(...),
-             account_type: str = Form("business")):
+             account_type: str = Form("business"), lang: str = Form("sk")):
     email = email.strip().lower()
     if account_type not in ("business", "personal", "both"):
         account_type = "business"
+    if lang not in ("sk", "cs", "pl"):
+        lang = "sk"
     if "@" not in email or len(password) < 8:
         return _render(request, "register.html",
                        error="Zadajte platný e-mail a heslo aspoň 8 znakov.")
@@ -154,7 +197,7 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
     finally:
         users.close()
     clientfs.ensure_client(user["client_dir"], reminder_to=email,
-                           account_type=account_type)
+                           account_type=account_type, lang=lang)
     # ukážkové dáta, nech nový účet nie je prázdny (zmiznú po pridaní schránky)
     store = Store(os.path.join(clientfs.client_path(user["client_dir"]), "bill_agent.db"))
     try:
@@ -162,7 +205,7 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
     finally:
         store.close()
     if not user["verified"]:
-        _send_welcome(request, user)
+        _send_welcome(request, user, lang)
     response = _redirect("/")
     response.set_cookie("session", _session_cookie(user["id"]),
                         httponly=True, max_age=30 * 86400, samesite="lax")
@@ -237,7 +280,8 @@ def verify_email(request: Request, t: str = "", user=Depends(current_user)):
 @app.post("/verify/resend")
 def verify_resend(request: Request, user=Depends(current_user)):
     if user and not user["verified"]:
-        _send_welcome(request, user)
+        lang = clientfs.read_settings(user["client_dir"])["APP_LANG"] or "sk"
+        _send_welcome(request, user, lang)
     return _redirect("/")
 
 
@@ -295,6 +339,16 @@ def reset(request: Request, t: str = Form(...), password: str = Form(...)):
 
 def _client_db(user) -> str:
     return os.path.join(clientfs.client_path(user["client_dir"]), "bill_agent.db")
+
+
+@app.get("/cs", response_class=HTMLResponse)
+def landing_cs(request: Request):
+    return _render(request, "landing_cs.html")
+
+
+@app.get("/pl", response_class=HTMLResponse)
+def landing_pl(request: Request):
+    return _render(request, "landing_pl.html")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -644,7 +698,8 @@ def robots():
 def sitemap():
     urls = "".join(
         f"<url><loc>https://romarium.com{path}</loc></url>"
-        for path in ("/", "/register", "/login", "/navod", "/podmienky", "/gdpr")
+        for path in ("/", "/cs", "/pl", "/register", "/login", "/navod",
+                     "/podmienky", "/gdpr")
     )
     xml = ('<?xml version="1.0" encoding="UTF-8"?>'
            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
