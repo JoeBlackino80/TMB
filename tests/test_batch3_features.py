@@ -131,6 +131,15 @@ def test_tax_settings_roundtrip(client, tmp_path):
     assert "Daňové termíny" in r.text
 
 
+def test_help_page_and_provider_picker(client):
+    r = client.get("/navod")
+    assert r.status_code == 200 and "krok za krokom" in r.text.lower()
+    session = _login(client, "navod@x.sk")
+    r = client.get("/mailboxes", cookies={"session": session})
+    assert "vyberte poskytovateľa" in r.text
+    assert "imap.gmail.com" in r.text and "mail.webhouse.sk" in r.text
+
+
 def test_pwa_endpoints(client):
     r = client.get("/manifest.webmanifest")
     assert r.status_code == 200 and r.json()["name"] == "Romarium"

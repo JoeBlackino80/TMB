@@ -96,6 +96,7 @@ def _send_welcome(request: Request, user) -> None:
     text = (
         "Vitajte v Romariu!\n\n"
         f"Potvrďte prosím svoju adresu kliknutím: {verify_url}\n\n"
+        f"Podrobný návod: {_base_url(request)}/navod\n\n"
         "Ako začať:\n"
         "1. Prihláste sa a v sekcii Schránky pridajte e-mail, kam vám chodia faktúry.\n"
         "   Pre Gmail použite App Password (Google účet → Zabezpečenie → Heslá aplikácií).\n"
@@ -116,6 +117,8 @@ def _send_welcome(request: Request, user) -> None:
         "<li>V <b>Nastaveniach</b> môžete doplniť heslo k PDF výpisom z banky — "
         "Romarium potom samo odškrtáva zaplatené platby.</li>"
         "<li>Prehľady s QR kódmi vám budú chodiť e-mailom každé ráno.</li></ol>"
+        f"<p><a href='{_base_url(request)}/navod'>Podrobný návod na pripojenie "
+        "schránky</a></p>"
         "<p>Otázky? Odpovedzte na tento e-mail.</p>"
     )
     mailer.send(user["email"], "Vitajte v Romariu — potvrďte svoju adresu", text, html)
@@ -589,6 +592,11 @@ def service_worker():
 
 # -- právne stránky ----------------------------------------------------------------
 
+@app.get("/navod", response_class=HTMLResponse)
+def help_page(request: Request, user=Depends(current_user)):
+    return _render(request, "help.html", user=user)
+
+
 @app.get("/podmienky", response_class=HTMLResponse)
 def terms(request: Request, user=Depends(current_user)):
     return _render(request, "terms.html", user=user)
@@ -613,7 +621,7 @@ def robots():
 def sitemap():
     urls = "".join(
         f"<url><loc>https://romarium.com{path}</loc></url>"
-        for path in ("/", "/register", "/login")
+        for path in ("/", "/register", "/login", "/navod", "/podmienky", "/gdpr")
     )
     xml = ('<?xml version="1.0" encoding="UTF-8"?>'
            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
