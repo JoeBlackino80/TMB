@@ -269,9 +269,9 @@ def send_reminder(cfg: Config, store: Store) -> bool:
     # odpovede typu "zaplatené 3"
     groups = store.payments_due(cfg.reminder_days_ahead)
     n_urgent = len(groups["overdue"]) + len(groups["today"])
-    subject = "Romarium: platby a úlohy"
+    subject = "VORU: platby a úlohy"
     if n_urgent:
-        subject = f"Romarium: platby a úlohy — {n_urgent} súrne"
+        subject = f"VORU: platby a úlohy — {n_urgent} súrne"
 
     send_email(cfg, subject, text, html, images)
     return True

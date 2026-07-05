@@ -34,7 +34,7 @@ STRIPE_LINK_MONTHLY = os.environ.get("STRIPE_LINK_MONTHLY", "")
 STRIPE_LINK_YEARLY = os.environ.get("STRIPE_LINK_YEARLY", "")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 
-app = FastAPI(title="Romarium")
+app = FastAPI(title="VORU")
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
 
 
@@ -93,8 +93,8 @@ def _base_url(request: Request) -> str:
 
 _WELCOME = {
     "sk": {
-        "subject": "Vitajte v Romariu — potvrďte svoju adresu",
-        "title": "Vitajte v Romariu!",
+        "subject": "Vitajte vo VORU — potvrďte svoju adresu",
+        "title": "Vitajte vo VORU!",
         "confirm": "Potvrdiť e-mailovú adresu",
         "confirm_line": "Potvrďte prosím svoju adresu kliknutím",
         "how": "Ako začať",
@@ -102,15 +102,15 @@ _WELCOME = {
             "Prihláste sa a v sekcii Schránky pridajte e-mail, kam vám chodia "
             "faktúry. Pre Gmail použite App Password (heslo aplikácie).",
             "V Nastaveniach môžete doplniť heslo k PDF výpisom z banky — "
-            "Romarium potom samo odškrtáva zaplatené platby.",
+            "VORU potom samo odškrtáva zaplatené platby.",
             "Prehľady s QR kódmi vám budú chodiť e-mailom každé ráno.",
         ],
         "guide": "Podrobný návod na pripojenie schránky",
         "questions": "Otázky? Odpovedzte na tento e-mail.",
     },
     "cs": {
-        "subject": "Vítejte v Romariu — potvrďte svou adresu",
-        "title": "Vítejte v Romariu!",
+        "subject": "Vítejte ve VORU — potvrďte svou adresu",
+        "title": "Vítejte ve VORU!",
         "confirm": "Potvrdit e-mailovou adresu",
         "confirm_line": "Potvrďte prosím svou adresu kliknutím",
         "how": "Jak začít",
@@ -118,15 +118,15 @@ _WELCOME = {
             "Přihlaste se a v sekci Schránky přidejte e-mail, kam vám chodí "
             "faktury. Pro Gmail použijte App Password (heslo aplikace).",
             "V Nastavení můžete doplnit heslo k PDF výpisům z banky — "
-            "Romarium pak samo odškrtává zaplacené platby.",
+            "VORU pak samo odškrtává zaplacené platby.",
             "Přehledy s QR Platbami vám budou chodit e-mailem každé ráno.",
         ],
         "guide": "Podrobný návod na připojení schránky",
         "questions": "Otázky? Odpovězte na tento e-mail.",
     },
     "pl": {
-        "subject": "Witamy w Romarium — potwierdź swój adres",
-        "title": "Witamy w Romarium!",
+        "subject": "Witamy w VORU — potwierdź swój adres",
+        "title": "Witamy w VORU!",
         "confirm": "Potwierdź adres e-mail",
         "confirm_line": "Potwierdź proszę swój adres, klikając",
         "how": "Jak zacząć",
@@ -134,7 +134,7 @@ _WELCOME = {
             "Zaloguj się i w sekcji Skrzynki dodaj e-mail, na który przychodzą "
             "faktury. Dla Gmaila użyj App Password (hasła aplikacji).",
             "W Ustawieniach możesz dodać hasło do wyciągów PDF z banku — "
-            "Romarium samo odhaczy zapłacone.",
+            "VORU samo odhaczy zapłacone.",
             "Przeglądy płatności będą przychodzić e-mailem każdego ranka.",
         ],
         "guide": "Szczegółowa instrukcja podłączenia skrzynki",
@@ -299,7 +299,7 @@ def forgot(request: Request, email: str = Form(...)):
         users.close()
     if user:
         url = f"{_base_url(request)}/reset?t={_make_token('reset', user['id'], hours=2)}"
-        mailer.send(user["email"], "Romarium — obnova hesla",
+        mailer.send(user["email"], "VORU — obnova hesla",
                     f"Nové heslo si nastavíte tu (odkaz platí 2 hodiny): {url}\n\n"
                     "Ak ste o obnovu nežiadali, e-mail ignorujte.",
                     f"<p>Nové heslo si nastavíte tu (odkaz platí 2 hodiny):</p>"
@@ -351,10 +351,19 @@ def landing_pl(request: Request):
     return _render(request, "landing_pl.html")
 
 
+def _landing_for_host(request: Request) -> str:
+    host = (request.url.hostname or "").lower()
+    if host.endswith("voru.cz"):
+        return "landing_cs.html"
+    if host.endswith("voru.pl"):
+        return "landing_pl.html"
+    return "landing.html"
+
+
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request, user=Depends(current_user)):
     if not user:
-        return _render(request, "landing.html")
+        return _render(request, _landing_for_host(request))
     db_path = _client_db(user)
     payments, tasks, missing, renewals = [], [], [], []
     stats = {"overdue": 0, "pending": 0, "total": 0.0}
@@ -512,7 +521,7 @@ def bundle(request: Request, month: str = "", user=Depends(current_user)):
     return Response(
         content=buf.getvalue(), media_type="application/zip",
         headers={"Content-Disposition":
-                 f'attachment; filename="romarium-{month}.zip"'},
+                 f'attachment; filename="voru-{month}.zip"'},
     )
 
 
@@ -604,12 +613,12 @@ def _app_icon(size: int) -> bytes:
     draw = ImageDraw.Draw(img)
     draw.rounded_rectangle([0, 0, s - 1, s - 1], radius=s // 4,
                            fill=(10, 12, 16, 255))
-    w = s // 9
-    pts = [(s * 0.28, s * 0.52), (s * 0.44, s * 0.68), (s * 0.72, s * 0.34)]
-    draw.line(pts, fill=(16, 185, 129, 255), width=w, joint="curve")
+    w = s // 8
+    pts = [(s * 0.28, s * 0.30), (s * 0.50, s * 0.72), (s * 0.72, s * 0.30)]
+    draw.line(pts, fill=(245, 242, 234, 255), width=w, joint="curve")
     r = w // 2
-    for x, y in (pts[0], pts[-1]):
-        draw.ellipse([x - r, y - r, x + r, y + r], fill=(16, 185, 129, 255))
+    for x, y in pts:
+        draw.ellipse([x - r, y - r, x + r, y + r], fill=(245, 242, 234, 255))
     img = img.resize((size, size), Image.LANCZOS)
     buf = io.BytesIO()
     img.save(buf, format="PNG")
@@ -634,8 +643,8 @@ def apple_icon():
 @app.get("/manifest.webmanifest")
 def manifest():
     data = {
-        "name": "Romarium",
-        "short_name": "Romarium",
+        "name": "VORU",
+        "short_name": "VORU",
         "description": "AI strážca faktúr, platieb a termínov",
         "start_url": "/",
         "display": "standalone",
@@ -659,7 +668,7 @@ def service_worker():
         "self.addEventListener('activate', e => self.clients.claim());\n"
         "self.addEventListener('fetch', e => {\n"
         "  e.respondWith(fetch(e.request).catch(() =>\n"
-        "    new Response('<h1>Ste offline</h1><p>Romarium potrebuje pripojenie.</p>',\n"
+        "    new Response('<h1>Ste offline</h1><p>VORU potrebuje pripojenie.</p>',\n"
         "      {headers: {'Content-Type': 'text/html; charset=utf-8'}})));\n"
         "});\n"
     )
@@ -687,17 +696,19 @@ def gdpr(request: Request, user=Depends(current_user)):
 # -- SEO ------------------------------------------------------------------------
 
 @app.get("/robots.txt", response_class=PlainTextResponse)
-def robots():
+def robots(request: Request):
+    host = request.url.hostname or "voru.sk"
     return ("User-agent: *\n"
             "Allow: /\n"
             "Disallow: /admin\n"
-            "Sitemap: https://romarium.com/sitemap.xml\n")
+            f"Sitemap: https://{host}/sitemap.xml\n")
 
 
 @app.get("/sitemap.xml")
-def sitemap():
+def sitemap(request: Request):
+    host = request.url.hostname or "voru.sk"
     urls = "".join(
-        f"<url><loc>https://romarium.com{path}</loc></url>"
+        f"<url><loc>https://{host}{path}</loc></url>"
         for path in ("/", "/cs", "/pl", "/register", "/login", "/navod",
                      "/podmienky", "/gdpr")
     )

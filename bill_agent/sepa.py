@@ -30,7 +30,7 @@ def build_pain001(
 
     now = datetime.now()
     exec_date = (execution_date or date.today()).isoformat()
-    msg_id = f"ROMARIUM-{now.strftime('%Y%m%d-%H%M%S')}"
+    msg_id = f"VORU-{now.strftime('%Y%m%d-%H%M%S')}"
     total = sum(p.amount for p in payments)
 
     txs = []

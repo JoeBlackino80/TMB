@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block title %}Romarium — AI strážca faktúr, platieb a termínov{% endblock %}</title>
-<meta name="description" content="Romarium číta vašu poštu, vytiahne z faktúr čo, kedy a kam zaplatiť, postráži termíny a pošle prehľad s QR kódom na platbu.">
-<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230a0c10'/><path d='M9 16.5l5 5 9-11' stroke='%2310b981' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<title>{% block title %}VORU — AI strážca faktúr, platieb a termínov{% endblock %}</title>
+<meta name="description" content="VORU číta vašu poštu, vytiahne z faktúr čo, kedy a kam zaplatiť, postráži termíny a pošle prehľad s QR kódom na platbu.">
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230a0c10'/><path d='M10.5 9.5l5.5 13 5.5-13' stroke='%23f5f2ea' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="theme-color" content="#0a0c10">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Romarium">
+<meta name="apple-mobile-web-app-title" content="VORU">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -38,7 +38,8 @@
     display: flex; flex-direction: column; position: sticky; top: 0;
     height: 100vh; }
   .brand { display: flex; align-items: center; gap: 9px; text-decoration: none;
-    color: var(--ink); font-weight: 700; font-size: 16px; letter-spacing: -.2px;
+    color: var(--ink); font-weight: 800; font-size: 16px; letter-spacing: .6px;
+    text-transform: uppercase;
     padding: 4px 10px 18px; }
   aside.side nav { display: flex; flex-direction: column; gap: 2px; }
   aside.side nav a { display: flex; align-items: center; gap: 10px;
@@ -156,10 +157,10 @@
     <a class="brand" href="/">
       <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true">
         <rect width="32" height="32" rx="8" fill="#0a0c10"/>
-        <path d="M9 16.5l5 5 9-11" stroke="#10b981" stroke-width="3.5" fill="none"
+        <path d="M10.5 9.5l5.5 13 5.5-13" stroke="#f5f2ea" stroke-width="3.5" fill="none"
               stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      romarium
+      voru
     </a>
     <nav>
       <a href="/" class="{% if request.url.path == '/' %}on{% endif %}">
@@ -184,7 +185,7 @@
     <div class="content-inner">
       {% if error %}<div class="error">{{ error }}</div>{% endif %}
       {% block content %}{% endblock %}
-      <footer class="app">© SORB XT s.r.o. · Romarium ·
+      <footer class="app">© SORB XT s.r.o. · VORU ·
         <a href="mailto:obchod@sorbxt.sk">obchod@sorbxt.sk</a> ·
         <a href="/podmienky">Podmienky</a> · <a href="/gdpr">Osobné údaje</a></footer>
     </div>
@@ -195,10 +196,10 @@
   <a class="brand" href="/">
     <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true">
       <rect width="32" height="32" rx="8" fill="#0a0c10"/>
-      <path d="M9 16.5l5 5 9-11" stroke="#10b981" stroke-width="3.5" fill="none"
+      <path d="M10.5 9.5l5.5 13 5.5-13" stroke="#f5f2ea" stroke-width="3.5" fill="none"
             stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
-    romarium
+    voru
   </a>
   <div class="push">
     <a class="plain" href="/login">Prihlásiť sa</a>

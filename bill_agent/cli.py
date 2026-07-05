@@ -231,7 +231,7 @@ def cmd_intake(args: argparse.Namespace) -> None:
     """Roztriedi e-maily zo zdieľanej preposielacej schránky klientom.
 
     Klienti preposielajú faktúry na adresu s vlastným tokenom
-    (napr. prijem+a1b2c3d4@romarium.com). Tento beh stiahne neprečítané
+    (napr. prijem+a1b2c3d4@voru.sk). Tento beh stiahne neprečítané
     správy, podľa tokenu v adrese ich uloží do clients/<klient>/intake/
     a spracujú sa pri najbližšom fetchi daného klienta.
     """
@@ -425,7 +425,7 @@ def _alert_admin(env: dict, subcommand: str, failed: list) -> None:
     if not admin or not env.get("SMTP_HOST") or not env.get("SMTP_PASSWORD"):
         return
     msg = EmailMessage()
-    msg["Subject"] = f"Romarium: zlyhalo spracovanie ({subcommand}) — {', '.join(failed)}"
+    msg["Subject"] = f"VORU: zlyhalo spracovanie ({subcommand}) — {', '.join(failed)}"
     msg["From"] = env.get("SMTP_USER", "")
     msg["To"] = admin
     msg.set_content(

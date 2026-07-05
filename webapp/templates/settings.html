@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Nastavenia — Romarium{% endblock %}
+{% block title %}Nastavenia — VORU{% endblock %}
 {% block content %}
 <h1>Nastavenia</h1>
 <div class="card">
@@ -19,7 +19,7 @@
     <input name="pdf_passwords" value="{{ settings['PDF_PASSWORDS'] }}"
            placeholder="napr. rodné číslo alebo heslo z banky">
     <p class="muted">Heslo sa použije len lokálne na odomknutie PDF výpisov,
-       aby Romarium vedelo samo odškrtnúť zaplatené platby.</p>
+       aby VORU vedelo samo odškrtnúť zaplatené platby.</p>
     <div class="biz-only" {% if settings['ACCOUNT_TYPE'] == 'personal' %}style="display:none"{% endif %}>
     <label>IBAN vášho účtu (pre hromadný príkaz na úhradu)</label>
     <input name="own_iban" value="{{ settings['OWN_IBAN'] }}"
@@ -68,7 +68,7 @@
 
     <div class="biz-only" {% if settings['ACCOUNT_TYPE'] == 'personal' %}style="display:none"{% endif %}>
     <label style="margin-top:18px">Daňový kalendár — čo sa vás týka</label>
-    <p class="muted" style="margin-bottom:8px">Romarium pripomenie zákonné
+    <p class="muted" style="margin-bottom:8px">VORU pripomenie zákonné
        termíny (DPH, odvody, preddavky) v ranných prehľadoch.</p>
     {% set profile = settings['TAX_PROFILE'].split(',') %}
     {% for key, label in tax_profiles.items() %}
@@ -84,12 +84,12 @@
 
 <div class="card">
   <h2>Mobilná aplikácia</h2>
-  <p class="muted">Romarium si nainštalujete na plochu telefónu — funguje ako
+  <p class="muted">VORU si nainštalujete na plochu telefónu — funguje ako
      bežná appka, bez App Store.</p>
-  <p style="margin-top:10px"><b>iPhone:</b> otvorte romarium.com v Safari →
+  <p style="margin-top:10px"><b>iPhone:</b> otvorte voru.sk v Safari →
      tlačidlo Zdieľať <span class="muted">(štvorec so šípkou)</span> →
      <b>Pridať na plochu</b>.</p>
-  <p><b>Android:</b> otvorte romarium.com v Chrome → menu ⋮ →
+  <p><b>Android:</b> otvorte voru.sk v Chrome → menu ⋮ →
      <b>Pridať na plochu / Inštalovať aplikáciu</b>.</p>
 </div>
 {% endblock %}

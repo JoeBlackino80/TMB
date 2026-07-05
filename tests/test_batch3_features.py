@@ -142,7 +142,7 @@ def test_help_page_and_provider_picker(client):
 
 def test_pwa_endpoints(client):
     r = client.get("/manifest.webmanifest")
-    assert r.status_code == 200 and r.json()["name"] == "Romarium"
+    assert r.status_code == 200 and r.json()["name"] == "VORU"
     for path in ("/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"):
         r = client.get(path)
         assert r.status_code == 200 and r.content[:8] == b"\x89PNG\r\n\x1a\n"

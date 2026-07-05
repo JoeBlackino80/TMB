@@ -82,7 +82,7 @@ def test_fetch_processes_intake(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     (tmp_path / "intake").mkdir()
     raw = (b"Message-ID: <fwd-1@x>\r\nFrom: dodavatel@firma.sk\r\n"
-           b"To: prijem+abc@romarium.com\r\nSubject: Faktura 55\r\n\r\n"
+           b"To: prijem+abc@voru.sk\r\nSubject: Faktura 55\r\n\r\n"
            b"Suma 12 EUR, VS 55, IBAN SK11, splatnost zajtra.\r\n")
     (tmp_path / "intake" / "1.eml").write_bytes(raw)
 
@@ -156,9 +156,9 @@ def test_sepa_endpoint_and_forward_address(client, tmp_path, monkeypatch):
     assert "SK8809000000005123456789" in r.content.decode()
 
     # preposielacia adresa sa zobrazí, keď je FORWARD_ADDRESS nastavená
-    monkeypatch.setenv("FORWARD_ADDRESS", "prijem+{token}@romarium.com")
+    monkeypatch.setenv("FORWARD_ADDRESS", "prijem+{token}@voru.sk")
     r = client.get("/mailboxes", cookies={"session": session})
-    assert "prijem+" in r.text and "@romarium.com" in r.text
+    assert "prijem+" in r.text and "@voru.sk" in r.text
     # token je uložený v .env klienta
     env_text = (tmp_path / "clients" / "sepa-x-sk" / ".env").read_text()
     assert "FORWARD_TOKEN=" in env_text

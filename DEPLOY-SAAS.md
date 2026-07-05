@@ -28,7 +28,7 @@ SMTP_PASSWORD=...
 WEBAPP_SECRET=DLHY-NAHODNY-RETAZEC-min-32-znakov
 ADMIN_EMAIL=obchod@sorbxt.sk
 # adresa webu — zapne jednoklikové tlačidlá (Zaplatené / Odložiť) v e-mailoch
-ACTION_BASE_URL=https://romarium.com
+ACTION_BASE_URL=https://voru.sk
 STRIPE_LINK_MONTHLY=
 STRIPE_LINK_YEARLY=
 STRIPE_WEBHOOK_SECRET=
@@ -43,7 +43,7 @@ chmod 600 /root/TMB/.env.master
 ```bash
 cat > /etc/systemd/system/platby-web.service <<'EOF'
 [Unit]
-Description=Romarium web
+Description=VORU web
 After=network.target
 
 [Service]
@@ -60,13 +60,13 @@ systemctl enable --now platby-web
 
 ## 4. Doména + HTTPS (Caddy)
 
-Nasmerujte A záznam domény (produkčne `romarium.com`) na IP servera.
+Nasmerujte A záznam domény (produkčne `voru.sk`) na IP servera.
 Caddy vybaví HTTPS certifikát sám:
 
 ```bash
 apt install -y caddy
 cat > /etc/caddy/Caddyfile <<'EOF'
-romarium.com, www.romarium.com, platby.romarium.com {
+voru.sk, www.voru.sk, platby.voru.sk {
     reverse_proxy 127.0.0.1:8000
 }
 EOF
@@ -80,12 +80,12 @@ systemctl restart caddy
 ## 5. Stripe (4,99 €/mes., 49 €/rok)
 
 1. Účet na [stripe.com](https://stripe.com) → aktivujte firmu (SORB XT s.r.o.)
-2. **Products** → New: „Romarium" — cena 4,99 €/mesiac (recurring)
+2. **Products** → New: „VORU" — cena 4,99 €/mesiac (recurring)
    a druhá cena 49 €/rok
 3. **Payment Links** → vytvorte link pre mesačnú aj ročnú cenu
    → URL vložte do `.env.master` (`STRIPE_LINK_MONTHLY/ YEARLY`)
 4. **Developers → Webhooks** → Add endpoint:
-   `https://romarium.com/stripe/webhook`, events:
+   `https://voru.sk/stripe/webhook`, events:
    `checkout.session.completed`, `customer.subscription.deleted`
    → „Signing secret" (whsec_...) do `STRIPE_WEBHOOK_SECRET`
 5. `systemctl restart platby-web`
@@ -117,18 +117,18 @@ sa heslá schránok nedajú prečítať a klienti by ich museli zadať znova.
 ## 6c. Preposielacia adresa (voliteľné, odporúčané)
 
 Klienti nemusia zadávať heslo k schránke — môžu faktúry preposielať na svoju
-unikátnu adresu (napr. `prijem+a1b2c3d4@romarium.com`).
+unikátnu adresu (napr. `prijem+a1b2c3d4@voru.sk`).
 
-1. Vo Webhouse vytvorte schránku `prijem@romarium.com` a zapnite pre ňu
+1. Vo Webhouse vytvorte schránku `prijem@voru.sk` a zapnite pre ňu
    **catch-all / plusové aliasy** (doručovanie `prijem+cokolvek@` do tej istej
    schránky — väčšina hostingov to robí automaticky).
 2. Do `.env.master` doplňte:
    ```
    FORWARD_IMAP_HOST=mail.webhouse.sk
    FORWARD_IMAP_PORT=993
-   FORWARD_IMAP_USER=prijem@romarium.com
+   FORWARD_IMAP_USER=prijem@voru.sk
    FORWARD_IMAP_PASSWORD=...
-   FORWARD_ADDRESS=prijem+{token}@romarium.com
+   FORWARD_ADDRESS=prijem+{token}@voru.sk
    ```
 3. `systemctl restart platby-web` — klientom sa na stránke Schránky zobrazí
    ich adresa. Cron `bill_agent intake` (v crontab.example) správy roztriedi.

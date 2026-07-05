@@ -48,7 +48,7 @@ def test_renewals_store(tmp_path):
     assert rid
     # duplicita sa preskočí
     assert store.add_renewal(kind="pzp", subject="ba-123xy", expires_on=soon) is None
-    store.add_renewal(kind="domena", subject="romarium.com", expires_on=far)
+    store.add_renewal(kind="domena", subject="voru.sk", expires_on=far)
 
     upcoming = store.upcoming_renewals(60)
     assert len(upcoming) == 1 and upcoming[0]["subject"] == "BA-123XY"
@@ -118,13 +118,13 @@ def test_czech_polish_commands(tmp_path):
                            variable_symbol="2", due_date=None)
     tid = store.add_task(description="úkol", due_date=None)
 
-    mail = Email(message_id="c1", subject="Re: Romarium: platby a úlohy",
+    mail = Email(message_id="c1", subject="Re: VORU: platby a úlohy",
                  sender="ja@x.cz", date="", body=f"zaplaceno {p1}\ngotowe {tid}\n")
     actions = commands.apply(store, mail)
     assert len(actions) == 2
     assert store.get_payment(p1).status == "paid"
 
-    mail2 = Email(message_id="c2", subject="Re: Romarium: platby a úlohy",
+    mail2 = Email(message_id="c2", subject="Re: VORU: platby a úlohy",
                   sender="ja@x.pl", date="", body="zapłacone wszystko\n")
     commands.apply(store, mail2)
     assert store.get_payment(p2).status == "paid"

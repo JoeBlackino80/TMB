@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Prehľad — Romarium{% endblock %}
+{% block title %}Prehľad — VORU{% endblock %}
 {% block content %}
 <script>
 function toggleQr(btn) {
@@ -31,7 +31,7 @@ skončilo. <a href="/billing">Aktivujte si predplatné</a>.</div>
 {% if not mailboxes %}
 <div class="card">
   <h2>Začnite pridaním schránky</h2>
-  <p>Romarium potrebuje prístup k schránke, kam vám chodia faktúry.</p>
+  <p>VORU potrebuje prístup k schránke, kam vám chodia faktúry.</p>
   <a class="btn" href="/mailboxes">Pridať schránku</a>
 </div>
 {% endif %}
@@ -165,7 +165,7 @@ skončilo. <a href="/billing">Aktivujte si predplatné</a>.</div>
     </tr>
     {% endfor %}
   </table>
-  <p class="muted">Poistky, STK, domény a predplatné, ktoré Romarium našlo
+  <p class="muted">Poistky, STK, domény a predplatné, ktoré VORU našlo
      vo vašej pošte. Vybavené odškrtnite, nech vám ich nepripomíname.</p>
 </div>
 {% endif %}

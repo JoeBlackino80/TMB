@@ -47,7 +47,7 @@ def test_landing_for_anonymous_and_login_wall(client):
     # anonym vidí landing page so SEO obsahom
     r = client.get("/")
     assert r.status_code == 200
-    assert "romarium" in r.text.lower() and "14 dní zadarmo" in r.text
+    assert "voru" in r.text.lower() and "14 dní zadarmo" in r.text
     # chránené stránky presmerujú na login
     for path in ("/mailboxes", "/settings", "/billing"):
         r = client.get(path)
@@ -58,7 +58,8 @@ def test_seo_endpoints(client):
     r = client.get("/robots.txt")
     assert r.status_code == 200 and "Sitemap:" in r.text
     r = client.get("/sitemap.xml")
-    assert r.status_code == 200 and "romarium.com" in r.text
+    # sitemap sa stavia z aktuálneho hosta (voru.sk / voru.cz / voru.pl)
+    assert r.status_code == 200 and "<urlset" in r.text and "/navod" in r.text
 
 
 def test_payment_and_task_actions(client, tmp_path):

@@ -58,7 +58,7 @@ class Config:
     email_lookback_days: int = field(default_factory=lambda: _int_env("EMAIL_LOOKBACK_DAYS", 7))
 
     # jednoklikové akčné odkazy v e-mailoch (Označiť ako zaplatené / Odložiť).
-    # ACTION_BASE_URL = adresa webu (https://romarium.com); tajomstvo na podpis
+    # ACTION_BASE_URL = adresa webu (https://voru.sk); tajomstvo na podpis
     # odkazov je ACTION_SECRET, s fallbackom na WEBAPP_SECRET zo .env.master.
     action_base_url: str = field(default_factory=lambda: os.environ.get("ACTION_BASE_URL", "").rstrip("/"))
     action_secret: str = field(default_factory=lambda: (

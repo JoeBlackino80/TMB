@@ -49,7 +49,7 @@ extrahuješ z nich:
 4. KONCE PLATNOSTI (expirations): ak e-mail hovorí, že niečo KONČÍ alebo treba
    OBNOVIŤ — poistenie PZP/havarijné (uveď aj EČV vozidla, ak je známe), STK,
    emisná kontrola, doména, predplatné, zmluva — extrahuj druh, predmet
-   (napr. "Škoda Octavia BA-123XY" alebo "romarium.com"), dátum konca platnosti
+   (napr. "Škoda Octavia BA-123XY" alebo "voru.sk"), dátum konca platnosti
    a krátku poznámku (napr. ponúknutá nová cena). Neuvádzaj bežné splatnosti
    faktúr, tie patria do PLATIEB.
 

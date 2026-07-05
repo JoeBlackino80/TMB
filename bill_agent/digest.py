@@ -66,11 +66,11 @@ def build_digest(cfg: Config, store: Store, days: int) -> tuple[str, str, str] |
 
     today = date.today()
     if days <= 1:
-        subject = f"Romarium: Zhrnutie dňa — {today.strftime('%-d.%-m.%Y')}"
+        subject = f"VORU: Zhrnutie dňa — {today.strftime('%-d.%-m.%Y')}"
         title = "Zhrnutie dňa"
     else:
         since = today - timedelta(days=days)
-        subject = f"Romarium: Zhrnutie týždňa {since.strftime('%-d.%-m.')}–{today.strftime('%-d.%-m.%Y')}"
+        subject = f"VORU: Zhrnutie týždňa {since.strftime('%-d.%-m.')}–{today.strftime('%-d.%-m.%Y')}"
         title = "Zhrnutie týždňa"
 
     narrative = _narrative(cfg, entries, days)
@@ -91,7 +91,7 @@ def build_digest(cfg: Config, store: Store, days: int) -> tuple[str, str, str] |
             + f" · aktívnych úloh: {len(tasks)}")
     text_lines += [stat, ""]
     html.append(f"<p><b>{escape(stat)}</b><br><small>Podrobnosti a QR kódy sú "
-                "v poslednom e-maile „Romarium: platby a úlohy“.</small></p>")
+                "v poslednom e-maile „VORU: platby a úlohy“.</small></p>")
 
     # strážca pravidelných faktúr — čo malo prísť a neprišlo
     missing = store.missing_recurring()
@@ -163,7 +163,7 @@ def build_monthly_report(cfg: Config, store: Store) -> tuple[str, str, str] | No
     top = sorted(by_supplier.items(), key=lambda kv: -kv[1])
 
     title = f"Mesačný report — {_MONTHS_SK[last_prev.month - 1]} {last_prev.year}"
-    subject = f"Romarium: {title}"
+    subject = f"VORU: {title}"
 
     compare = ""
     if total_before > 0:

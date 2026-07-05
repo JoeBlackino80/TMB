@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Registrácia — Romarium{% endblock %}
+{% block title %}Registrácia — VORU{% endblock %}
 {% block content %}
 <div class="card" style="max-width:440px;margin:48px auto">
   <h1 style="margin-top:0">Vytvorte si účet</h1>
-  <p class="muted">Romarium stráži vaše faktúry, platby a termíny.
+  <p class="muted">VORU stráži vaše faktúry, platby a termíny.
      14 dní zadarmo — bez platobnej karty, potom 4,99 €/mesiac alebo 49 €/rok.</p>
   <form method="post" action="/register">
     <input type="hidden" name="lang" value="{{ lang or 'sk' }}">
-    <label>Používam Romarium ako</label>
+    <label>Používam VORU ako</label>
     <div style="display:flex;gap:14px;margin:4px 0 6px;flex-wrap:wrap">
       <label style="display:flex;align-items:center;gap:7px;font-weight:500;margin:0">
         <input type="radio" name="account_type" value="business" checked
