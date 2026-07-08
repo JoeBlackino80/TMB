@@ -10,17 +10,11 @@ from datetime import date, timedelta
 from html import escape
 
 from . import email_layout as ly
+from . import i18n
 from .config import Config
 from .store import Store
 
-_CATEGORY_TITLES = {
-    "faktura": "Faktúry a platby",
-    "banka": "Banka",
-    "objednavka": "Objednávky a zásielky",
-    "uloha": "Úlohy a termíny",
-    "marketing": "Marketing / newslettre",
-    "ine": "Ostatné",
-}
+_CATEGORIES = ("faktura", "banka", "uloha", "objednavka", "ine", "marketing")
 
 
 def _narrative(cfg: Config, entries, days: int) -> str:
@@ -36,12 +30,13 @@ def _narrative(cfg: Config, entries, days: int) -> str:
             for e in entries
         )
         period = "za dnešný deň" if days <= 1 else f"za posledných {days} dní"
+        language = i18n.t(getattr(cfg, "lang", "sk"))["ai_language"]
         response = client.messages.create(
             model=cfg.claude_model,
             max_tokens=2000,
             system=(
-                "Si asistent slovenského podnikateľa. Z prehľadu prijatej pošty "
-                "napíš stručné, vecné zhrnutie po slovensky (odseky alebo odrážky, "
+                "Si asistent podnikateľa. Z prehľadu prijatej pošty napíš "
+                f"stručné, vecné zhrnutie {language} (odseky alebo odrážky, "
                 "max ~150 slov). Vypichni, čo vyžaduje pozornosť; marketing zhrň "
                 "jednou vetou alebo vynechaj. Nepoužívaj nadpisy."
             ),
@@ -65,22 +60,19 @@ def build_digest(cfg: Config, store: Store, days: int) -> tuple[str, str, str] |
     if not entries and n_pending == 0 and not tasks:
         return None
 
+    tr = i18n.t(getattr(cfg, "lang", "sk"))
     today = date.today()
     if days <= 1:
-        subject = f"VORU: Zhrnutie dňa — {today.strftime('%-d.%-m.%Y')}"
-        title = "Zhrnutie dňa"
-    else:
-        since = today - timedelta(days=days)
-        subject = f"VORU: Zhrnutie týždňa {since.strftime('%-d.%-m.')}–{today.strftime('%-d.%-m.%Y')}"
-        title = "Zhrnutie týždňa"
-
-    narrative = _narrative(cfg, entries, days)
-
-    if days <= 1:
         date_line = today.strftime("%-d.%-m.%Y")
+        subject = tr["digest_subject_day"].format(date=date_line)
+        title = tr["digest_title_day"]
     else:
         since = today - timedelta(days=days)
         date_line = f"{since.strftime('%-d.%-m.')}–{today.strftime('%-d.%-m.%Y')}"
+        subject = tr["digest_subject_week"].format(range=date_line)
+        title = tr["digest_title_week"]
+
+    narrative = _narrative(cfg, entries, days)
 
     text_lines: list[str] = [title, ""]
     html: list[str] = [ly.heading(title, date_line)]
@@ -95,31 +87,30 @@ def build_digest(cfg: Config, store: Store, days: int) -> tuple[str, str, str] |
         html.append(paragraphs)
 
     # stav financií a úloh
-    stat = (f"Nezaplatených platieb: {n_pending}"
-            + (f" (z toho {n_urgent} súrnych!)" if n_urgent else "")
-            + f" · aktívnych úloh: {len(tasks)}")
+    stat = (tr["digest_stat"].format(n=n_pending)
+            + (tr["digest_stat_urgent"].format(n=n_urgent) if n_urgent else "")
+            + tr["digest_stat_tasks"].format(n=len(tasks)))
     text_lines += [stat, ""]
     html.append(ly.note_box(
         f"<b>{escape(stat)}</b><br><span style='font-size:12px;color:{ly.MUTED}'>"
-        "Podrobnosti a QR kódy sú v poslednom e-maile „VORU: platby a úlohy“."
-        "</span>",
+        f"{escape(tr['digest_stat_note'])}</span>",
         tone="danger" if n_urgent else "neutral"))
 
     # strážca pravidelných faktúr — čo malo prísť a neprišlo
     missing = store.missing_recurring()
     if missing:
-        text_lines.append("Pravidelné faktúry, ktoré tento cyklus neprišli:")
+        text_lines.append(tr["digest_missing_text"])
         rows = []
         for m in missing:
-            line = (f"{m['supplier']} — posledná {m['last_date']}, "
-                    f"ďalšia sa čakala do {m['expected_by']}")
+            line = tr["digest_missing_line"].format(
+                s=m["supplier"], last=m["last_date"], exp=m["expected_by"])
             text_lines.append(f"  • {line}")
             rows.append(f"• {escape(line)}")
         html.append(ly.note_box(
-            "<b>Pravidelné faktúry, ktoré neprišli</b><br>"
+            f"<b>{tr['digest_missing']}</b><br>"
             + "<br>".join(rows)
-            + f"<br><span style='font-size:12px;color:{ly.MUTED}'>Skontrolujte, "
-            "či faktúra nezapadla, alebo či nechodí inam.</span>",
+            + f"<br><span style='font-size:12px;color:{ly.MUTED}'>"
+            f"{escape(tr['digest_missing_note'])}</span>",
             tone="warn"))
         text_lines.append("")
 
@@ -127,17 +118,17 @@ def build_digest(cfg: Config, store: Store, days: int) -> tuple[str, str, str] |
     by_category: dict[str, list] = {}
     for e in entries:
         by_category.setdefault(e.category, []).append(e)
-    for cat in ("faktura", "banka", "uloha", "objednavka", "ine", "marketing"):
+    for cat in _CATEGORIES:
         items = by_category.get(cat)
         if not items:
             continue
-        cat_title = _CATEGORY_TITLES[cat]
+        cat_title = tr[f"cat_{cat}"]
         text_lines.append(cat_title)
         html.append(ly.section(cat_title, len(items)))
         for i, e in enumerate(items):
             text_lines.append(f"  • {e.subject} — {e.summary}")
             html.append(ly.item_row(
-                f"<b>{escape(e.subject or '(bez predmetu)')}</b>"
+                f"<b>{escape(e.subject or tr['no_subject'])}</b>"
                 f"<br><span style='font-size:12.5px;color:{ly.MUTED}'>"
                 f"{escape(e.summary)}</span>",
                 last=(i == len(items) - 1)))
@@ -146,10 +137,6 @@ def build_digest(cfg: Config, store: Store, days: int) -> tuple[str, str, str] |
     preheader = narrative.split("\n")[0][:120] if narrative else stat
     wrapped = ly.wrap("".join(html), preheader=preheader)
     return subject, "\n".join(text_lines), wrapped
-
-
-_MONTHS_SK = ["január", "február", "marec", "apríl", "máj", "jún", "júl",
-              "august", "september", "október", "november", "december"]
 
 
 def _fmt_eur(amount: float) -> str:
@@ -176,36 +163,43 @@ def build_monthly_report(cfg: Config, store: Store) -> tuple[str, str, str] | No
     total = sum(r["amount"] for r in rows)
     total_before = sum(r["amount"] for r in paid_rows(month_before))
 
+    tr = i18n.t(getattr(cfg, "lang", "sk"))
+    lang = getattr(cfg, "lang", "sk") or "sk"
+
     by_supplier: dict[str, float] = {}
     for r in rows:
-        key = r["supplier"] or "(neznámy)"
+        key = r["supplier"] or tr["unknown_supplier_short"]
         by_supplier[key] = by_supplier.get(key, 0.0) + r["amount"]
     top = sorted(by_supplier.items(), key=lambda kv: -kv[1])
 
-    title = f"Mesačný report — {_MONTHS_SK[last_prev.month - 1]} {last_prev.year}"
+    title = tr["report_title"].format(month=tr["months"][last_prev.month - 1],
+                                      year=last_prev.year)
     subject = f"VORU: {title}"
 
     compare = ""
     if total_before > 0:
         diff = total - total_before
         pct = abs(diff) / total_before * 100
-        compare = (f"o {_fmt_eur(abs(diff))} ({pct:.0f} %) "
-                   + ("viac" if diff > 0 else "menej")
-                   + f" než v predchádzajúcom mesiaci ({_fmt_eur(total_before)})")
+        compare = tr["report_compare"].format(
+            diff=_fmt_eur(abs(diff)), pct=f"{pct:.0f}",
+            dir=tr["report_more"] if diff > 0 else tr["report_less"],
+            prev=_fmt_eur(total_before))
 
-    text = [title, "", f"Zaplatené spolu: {_fmt_eur(total)} ({len(rows)} platieb)"]
+    n_payments = i18n.plural(lang, len(rows), tr["report_payments"])
+    total_line = f"{tr['report_total_text']}: {_fmt_eur(total)} ({n_payments})"
+    text = [title, "", total_line]
     if compare:
         text.append(compare)
-    text += ["", "Podľa dodávateľov:"]
+    text += ["", f"{tr['report_by_supplier']}:"]
     html = [ly.heading(title),
             f"<p style='margin:16px 0 0;font-family:{ly.FONT};font-size:28px;"
             f"font-weight:800;color:{ly.INK}'>{_fmt_eur(total)} "
             f"<span style='font-size:13.5px;font-weight:500;color:{ly.MUTED}'>"
-            f"· {len(rows)} platieb</span></p>"]
+            f"· {n_payments}</span></p>"]
     if compare:
         html.append(f"<p style='margin:4px 0 0;font-family:{ly.FONT};"
                     f"font-size:13.5px;color:{ly.MUTED}'>{escape(compare)}</p>")
-    html.append(ly.section("Podľa dodávateľov"))
+    html.append(ly.section(tr["report_by_supplier"]))
     html.append("<table role='presentation' width='100%' cellpadding='0'"
                 " cellspacing='0' style='border-collapse:collapse'>")
     for supplier, amount in top:
@@ -219,10 +213,8 @@ def build_monthly_report(cfg: Config, store: Store) -> tuple[str, str, str] | No
             f"color:{ly.INK};white-space:nowrap'>{escape(_fmt_eur(amount))}"
             "</td></tr>")
     html.append("</table>")
-    footer = ("Kompletné podklady (faktúry + CSV) si stiahnete na prehľade "
-              "v aplikácii — Podklady pre účtovníctvo.")
-    preheader = f"Zaplatené spolu: {_fmt_eur(total)} ({len(rows)} platieb)"
-    wrapped = ly.wrap("".join(html), preheader=preheader, footer=footer)
+    wrapped = ly.wrap("".join(html), preheader=total_line,
+                      footer=tr["report_footer"])
     return subject, "\n".join(text) + "\n", wrapped
 
 

@@ -2,16 +2,28 @@
 {% block title %}Prihlásenie — VORU{% endblock %}
 {% block content %}
 <div class="card" style="max-width:440px;margin:48px auto">
-  <h1 style="margin-top:0">Prihlásenie</h1>
-  <form method="post" action="/login">
-    <label>E-mail</label>
-    <input type="email" name="email" required autocomplete="email">
-    <label>Heslo</label>
-    <input type="password" name="password" required autocomplete="current-password">
-    <button type="submit">Prihlásiť sa</button>
-  </form>
-  <p class="muted" style="margin-top:18px">Nemáte účet?
-     <a href="/register">Registrujte sa</a> — 14 dní zadarmo.<br>
-     <a href="/forgot">Zabudli ste heslo?</a></p>
+  {% if totp_step %}
+    <h1 style="margin-top:0">Dvojfaktorové overenie</h1>
+    <p class="muted">Zadajte 6-miestny kód z autentifikačnej aplikácie.</p>
+    <form method="post" action="/login/totp">
+      <input type="hidden" name="t" value="{{ totp_t }}">
+      <label>Kód</label>
+      <input name="code" required autofocus inputmode="numeric"
+             autocomplete="one-time-code" placeholder="123456">
+      <button type="submit">Overiť</button>
+    </form>
+  {% else %}
+    <h1 style="margin-top:0">Prihlásenie</h1>
+    <form method="post" action="/login">
+      <label>E-mail</label>
+      <input type="email" name="email" required autocomplete="email">
+      <label>Heslo</label>
+      <input type="password" name="password" required autocomplete="current-password">
+      <button type="submit">Prihlásiť sa</button>
+    </form>
+    <p class="muted" style="margin-top:18px">Nemáte účet?
+       <a href="/register">Registrujte sa</a> — 14 dní zadarmo.<br>
+       <a href="/forgot">Zabudli ste heslo?</a></p>
+  {% endif %}
 </div>
 {% endblock %}

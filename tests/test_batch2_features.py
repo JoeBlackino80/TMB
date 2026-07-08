@@ -151,20 +151,20 @@ def client(tmp_path, monkeypatch):
 
 
 def test_login_rate_limit(client):
-    client.post("/register", data={"email": "brute@x.sk", "password": "tajneheslo"})
+    client.post("/register", data={"email": "brute@x.sk", "password": "tajneheslo", "consent": "1"})
     for _ in range(5):
         r = client.post("/login", data={"email": "brute@x.sk", "password": "zle"})
         assert "Nesprávny" in r.text
     r = client.post("/login", data={"email": "brute@x.sk", "password": "zle"})
     assert "Príliš veľa" in r.text
     # blokuje aj správne heslo počas výluky
-    r = client.post("/login", data={"email": "brute@x.sk", "password": "tajneheslo"})
+    r = client.post("/login", data={"email": "brute@x.sk", "password": "tajneheslo", "consent": "1"})
     assert "Príliš veľa" in r.text
 
 
 def test_sepa_endpoint_and_forward_address(client, tmp_path, monkeypatch):
-    client.post("/register", data={"email": "sepa@x.sk", "password": "tajneheslo"})
-    session = client.post("/login", data={"email": "sepa@x.sk", "password": "tajneheslo"}).cookies["session"]
+    client.post("/register", data={"email": "sepa@x.sk", "password": "tajneheslo", "consent": "1"})
+    session = client.post("/login", data={"email": "sepa@x.sk", "password": "tajneheslo", "consent": "1"}).cookies["session"]
 
     # bez IBANu presmeruje na doplnenie nastavení
     r = client.get("/sepa", cookies={"session": session})
@@ -195,8 +195,8 @@ def test_sepa_endpoint_and_forward_address(client, tmp_path, monkeypatch):
 
 
 def test_qr_endpoint(client, tmp_path):
-    client.post("/register", data={"email": "qr@x.sk", "password": "tajneheslo"})
-    session = client.post("/login", data={"email": "qr@x.sk", "password": "tajneheslo"}).cookies["session"]
+    client.post("/register", data={"email": "qr@x.sk", "password": "tajneheslo", "consent": "1"})
+    session = client.post("/login", data={"email": "qr@x.sk", "password": "tajneheslo", "consent": "1"}).cookies["session"]
     store = Store(str(tmp_path / "clients" / "qr-x-sk" / "bill_agent.db"))
     pid = store.add_payment(supplier="Energo", amount=9.9, currency="EUR",
                             iban="SK3112000000198742637541", variable_symbol="1",
@@ -219,8 +219,8 @@ def test_qr_endpoint(client, tmp_path):
 
 
 def test_dashboard_cashflow(client, tmp_path):
-    client.post("/register", data={"email": "cf@x.sk", "password": "tajneheslo"})
-    session = client.post("/login", data={"email": "cf@x.sk", "password": "tajneheslo"}).cookies["session"]
+    client.post("/register", data={"email": "cf@x.sk", "password": "tajneheslo", "consent": "1"})
+    session = client.post("/login", data={"email": "cf@x.sk", "password": "tajneheslo", "consent": "1"}).cookies["session"]
     store = Store(str(tmp_path / "clients" / "cf-x-sk" / "bill_agent.db"))
     store.clear_demo()
     this_month = date.today().strftime("%Y-%m")

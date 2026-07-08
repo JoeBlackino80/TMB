@@ -107,7 +107,7 @@ def test_multilang_landing_and_register(client, tmp_path):
     # registrácia z českej stránky uloží jazyk klienta
     r = client.get("/register?lang=cs")
     assert 'value="cs"' in r.text
-    client.post("/register", data={"email": "cesko@x.cz", "password": "tajneheslo",
+    client.post("/register", data={"email": "cesko@x.cz", "password": "tajneheslo", "consent": "1",
                                    "lang": "cs"})
     env = (tmp_path / "clients" / "cesko-x-cz" / ".env").read_text()
     assert "APP_LANG=cs" in env
@@ -138,9 +138,9 @@ def test_czech_polish_commands(tmp_path):
 
 
 def test_personal_account_flow(client, tmp_path):
-    client.post("/register", data={"email": "osoba@x.sk", "password": "tajneheslo",
+    client.post("/register", data={"email": "osoba@x.sk", "password": "tajneheslo", "consent": "1",
                                    "account_type": "personal"})
-    session = client.post("/login", data={"email": "osoba@x.sk", "password": "tajneheslo"}).cookies["session"]
+    session = client.post("/login", data={"email": "osoba@x.sk", "password": "tajneheslo", "consent": "1"}).cookies["session"]
     env = (tmp_path / "clients" / "osoba-x-sk" / ".env").read_text()
     assert "ACCOUNT_TYPE=personal" in env
 
@@ -171,8 +171,8 @@ def test_personal_account_flow(client, tmp_path):
 
 
 def test_renewals_on_dashboard(client, tmp_path):
-    client.post("/register", data={"email": "pzp@x.sk", "password": "tajneheslo"})
-    session = client.post("/login", data={"email": "pzp@x.sk", "password": "tajneheslo"}).cookies["session"]
+    client.post("/register", data={"email": "pzp@x.sk", "password": "tajneheslo", "consent": "1"})
+    session = client.post("/login", data={"email": "pzp@x.sk", "password": "tajneheslo", "consent": "1"}).cookies["session"]
     db = tmp_path / "clients" / "pzp-x-sk" / "bill_agent.db"
     store = Store(str(db))
     soon = (date.today() + timedelta(days=15)).isoformat()

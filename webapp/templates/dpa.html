@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Zmluva o spracovaní osobných údajov (DPA) — VORU{% endblock %}
+{% block content %}
+<div class="card" style="max-width:760px;margin:30px auto">
+  <h1 style="margin-top:0">Zmluva o spracovaní osobných údajov (DPA)</h1>
+  <p class="muted">podľa čl. 28 nariadenia (EÚ) 2016/679 (GDPR) ·
+     neoddeliteľná súčasť obchodných podmienok služby VORU</p>
+
+  <h2>1. Strany</h2>
+  <p><b>Prevádzkovateľ:</b> klient — používateľ služby VORU (firma alebo
+     podnikateľ, ktorý si pripojil svoje schránky).<br>
+     <b>Sprostredkovateľ:</b> SORB XT s.r.o., kontakt obchod@sorbxt.sk
+     (ďalej „poskytovateľ“).</p>
+
+  <h2>2. Predmet a povaha spracovania</h2>
+  <p>Poskytovateľ pre klienta automatizovane spracúva e-mailové správy
+     v pripojených schránkach vrátane príloh, a to na účel rozpoznania
+     faktúr, platieb, termínov a úloh a na odosielanie pripomienok
+     a prehľadov. Spracovanie trvá počas trvania účtu klienta.</p>
+
+  <h2>3. Kategórie údajov a dotknutých osôb</h2>
+  <p>Údaje obsiahnuté v prijatej pošte: identifikačné a kontaktné údaje
+     odosielateľov, fakturačné a platobné údaje (sumy, IBAN, symboly),
+     obsah správ a príloh. Dotknuté osoby: obchodní partneri, dodávatelia
+     a korešpondenti klienta.</p>
+
+  <h2>4. Pokyny a dôvernosť</h2>
+  <p>Poskytovateľ spracúva údaje výlučne na účel poskytovania služby podľa
+     tejto zmluvy a zdokumentovaných pokynov klienta (nastavenia účtu).
+     Osoby s prístupom k údajom sú viazané mlčanlivosťou. Obsah pošty sa
+     nepoužíva na reklamu, profilovanie mimo služby ani sa nepredáva.</p>
+
+  <h2>5. Ďalší sprostredkovatelia</h2>
+  <p>Klient udeľuje všeobecný súhlas so zapojením týchto ďalších
+     sprostredkovateľov: <b>Anthropic</b> (API na rozpoznanie obsahu — text
+     sa netrénuje ani neuchováva nad rámec spracovania požiadavky),
+     <b>Hetzner</b> (serverová infraštruktúra v EÚ), <b>Stripe</b>
+     (platby za predplatné). Zmenu zoznamu poskytovateľ vopred oznámi
+     e-mailom; klient môže namietať ukončením používania služby.</p>
+
+  <h2>6. Bezpečnostné opatrenia</h2>
+  <p>Šifrovaný prenos (HTTPS/TLS, IMAPS), šifrované uloženie prístupových
+     údajov k schránkam, heslá účtov ako PBKDF2 odtlačky, prístup k serverom
+     len cez SSH kľúče, denné zálohy, voliteľné dvojfaktorové overenie účtu.</p>
+
+  <h2>7. Pomoc prevádzkovateľovi a výmaz</h2>
+  <p>Poskytovateľ pomôže klientovi s plnením práv dotknutých osôb
+     a oznamovaním incidentov (bez zbytočného odkladu po zistení).
+     Export údajov aj úplný výmaz účtu sú klientovi dostupné samoobslužne
+     v Nastaveniach; po zrušení účtu sa dáta mažú okamžite, zálohy expirujú
+     do 14 dní.</p>
+
+  <h2>8. Audit</h2>
+  <p>Poskytovateľ na vyžiadanie poskytne informácie potrebné na preukázanie
+     plnenia povinností podľa čl. 28 GDPR a umožní primeraný audit
+     dohodnutým spôsobom.</p>
+
+  <p class="muted" style="margin-top:22px">Táto DPA sa uzatvára akceptovaním
+     obchodných podmienok pri registrácii. Písomné vyhotovenie s podpisom
+     poskytneme na vyžiadanie na obchod@sorbxt.sk.</p>
+</div>
+{% endblock %}

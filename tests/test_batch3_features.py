@@ -90,8 +90,8 @@ def client(tmp_path, monkeypatch):
 
 
 def _login(client, email):
-    client.post("/register", data={"email": email, "password": "tajneheslo"})
-    return client.post("/login", data={"email": email, "password": "tajneheslo"}).cookies["session"]
+    client.post("/register", data={"email": email, "password": "tajneheslo", "consent": "1"})
+    return client.post("/login", data={"email": email, "password": "tajneheslo", "consent": "1"}).cookies["session"]
 
 
 def test_demo_data_lifecycle(client, tmp_path):

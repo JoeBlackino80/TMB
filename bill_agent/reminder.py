@@ -9,15 +9,16 @@ from email.utils import make_msgid
 from html import escape
 
 from . import email_layout as ly
+from . import i18n
 from . import pay_by_square
 from .config import Config
 from .store import Payment, Store, Task
 
-_SECTION_TITLES = {
-    "overdue": "Po splatnosti",
-    "today": "Splatné dnes",
-    "upcoming": "Splatné v najbližších dňoch",
-    "no_date": "Bez uvedenej splatnosti",
+_SECTION_KEYS = {
+    "overdue": "sec_overdue",
+    "today": "sec_today",
+    "upcoming": "sec_upcoming",
+    "no_date": "sec_no_date",
 }
 
 _SECTION_TONES = {
@@ -28,12 +29,8 @@ _SECTION_TONES = {
 }
 
 
-def _plural(n: int, one: str, few: str, many: str) -> str:
-    if n == 1:
-        return f"{n} {one}"
-    if 2 <= n <= 4:
-        return f"{n} {few}"
-    return f"{n} {many}"
+def _lang(cfg: Config | None) -> str:
+    return getattr(cfg, "lang", None) or "sk"
 
 
 def _fmt_amount(p: Payment) -> str:
@@ -100,19 +97,21 @@ def _action_url(cfg: Config | None, kind: str, item_id: int, action: str) -> str
             f"&i={item_id}&do={action}&s={sig}")
 
 
-def _action_buttons(cfg: Config | None, kind: str, item_id: int) -> str:
+def _action_buttons(cfg: Config | None, kind: str, item_id: int,
+                    tr: dict | None = None) -> str:
     """HTML tlačidlá pod položkou; '' ak odkazy nie sú nakonfigurované."""
+    tr = tr or i18n.t(_lang(cfg))
     if kind == "p":
         paid = _action_url(cfg, "p", item_id, "paid")
         if not paid:
             return ""
         snooze = _action_url(cfg, "p", item_id, "snooze")
-        return ("<br>" + ly.button(paid, "&#10003; Označiť ako zaplatené", "ok")
-                + ly.button(snooze, "Odložiť o 3 dni", "soft"))
+        return ("<br>" + ly.button(paid, "&#10003; " + tr["btn_paid"], "ok")
+                + ly.button(snooze, tr["btn_snooze"], "soft"))
     done = _action_url(cfg, "t", item_id, "done")
     if not done:
         return ""
-    return "<br>" + ly.button(done, "&#10003; Hotovo", "ok")
+    return "<br>" + ly.button(done, "&#10003; " + tr["btn_done"], "ok")
 
 
 def build_reminder(
@@ -130,31 +129,33 @@ def build_reminder(
     if total_payments == 0 and not tasks and not tax_deadlines:
         return None
 
+    lang = _lang(cfg)
+    tr = i18n.t(lang)
+
     n_urgent = len(groups["overdue"]) + len(groups["today"])
     summary_bits = []
     if total_payments:
+        urgent_part = tr["summary_urgent"].format(n=n_urgent) if n_urgent else ""
         summary_bits.append(
-            _plural(total_payments, "platba čaká", "platby čakajú", "platieb čaká")
-            + " na úhradu" + (f", z toho {n_urgent} súrne" if n_urgent else ""))
+            i18n.plural(lang, total_payments, tr["summary_payments"]) + urgent_part)
     if tasks:
-        summary_bits.append(_plural(len(tasks), "aktívna úloha", "aktívne úlohy",
-                                    "aktívnych úloh"))
+        summary_bits.append(i18n.plural(lang, len(tasks), tr["summary_tasks"]))
     preheader = " · ".join(summary_bits)
     subtitle = preheader
     if n_urgent:
+        urgent_plain = tr["summary_urgent"].format(n=n_urgent).lstrip(", ")
         subtitle = preheader.replace(
-            f"{n_urgent} súrne",
-            f"<b style='color:{ly.RED}'>{n_urgent} súrne</b>")
+            urgent_plain, f"<b style='color:{ly.RED}'>{urgent_plain}</b>")
 
     text_lines: list[str] = []
-    html_parts: list[str] = [ly.heading("Prehľad platieb a úloh", subtitle)]
+    html_parts: list[str] = [ly.heading(tr["title"], subtitle)]
     images: list[tuple[str, bytes]] = []
 
     for key in ("overdue", "today", "upcoming", "no_date"):
         payments = groups[key]
         if not payments:
             continue
-        title = _SECTION_TITLES[key]
+        title = tr[_SECTION_KEYS[key]]
         tone = _SECTION_TONES[key]
         due_color = ly.tone_color(tone) if tone != "neutral" else ly.INK
         text_lines.append(f"\n{title}")
@@ -162,8 +163,9 @@ def build_reminder(
         for p in payments:
             due = p.due_date or "—"
             text_lines.append(
-                f"  [{p.id}] {p.supplier or '(neznámy)'} — {_fmt_amount(p)}, "
-                f"splatnosť {due}, IBAN {p.iban or '—'}, VS {p.variable_symbol or '—'}"
+                f"  [{p.id}] {p.supplier or tr['unknown_supplier_short']} — "
+                f"{_fmt_amount(p)}, {tr['due'].lower()} {due}, "
+                f"IBAN {p.iban or '—'}, {tr['vs']} {p.variable_symbol or '—'}"
                 + (f" ({p.note})" if p.note else "")
             )
             note = ""
@@ -181,18 +183,18 @@ def build_reminder(
                 "<table role='presentation' width='100%' cellpadding='0'"
                 " cellspacing='0'><tr>"
                 f"<td style='font-family:{ly.FONT};font-size:14.5px;font-weight:700;"
-                f"color:{ly.INK}'>{escape(p.supplier or '(neznámy dodávateľ)')}"
+                f"color:{ly.INK}'>{escape(p.supplier or tr['unknown_supplier'])}"
                 f" &nbsp;<span style='font-size:11px;font-weight:600;"
                 f"color:{ly.MUTED};background:{ly.BG};border-radius:6px;"
-                f"padding:2px 7px'>č. {p.id}</span></td>"
+                f"padding:2px 7px'>{tr['item_no']} {p.id}</span></td>"
                 f"<td align='right' style='font-family:{ly.FONT};font-size:16px;"
                 f"font-weight:800;color:{ly.INK};white-space:nowrap'>"
                 f"{escape(_fmt_amount(p))}</td></tr></table>"
                 f"<p style='margin:8px 0 0;font-family:{ly.FONT};font-size:13px;"
                 f"line-height:1.7;color:{ly.MUTED}'>"
-                f"Splatnosť&nbsp;<b style='color:{due_color}'>{escape(due)}</b>"
+                f"{tr['due']}&nbsp;<b style='color:{due_color}'>{escape(due)}</b>"
                 f"<br>IBAN&nbsp;{escape(p.iban or '—')} &nbsp;·&nbsp; "
-                f"VS&nbsp;{escape(p.variable_symbol or '—')}</p>"
+                f"{tr['vs']}&nbsp;{escape(p.variable_symbol or '—')}</p>"
                 + note
             )
             png = _payment_qr(p)
@@ -202,16 +204,14 @@ def build_reminder(
                 html_parts.append(
                     "<div style='margin-top:12px;text-align:center'>"
                     f"<img src='cid:{cid[1:-1]}' width='150' height='150' "
-                    "alt='QR kód platby' style='display:inline-block;"
+                    "alt='QR' style='display:inline-block;"
                     f"border:1px solid {ly.LINE2};border-radius:8px'>"
                     f"<br><span style='font-family:{ly.FONT};font-size:11.5px;"
-                    f"color:{ly.FAINT}'>Naskenujte v bankovej appke "
-                    "a platbu potvrďte.</span></div>"
+                    f"color:{ly.FAINT}'>{tr['qr_hint']}</span></div>"
                 )
-            html_parts.append(_action_buttons(cfg, "p", p.id))
+            html_parts.append(_action_buttons(cfg, "p", p.id, tr))
             html_parts.append(
-                ly.muted(f"alebo odpovedzte na tento e-mail: <b>zaplatené {p.id}</b>",
-                         "11.5px")
+                ly.muted(tr["reply_hint"].format(id=p.id), "11.5px")
                 + "</td></tr></table>"
             )
 
@@ -221,35 +221,33 @@ def build_reminder(
         bulk = _action_url(cfg, "b", 0, "paid")
         if bulk:
             html_parts.append(
-                ly.button(bulk, "&#10003; Označiť všetko ako zaplatené", "dark")
-                + ly.muted("Otvorí sa potvrdenie so zoznamom platieb — "
-                           "odškrtnete, čo ešte zaplatené nie je.", "11.5px"))
-            text_lines.append(f"\nOznačiť všetko ako zaplatené: {bulk}")
+                ly.button(bulk, "&#10003; " + tr["btn_all_paid"], "dark")
+                + ly.muted(tr["bulk_hint"], "11.5px"))
+            text_lines.append(f"\n{tr['bulk_text']}: {bulk}")
 
     if tasks:
-        text_lines.append("\nÚlohy")
-        html_parts.append(ly.section("Úlohy", len(tasks)))
+        text_lines.append(f"\n{tr['tasks']}")
+        html_parts.append(ly.section(tr["tasks"], len(tasks)))
         for i, t in enumerate(tasks):
-            due = f" (do {t.due_date})" if t.due_date else ""
+            due = " " + tr["task_due"].format(d=t.due_date) if t.due_date else ""
             text_lines.append(f"  [{t.id}] {t.description}{due}")
             html_parts.append(ly.item_row(
-                f"<b>č. {t.id}</b> — {escape(t.description)}"
+                f"<b>{tr['item_no']} {t.id}</b> — {escape(t.description)}"
                 + (f"<span style='color:{ly.MUTED}'>{escape(due)}</span>" if due else "")
                 + f" &nbsp;<span style='font-size:12px;color:{ly.FAINT}'>"
-                f"(hotovo? odpovedzte: <b>hotovo {t.id}</b>)</span>"
-                f"{_action_buttons(cfg, 't', t.id)}",
+                f"({tr['task_hint'].format(id=t.id)})</span>"
+                f"{_action_buttons(cfg, 't', t.id, tr)}",
                 last=(i == len(tasks) - 1)))
 
     # blížiace sa konce platnosti (poistky, STK, domény...) — len informačne,
     # samy o sebe pripomienku nespúšťajú
     renewals = store.upcoming_renewals(45)
     if renewals:
-        from .store import RENEWAL_LABELS
-
-        text_lines.append("\nKončí platnosť")
-        html_parts.append(ly.section("Končí platnosť", tone="warn"))
+        labels = tr["renewal_labels"]
+        text_lines.append(f"\n{tr['renewals']}")
+        html_parts.append(ly.section(tr["renewals"], tone="warn"))
         for i, r in enumerate(renewals):
-            label = RENEWAL_LABELS.get(r["kind"], "Koniec platnosti")
+            label = labels.get(r["kind"], labels["ine"])
             line = f"{r['expires_on']}: {label}" + (f" — {r['subject']}" if r["subject"] else "")
             text_lines.append(f"  {line}")
             html_parts.append(ly.item_row(
@@ -259,28 +257,22 @@ def build_reminder(
                    f"({escape(r['note'])})</span>" if r["note"] else ""),
                 last=(i == len(renewals) - 1)))
 
-    # daňové termíny podľa profilu klienta
+    # daňové termíny podľa profilu klienta (daňový kalendár je slovenský,
+    # popisky termínov ostávajú v slovenčine)
     if tax_deadlines:
-        text_lines.append("\nDaňové termíny")
-        html_parts.append(ly.section("Daňové termíny"))
+        text_lines.append(f"\n{tr['tax']}")
+        html_parts.append(ly.section(tr["tax"]))
         for i, d in enumerate(tax_deadlines):
             text_lines.append(f"  {d['date']}: {d['label']}")
             html_parts.append(ly.item_row(
                 f"<b>{escape(d['date'])}</b> — {escape(d['label'])}",
                 last=(i == len(tax_deadlines) - 1)))
 
-    footer = ("Ovládanie odpoveďou na tento e-mail: "
-              "<b>zaplatené 3</b> (číslo platby), <b>zaplatené všetko</b>, "
-              "<b>ignoruj 5</b>, <b>hotovo 2</b> (číslo úlohy), "
-              "<b>odlož 4 o 5</b> (pripomenie o 5 dní), <b>odlož úlohu 2</b> — "
-              "agent si to pri ďalšej kontrole pošty vybaví sám.")
-    text_lines.append(
-        "\nOvládanie odpoveďou: 'zaplatené 3', 'zaplatené všetko', 'ignoruj 5', "
-        "'hotovo 2', 'odlož 4 o 5', 'odlož úlohu 2'."
-    )
+    text_lines.append("\n" + tr["footer_commands_text"])
 
-    text = "Prehľad platieb a úloh\n" + "\n".join(text_lines) + "\n"
-    html = ly.wrap("".join(html_parts), preheader=preheader, footer=footer)
+    text = tr["title"] + "\n" + "\n".join(text_lines) + "\n"
+    html = ly.wrap("".join(html_parts), preheader=preheader,
+                   footer=tr["footer_commands"])
     return text, html, images
 
 
@@ -295,6 +287,12 @@ def send_email(
     msg["Subject"] = subject
     msg["From"] = cfg.smtp_user
     msg["To"] = cfg.reminder_to
+    # doručiteľnosť: Gmail/Outlook vyžadujú od pravidelných odosielateľov
+    # možnosť odhlásenia — periodicitu si klient nastaví v aplikácii
+    unsub = [f"<mailto:{cfg.smtp_user}?subject=unsubscribe>"]
+    if getattr(cfg, "action_base_url", ""):
+        unsub.insert(0, f"<{cfg.action_base_url}/settings>")
+    msg["List-Unsubscribe"] = ", ".join(unsub)
     msg.set_content(text)
     msg.add_alternative(html, subtype="html")
     for cid, png in images or []:
@@ -319,13 +317,14 @@ def send_reminder(cfg: Config, store: Store) -> bool:
         return False
     text, html, images = built
 
-    # predmet musí obsahovať SUBJECT_MARKER z commands.py, aby fungovali
-    # odpovede typu "zaplatené 3"
+    # predmet musí obsahovať niektorý z i18n.SUBJECT_MARKERS, aby fungovali
+    # odpovede typu "zaplatené 3" (commands.py)
+    tr = i18n.t(_lang(cfg))
     groups = store.payments_due(cfg.reminder_days_ahead)
     n_urgent = len(groups["overdue"]) + len(groups["today"])
-    subject = "VORU: platby a úlohy"
+    subject = tr["subject_reminder"]
     if n_urgent:
-        subject = f"VORU: platby a úlohy — {n_urgent} súrne"
+        subject = tr["subject_urgent"].format(n=n_urgent)
 
     send_email(cfg, subject, text, html, images)
     return True

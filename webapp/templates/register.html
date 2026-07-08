@@ -27,6 +27,15 @@
     <label>Heslo (min. 8 znakov)</label>
     <input type="password" name="password" minlength="8" required
            autocomplete="new-password">
+    <label style="display:flex;align-items:flex-start;gap:8px;margin:14px 0 6px;
+                  font-weight:500;font-size:13.5px;line-height:1.5">
+      <input type="checkbox" name="consent" value="1" required
+             style="width:auto;margin-top:3px">
+      <span>Súhlasím s <a href="/podmienky" target="_blank">obchodnými podmienkami</a>
+        a so spracovaním osobných údajov podľa
+        <a href="/gdpr" target="_blank">zásad ochrany údajov</a> (vrátane
+        spracovania obsahu pripojenej pošty na účely služby).</span>
+    </label>
     <button type="submit">Registrovať sa</button>
   </form>
   <p class="muted" style="margin-top:18px">Máte účet?

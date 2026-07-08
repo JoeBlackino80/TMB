@@ -21,6 +21,7 @@ def send(to: str, subject: str, text: str, html: str = "") -> bool:
     msg["Subject"] = subject
     msg["From"] = os.environ["SMTP_USER"]
     msg["To"] = to
+    msg["List-Unsubscribe"] = f"<mailto:{os.environ['SMTP_USER']}?subject=unsubscribe>"
     msg.set_content(text)
     if html:
         msg.add_alternative(html, subtype="html")

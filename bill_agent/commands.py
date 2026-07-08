@@ -15,26 +15,33 @@ sa nespracoval text pôvodnej pripomienky v odpovedi.
 import re
 
 from .emails import Email
+from .i18n import SUBJECT_MARKERS
 from .store import Store
 
-# musí sedieť s predmetom pripomienky v reminder.py
+# spätná kompatibilita: slovenský predmet (nové kontroly používajú SUBJECT_MARKERS)
 SUBJECT_MARKER = "platby a úlohy"
 
-_REPLY_PREFIXES = ("re:", "odp:", "odp.:", "aw:", "sv:", "fwd:", "fw:")
+_REPLY_PREFIXES = ("re:", "odp:", "odp.:", "aw:", "wg:", "sv:", "vá:", "fwd:", "fw:")
 
-# rozumieme aj českým a poľským tvarom (zaplaceno, zapłacone, gotowe, odłóż...)
+# rozumieme tvarom vo všetkých jazykoch mutácií: sk/cs/pl/de/hu
+# (zaplatené, zaplaceno, zapłacone, bezahlt, fizetve...)
 _PAID_RE = re.compile(
-    r"^(?:zaplat|zaplac|zap[łl]ac|op[łl]ac|uhrad|uhraz|paid)\S*\s+"
-    r"(\d+|v[sš]etko|v[sš]e(?:chno)?|wszystko)[.!]?\s*$", re.I)
+    r"^(?:zaplat|zaplac|zap[łl]ac|op[łl]ac|uhrad|uhraz|bezahl|fizet|kifizet|paid)\S*\s+"
+    r"(\d+|v[sš]etko|v[sš]e(?:chno)?|wszystko|alles|mind(?:en)?|all)[.!]?\s*$", re.I)
 _IGNORE_RE = re.compile(r"^ignor\S*\s+(\d+)[.!]?\s*$", re.I)
-_TASK_RE = re.compile(r"^(?:hotovo?|splnen|gotowe|zrobion)\S*\s+(\d+)[.!]?\s*$", re.I)
-_SNOOZE_WORD = r"(?:odlo[zž]|od[łl][oó][żz]|prze[łl][oó][żz])"
+_TASK_RE = re.compile(
+    r"^(?:hotovo?|splnen|gotowe|zrobion|erledigt|k[eé]sz|done)\S*\s+(\d+)[.!]?\s*$", re.I)
+_SNOOZE_WORD = r"(?:odlo[zž]|od[łl][oó][żz]|prze[łl][oó][żz]|verschieb|halaszd?|halaszt)"
 # "odlož úlohu 2 o 5" pred všeobecným "odlož 4 o 5" (platba)
+_SNOOZE_SEP = r"(?:o|um|na)"
 _SNOOZE_TASK_RE = re.compile(
-    _SNOOZE_WORD + r"\S*\s+(?:[uú]loh|[uú]kol|zadani)\S*\s+(\d+)(?:\s+o\s+(\d+))?[.!]?\s*$", re.I)
-_SNOOZE_RE = re.compile(_SNOOZE_WORD + r"\S*\s+(\d+)(?:\s+o\s+(\d+))?[.!]?\s*$", re.I)
+    _SNOOZE_WORD + r"\S*\s+(?:[uú]loh|[uú]kol|zadani|aufgabe|teend[oő])\S*\s+"
+    r"(\d+)(?:\s+" + _SNOOZE_SEP + r"\s+(\d+))?[.!]?\s*$", re.I)
+_SNOOZE_RE = re.compile(
+    _SNOOZE_WORD + r"\S*\s+(\d+)(?:\s+" + _SNOOZE_SEP + r"\s+(\d+))?[.!]?\s*$", re.I)
 
-_ALL_WORDS = {"vsetko", "všetko", "vše", "vse", "všechno", "vsechno", "wszystko"}
+_ALL_WORDS = {"vsetko", "všetko", "vše", "vse", "všechno", "vsechno", "wszystko",
+              "alles", "mind", "minden", "all"}
 
 DEFAULT_SNOOZE_DAYS = 3
 
@@ -42,7 +49,7 @@ DEFAULT_SNOOZE_DAYS = 3
 def is_command_email(mail: Email, allowed_senders: list[str]) -> bool:
     """Je to odpoveď na našu pripomienku od samotného používateľa?"""
     subject = mail.subject.lower().strip()
-    if SUBJECT_MARKER not in subject:
+    if not any(marker in subject for marker in SUBJECT_MARKERS):
         return False
     if not subject.startswith(_REPLY_PREFIXES):
         return False

@@ -25,7 +25,7 @@ from bill_agent import email_layout as ly
 from bill_agent.reminder import action_sig
 from bill_agent.store import Store
 
-from . import clientfs, mailer
+from . import clientfs, mailer, totp
 from .auth import Users, verify_password
 
 SECRET = os.environ.get("WEBAPP_SECRET", "")
@@ -216,14 +216,19 @@ def register_form(request: Request, lang: str = "sk"):
 
 @app.post("/register")
 def register(request: Request, email: str = Form(...), password: str = Form(...),
-             account_type: str = Form("business"), lang: str = Form("sk")):
+             account_type: str = Form("business"), lang: str = Form("sk"),
+             consent: str = Form("")):
     email = email.strip().lower()
     if account_type not in ("business", "personal", "both"):
         account_type = "business"
     if lang not in ("sk", "cs", "pl", "de", "hu"):
         lang = "sk"
+    if not consent:
+        return _render(request, "register.html", lang=lang,
+                       error="Registrácia vyžaduje súhlas s obchodnými "
+                             "podmienkami a spracovaním údajov.")
     if "@" not in email or len(password) < 8:
-        return _render(request, "register.html",
+        return _render(request, "register.html", lang=lang,
                        error="Zadajte platný e-mail a heslo aspoň 8 znakov.")
     users = Users()
     try:
@@ -283,6 +288,35 @@ def login(request: Request, email: str = Form(...), password: str = Form(...)):
         _LOGIN_FAILS.setdefault(key, []).append(time.time())
         return _render(request, "login.html", error="Nesprávny e-mail alebo heslo.")
     _LOGIN_FAILS.pop(key, None)
+    if user["totp_secret"]:
+        # druhý krok: kód z autentifikačnej appky (token platí krátko)
+        return _render(request, "login.html", totp_step=True,
+                       totp_t=_make_token("totp", user["id"], hours=1))
+    response = _redirect("/")
+    response.set_cookie("session", _session_cookie(user["id"]),
+                        httponly=True, max_age=30 * 86400, samesite="lax")
+    return response
+
+
+@app.post("/login/totp")
+def login_totp(request: Request, t: str = Form(...), code: str = Form(...)):
+    uid = _check_token("totp", t)
+    if uid is None:
+        return _render(request, "login.html",
+                       error="Overenie vypršalo — prihláste sa znova.")
+    if _login_blocked(f"totp:{uid}"):
+        return _render(request, "login.html",
+                       error="Príliš veľa neúspešných pokusov — skúste o 15 minút.")
+    users = Users()
+    try:
+        user = users.by_id(uid)
+    finally:
+        users.close()
+    if not user or not totp.verify(user["totp_secret"], code):
+        _LOGIN_FAILS.setdefault(f"totp:{uid}", []).append(time.time())
+        return _render(request, "login.html", totp_step=True, totp_t=t,
+                       error="Nesprávny kód — skúste znova.")
+    _LOGIN_FAILS.pop(f"totp:{uid}", None)
     response = _redirect("/")
     response.set_cookie("session", _session_cookie(user["id"]),
                         httponly=True, max_age=30 * 86400, samesite="lax")
@@ -778,6 +812,11 @@ def terms(request: Request, user=Depends(current_user)):
     return _render(request, "terms.html", user=user)
 
 
+@app.get("/dpa", response_class=HTMLResponse)
+def dpa(request: Request, user=Depends(current_user)):
+    return _render(request, "dpa.html", user=user)
+
+
 @app.get("/gdpr", response_class=HTMLResponse)
 def gdpr(request: Request, user=Depends(current_user)):
     return _render(request, "gdpr.html", user=user)
@@ -800,7 +839,7 @@ def sitemap(request: Request):
     urls = "".join(
         f"<url><loc>https://{host}{path}</loc></url>"
         for path in ("/", "/cs", "/pl", "/de", "/hu", "/register", "/login", "/navod",
-                     "/podmienky", "/gdpr")
+                     "/podmienky", "/gdpr", "/dpa")
     )
     xml = ('<?xml version="1.0" encoding="UTF-8"?>'
            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
@@ -929,6 +968,138 @@ async def save_settings(request: Request, user=Depends(current_user),
                        schedule=schedule,
                        account_type=account_type)
     return _redirect("/settings")
+
+
+# -- správa účtu: heslo, 2FA, export, zrušenie -------------------------------------
+
+def _settings_page(request: Request, user, **extra) -> HTMLResponse:
+    from bill_agent import taxcal
+    return _render(request, "settings.html", user=user,
+                   tax_profiles=taxcal.PROFILES,
+                   settings=clientfs.read_settings(user["client_dir"]), **extra)
+
+
+@app.post("/settings/password")
+def change_password(request: Request, user=Depends(current_user),
+                    old_password: str = Form(...), new_password: str = Form(...)):
+    if not user:
+        return _redirect("/login")
+    if not verify_password(old_password, user["pw_hash"]):
+        return _settings_page(request, user, pw_error="Súčasné heslo nesedí.")
+    if len(new_password) < 8:
+        return _settings_page(request, user,
+                              pw_error="Nové heslo musí mať aspoň 8 znakov.")
+    users = Users()
+    try:
+        users.set_password(user["id"], new_password)
+    finally:
+        users.close()
+    return _settings_page(request, user, pw_ok=True)
+
+
+@app.post("/settings/totp/start")
+def totp_start(request: Request, user=Depends(current_user)):
+    if not user:
+        return _redirect("/login")
+    secret = totp.new_secret()
+    return _settings_page(request, user, totp_setup=secret,
+                          totp_uri=totp.otpauth_uri(secret, user["email"]))
+
+
+@app.post("/settings/totp/confirm")
+def totp_confirm(request: Request, user=Depends(current_user),
+                 secret: str = Form(...), code: str = Form(...)):
+    if not user:
+        return _redirect("/login")
+    if not totp.verify(secret, code):
+        return _settings_page(request, user, totp_setup=secret,
+                              totp_uri=totp.otpauth_uri(secret, user["email"]),
+                              totp_error="Kód nesedí — skúste znova.")
+    users = Users()
+    try:
+        users.set_totp(user["id"], secret)
+    finally:
+        users.close()
+    return _redirect("/settings")
+
+
+@app.post("/settings/totp/disable")
+def totp_disable(request: Request, user=Depends(current_user),
+                 password: str = Form(...)):
+    if not user:
+        return _redirect("/login")
+    if not verify_password(password, user["pw_hash"]):
+        return _settings_page(request, user, totp_error="Heslo nesedí.")
+    users = Users()
+    try:
+        users.set_totp(user["id"], "")
+    finally:
+        users.close()
+    return _redirect("/settings")
+
+
+@app.get("/export")
+def export_data(request: Request, user=Depends(current_user)):
+    """Export dát klienta (GDPR — prenosnosť): platby, úlohy a denník pošty."""
+    import csv
+    import io
+    import zipfile
+
+    if not user:
+        return _redirect("/login")
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        db = _client_db(user)
+        tables = {"payments": "payments.csv", "tasks": "tasks.csv",
+                  "email_log": "emaily.csv", "renewals": "platnosti.csv"}
+        if os.path.exists(db):
+            store = Store(db)
+            try:
+                for table, filename in tables.items():
+                    rows = store.conn.execute(f"SELECT * FROM {table}").fetchall()
+                    out = io.StringIO()
+                    writer = csv.writer(out)
+                    if rows:
+                        writer.writerow(rows[0].keys())
+                        writer.writerows([tuple(r) for r in rows])
+                    zf.writestr(filename, out.getvalue())
+            finally:
+                store.close()
+        zf.writestr("ucet.txt",
+                    f"e-mail: {user['email']}\nstav: {user['status']}\n"
+                    f"registrácia: {user['created_at']}\n")
+    return Response(content=buf.getvalue(), media_type="application/zip",
+                    headers={"Content-Disposition":
+                             "attachment; filename=voru-export.zip"})
+
+
+@app.post("/account/delete")
+def delete_account(request: Request, user=Depends(current_user),
+                   password: str = Form(...)):
+    """Zrušenie účtu (právo na výmaz): zmaže dáta klienta aj používateľa."""
+    import shutil
+
+    if not user:
+        return _redirect("/login")
+    if not verify_password(password, user["pw_hash"]):
+        return _settings_page(request, user, delete_error="Heslo nesedí.")
+    shutil.rmtree(clientfs.client_path(user["client_dir"]), ignore_errors=True)
+    users = Users()
+    try:
+        users.delete(user["id"])
+    finally:
+        users.close()
+    response = _render(request, "message.html", title="Účet zrušený",
+                       body="Váš účet aj všetky dáta sme zmazali. "
+                            "Ďakujeme, že ste VORU vyskúšali.")
+    response.delete_cookie("session")
+    return response
+
+
+@app.get("/healthz", response_class=PlainTextResponse)
+def healthz():
+    """Kontrola behu pre uptime monitoring (UptimeRobot a pod.)."""
+    return "ok"
 
 
 @app.get("/qr/{payment_id}.png")

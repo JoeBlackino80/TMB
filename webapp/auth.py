@@ -55,6 +55,10 @@ class Users:
         cols = {r["name"] for r in self.conn.execute("PRAGMA table_info(users)")}
         if "verified" not in cols:
             self.conn.execute("ALTER TABLE users ADD COLUMN verified INTEGER NOT NULL DEFAULT 1")
+        # migrácia: dvojfaktorové overenie (prázdny secret = vypnuté)
+        if "totp_secret" not in cols:
+            self.conn.execute(
+                "ALTER TABLE users ADD COLUMN totp_secret TEXT NOT NULL DEFAULT ''")
         self.conn.commit()
 
     def close(self) -> None:
@@ -89,6 +93,17 @@ class Users:
 
     def mark_verified(self, user_id: int) -> None:
         self.conn.execute("UPDATE users SET verified = 1 WHERE id = ?", (user_id,))
+        self.conn.commit()
+
+    def set_totp(self, user_id: int, secret: str) -> None:
+        """Zapne ('' vypne) dvojfaktorové overenie."""
+        self.conn.execute("UPDATE users SET totp_secret = ? WHERE id = ?",
+                          (secret, user_id))
+        self.conn.commit()
+
+    def delete(self, user_id: int) -> None:
+        """Zmaže účet (právo na výmaz) — dáta klienta maže volajúci."""
+        self.conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
         self.conn.commit()
 
     def by_email(self, email: str) -> Optional[sqlite3.Row]:

@@ -91,8 +91,8 @@ def client(tmp_path, monkeypatch):
 
 
 def test_schedule_settings_roundtrip(client, tmp_path):
-    client.post("/register", data={"email": "roz@x.sk", "password": "tajneheslo"})
-    session = client.post("/login", data={"email": "roz@x.sk", "password": "tajneheslo"}).cookies["session"]
+    client.post("/register", data={"email": "roz@x.sk", "password": "tajneheslo", "consent": "1"})
+    session = client.post("/login", data={"email": "roz@x.sk", "password": "tajneheslo", "consent": "1"}).cookies["session"]
     r = client.post("/settings", data={
         "reminder_to": "roz@x.sk", "pdf_passwords": "",
         "own_iban": "", "own_name": "",

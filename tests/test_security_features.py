@@ -62,8 +62,8 @@ def client(tmp_path, monkeypatch):
 
 
 def _register(client, email="u@x.sk"):
-    client.post("/register", data={"email": email, "password": "tajneheslo"})
-    return client.post("/login", data={"email": email, "password": "tajneheslo"}).cookies["session"]
+    client.post("/register", data={"email": email, "password": "tajneheslo", "consent": "1"})
+    return client.post("/login", data={"email": email, "password": "tajneheslo", "consent": "1"}).cookies["session"]
 
 
 # -- overenie e-mailu a reset hesla ---------------------------------------------------

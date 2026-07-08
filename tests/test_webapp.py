@@ -20,7 +20,7 @@ def client(tmp_path, monkeypatch):
 
 def test_register_login_and_mailbox_flow(client, tmp_path):
     # registrácia vytvorí účet, klientsky adresár a prihlási
-    r = client.post("/register", data={"email": "jan@firma.sk", "password": "tajneheslo"})
+    r = client.post("/register", data={"email": "jan@firma.sk", "password": "tajneheslo", "consent": "1"})
     assert r.status_code == 303 and "session" in r.cookies
     assert (tmp_path / "clients" / "jan-firma-sk" / ".env").exists()
 
@@ -29,7 +29,7 @@ def test_register_login_and_mailbox_flow(client, tmp_path):
     assert r.status_code == 200 and "Prehľad" in r.text
 
     # pridanie schránky (IMAP kontrola preskočená cez env)
-    session = client.post("/login", data={"email": "jan@firma.sk", "password": "tajneheslo"}).cookies["session"]
+    session = client.post("/login", data={"email": "jan@firma.sk", "password": "tajneheslo", "consent": "1"}).cookies["session"]
     r = client.post("/mailboxes", data={
         "name": "firma", "host": "mail.webhouse.sk", "port": "993",
         "imap_user": "jan@firma.sk", "password": "x", "security": "ssl",
@@ -65,8 +65,8 @@ def test_seo_endpoints(client):
 def test_payment_and_task_actions(client, tmp_path):
     from bill_agent.store import Store
 
-    client.post("/register", data={"email": "akcie@x.sk", "password": "tajneheslo"})
-    session = client.post("/login", data={"email": "akcie@x.sk", "password": "tajneheslo"}).cookies["session"]
+    client.post("/register", data={"email": "akcie@x.sk", "password": "tajneheslo", "consent": "1"})
+    session = client.post("/login", data={"email": "akcie@x.sk", "password": "tajneheslo", "consent": "1"}).cookies["session"]
 
     db = tmp_path / "clients" / "akcie-x-sk" / "bill_agent.db"
     store = Store(str(db))
@@ -91,13 +91,13 @@ def test_payment_and_task_actions(client, tmp_path):
 
 
 def test_admin_only_for_admin(client, tmp_path):
-    client.post("/register", data={"email": "obycajny@x.sk", "password": "tajneheslo"})
-    s1 = client.post("/login", data={"email": "obycajny@x.sk", "password": "tajneheslo"}).cookies["session"]
+    client.post("/register", data={"email": "obycajny@x.sk", "password": "tajneheslo", "consent": "1"})
+    s1 = client.post("/login", data={"email": "obycajny@x.sk", "password": "tajneheslo", "consent": "1"}).cookies["session"]
     r = client.get("/admin", cookies={"session": s1})
     assert r.status_code == 303  # presmerovaný preč
 
-    client.post("/register", data={"email": "admin@test.sk", "password": "tajneheslo"})
-    s2 = client.post("/login", data={"email": "admin@test.sk", "password": "tajneheslo"}).cookies["session"]
+    client.post("/register", data={"email": "admin@test.sk", "password": "tajneheslo", "consent": "1"})
+    s2 = client.post("/login", data={"email": "admin@test.sk", "password": "tajneheslo", "consent": "1"}).cookies["session"]
     r = client.get("/admin", cookies={"session": s2})
     assert r.status_code == 200 and "obycajny@x.sk" in r.text
 
@@ -109,7 +109,7 @@ def test_email_action_links(client, tmp_path):
     from bill_agent import reminder
     from bill_agent.store import Store
 
-    client.post("/register", data={"email": "klik@x.sk", "password": "tajneheslo"})
+    client.post("/register", data={"email": "klik@x.sk", "password": "tajneheslo", "consent": "1"})
     db = tmp_path / "clients" / "klik-x-sk" / "bill_agent.db"
     store = Store(str(db))
     store.clear_demo()
@@ -173,7 +173,7 @@ def test_bulk_paid_action(client, tmp_path):
     from bill_agent import reminder
     from bill_agent.store import Store
 
-    client.post("/register", data={"email": "bulk@x.sk", "password": "tajneheslo"})
+    client.post("/register", data={"email": "bulk@x.sk", "password": "tajneheslo", "consent": "1"})
     db = tmp_path / "clients" / "bulk-x-sk" / "bill_agent.db"
     store = Store(str(db))
     store.clear_demo()
