@@ -48,6 +48,9 @@
 }
 </script>
 {% include "_landing_style.html" %}
+{% if plausible_domain %}
+<script defer data-domain="{{ plausible_domain }}" src="https://plausible.io/js/script.js"></script>
+{% endif %}
 </head>
 <body>
 

@@ -119,3 +119,115 @@ def test_delete_account(client, tmp_path):
     assert client.get("/settings", cookies={"session": s}).status_code == 303
     r = client.post("/login", data={"email": "prec@x.sk", "password": "tajneheslo"})
     assert "Nesprávny" in r.text
+
+
+def test_referral_program(client):
+    from datetime import date, timedelta
+
+    from webapp.auth import Users
+
+    _register(client, "odporuca@x.sk")
+    users = Users()
+    referrer = users.by_email("odporuca@x.sk")
+    users.close()
+    base_trial = date.fromisoformat(referrer["trial_until"])
+
+    # registrácia cez referral odkaz
+    r = client.post("/register", data={"email": "novy@x.sk", "password": "tajneheslo",
+                                       "consent": "1", "ref": referrer["client_dir"]})
+    assert r.status_code == 303
+
+    users = Users()
+    new_user = users.by_email("novy@x.sk")
+    referrer = users.by_email("odporuca@x.sk")
+    n = users.count_referrals(referrer["client_dir"])
+    users.close()
+    assert new_user["referred_by"] == referrer["client_dir"]
+    assert n == 1
+    # nový: 14 + 14 dní, odporúčajúci: +30 dní
+    assert date.fromisoformat(new_user["trial_until"]) == date.today() + timedelta(days=28)
+    assert date.fromisoformat(referrer["trial_until"]) == base_trial + timedelta(days=30)
+
+    # neexistujúci ref registráciu nerozbije a nič nepredĺži
+    r = client.post("/register", data={"email": "dalsi@x.sk", "password": "tajneheslo",
+                                       "consent": "1", "ref": "neexistuje"})
+    assert r.status_code == 303
+    users = Users()
+    assert users.by_email("dalsi@x.sk")["referred_by"] == ""
+    users.close()
+
+    # referral odkaz je na stránke predplatného
+    s = client.post("/login", data={"email": "odporuca@x.sk",
+                                    "password": "tajneheslo"}).cookies["session"]
+    r = client.get("/billing", cookies={"session": s})
+    assert f"/register?ref={referrer['client_dir']}" in r.text
+
+
+def test_push_endpoints(client, tmp_path, monkeypatch):
+    import json as _json
+
+    # bez VAPID kľúča: /push/key 404
+    monkeypatch.delenv("VAPID_PRIVATE_KEY", raising=False)
+    assert client.get("/push/key").status_code == 404
+
+    # s kľúčom vráti odvodený verejný kľúč
+    from webapp import push as push_mod
+    private, public = push_mod.generate_keys()
+    monkeypatch.setenv("VAPID_PRIVATE_KEY", private)
+    r = client.get("/push/key")
+    assert r.status_code == 200 and r.json()["key"] == public
+
+    # subscribe uloží odber do adresára klienta, unsubscribe ho odstráni
+    s = _register(client, "push@x.sk")
+    sub = {"endpoint": "https://push.example/abc", "keys": {"p256dh": "X", "auth": "Y"}}
+    r = client.post("/push/subscribe", json=sub, cookies={"session": s})
+    assert r.status_code == 200
+    path = tmp_path / "clients" / "push-x-sk" / "push_subscriptions.json"
+    assert _json.loads(path.read_text())[0]["endpoint"] == sub["endpoint"]
+
+    r = client.post("/push/unsubscribe", json={"endpoint": sub["endpoint"]},
+                    cookies={"session": s})
+    assert r.status_code == 200 and _json.loads(path.read_text()) == []
+
+
+def test_send_push(tmp_path, monkeypatch):
+    import json as _json
+    import sys
+    import types
+
+    from bill_agent import push_notify
+
+    monkeypatch.chdir(tmp_path)
+    # bez konfigurácie sa nič neposiela
+    monkeypatch.delenv("VAPID_PRIVATE_KEY", raising=False)
+    assert push_notify.send_push("T", "B") == 0
+
+    monkeypatch.setenv("VAPID_PRIVATE_KEY", "k")
+    (tmp_path / "push_subscriptions.json").write_text(_json.dumps([
+        {"endpoint": "https://push.example/ok"},
+        {"endpoint": "https://push.example/gone"},
+    ]))
+
+    class FakeResponse:
+        status_code = 410
+
+    class FakeWebPushException(Exception):
+        response = FakeResponse()
+
+    calls = []
+
+    def fake_webpush(subscription_info, **kw):
+        calls.append(subscription_info["endpoint"])
+        if subscription_info["endpoint"].endswith("gone"):
+            raise FakeWebPushException("gone")
+
+    fake = types.ModuleType("pywebpush")
+    fake.webpush = fake_webpush
+    fake.WebPushException = FakeWebPushException
+    monkeypatch.setitem(sys.modules, "pywebpush", fake)
+
+    assert push_notify.send_push("Titulok", "Telo") == 1
+    assert len(calls) == 2
+    # zaniknutý odber (410) sa zo súboru odstránil
+    left = _json.loads((tmp_path / "push_subscriptions.json").read_text())
+    assert [s["endpoint"] for s in left] == ["https://push.example/ok"]

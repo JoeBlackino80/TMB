@@ -33,6 +33,16 @@
   {% endif %}
 </div>
 
+{% if google_oauth %}
+<div class="card">
+  <h2>Gmail jedným klikom</h2>
+  <p class="muted">Gmail pripojíte bez hesla aplikácie — prihlásite sa
+     u Googlu a povolíte VORU čítanie schránky. Prístup viete kedykoľvek
+     odobrať na myaccount.google.com.</p>
+  <a class="btn" href="/oauth/google/start">Pripojiť Gmail cez Google</a>
+</div>
+{% endif %}
+
 <div class="card">
   <h2>Pridať schránku</h2>
   <p class="muted">Vyberte poskytovateľa — nastavenia servera vyplníme za vás.

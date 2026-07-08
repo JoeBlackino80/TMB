@@ -139,7 +139,45 @@ unikátnu adresu (napr. `prijem+a1b2c3d4@voru.sk`).
 `/root/backups` (drží 14 dní). Odporúčame obsah `/root/backups` synchronizovať
 aj mimo servera (Hetzner Storage Box, rsync).
 
-## 6e. Doručiteľnosť pošty (SPF, DKIM, DMARC) — POVINNÉ
+## 6e. Gmail jedným klikom (OAuth, voliteľné — odporúčané)
+
+Najväčšia bariéra onboardingu je App Password. S OAuth klient pripojí
+Gmail dvomi klikmi:
+
+1. [console.cloud.google.com](https://console.cloud.google.com) → nový projekt
+   „VORU“ → **APIs & Services → OAuth consent screen**: External, vyplňte
+   názov + domény, scope `https://mail.google.com/` a `email`. Kým je app
+   v režime Testing, funguje len pridaným testerom; na produkciu požiadajte
+   o overenie (Google si vyžiada video ukážku — rátajte s pár týždňami).
+2. **Credentials → Create OAuth client ID** → Web application; Authorized
+   redirect URI: `https://voru.sk/oauth/google/callback`.
+3. Do `.env.master`:
+   ```
+   GOOGLE_CLIENT_ID=....apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=GOCSPX-...
+   ```
+4. `systemctl restart platby-web` — na stránke Schránky pribudne
+   „Pripojiť Gmail cez Google“. Refresh token sa ukladá šifrovane
+   do accounts.ini (`auth = oauth_google`); agent si prístupový token
+   obnovuje sám.
+
+## 6f. Push notifikácie do telefónu (voliteľné)
+
+1. Vygenerujte VAPID kľúče: `.venv/bin/python -m webapp.push`
+2. Výstup pridajte do `.env.master` (VAPID_PRIVATE_KEY, VAPID_CLAIM_EMAIL)
+   a reštartujte web aj cron prostredie.
+3. Klient si notifikácie zapne v Nastaveniach (po nainštalovaní PWA na
+   plochu). Ranná pripomienka potom okrem e-mailu pošle aj push
+   „X platieb čaká na úhradu“.
+
+## 6g. Analytika návštevnosti (voliteľné)
+
+Súkromiu priateľská analytika bez cookies: účet na
+[plausible.io](https://plausible.io) (alebo self-host) a do `.env.master`
+`PLAUSIBLE_DOMAIN=voru.sk`. Meria sa len verejný web (landing, registrácia),
+prihlásená aplikácia nie.
+
+## 6h. Doručiteľnosť pošty (SPF, DKIM, DMARC) — POVINNÉ
 
 Celá služba stojí na e-mailoch — bez týchto DNS záznamov skončia pripomienky
 v spame. Nastavte pre doménu, z ktorej odchádza pošta (SMTP_USER):
@@ -161,7 +199,7 @@ v spame. Nastavte pre doménu, z ktorej odchádza pošta (SMTP_USER):
 Aplikácia pridáva hlavičku `List-Unsubscribe` automaticky (Gmail ju od
 pravidelných odosielateľov vyžaduje).
 
-## 6f. Monitoring
+## 6i. Monitoring
 
 - **Uptime**: aplikácia má endpoint `GET /healthz` (vracia `ok`).
   Na [uptimerobot.com](https://uptimerobot.com) (zadarmo) pridajte HTTP

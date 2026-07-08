@@ -133,6 +133,59 @@
 </div>
 
 <div class="card">
+  <h2>Push notifikácie</h2>
+  <p class="muted">Ranné upozornenie na čakajúce platby priamo do telefónu —
+     funguje po nainštalovaní VORU na plochu (pozri Mobilná aplikácia nižšie).</p>
+  <p id="push-status" class="muted"></p>
+  <button type="button" id="push-btn" class="small" style="display:none"></button>
+  <script>
+  (async () => {
+    const st = document.getElementById('push-status');
+    const btn = document.getElementById('push-btn');
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      st.textContent = 'Tento prehliadač push notifikácie nepodporuje.'; return;
+    }
+    const keyResp = await fetch('/push/key');
+    if (!keyResp.ok) {
+      st.textContent = 'Server zatiaľ nemá nastavené notifikačné kľúče.'; return;
+    }
+    const { key } = await keyResp.json();
+    const toKey = s => Uint8Array.from(
+      atob((s + '='.repeat((4 - s.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/')),
+      c => c.charCodeAt(0));
+    const reg = await navigator.serviceWorker.ready;
+    const render = async () => {
+      const sub = await reg.pushManager.getSubscription();
+      btn.style.display = '';
+      btn.textContent = sub ? 'Vypnúť notifikácie' : 'Zapnúť notifikácie';
+      st.textContent = sub ? 'Notifikácie sú na tomto zariadení zapnuté.' : '';
+      btn.onclick = async () => {
+        if (sub) {
+          await fetch('/push/unsubscribe', {method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({endpoint: sub.endpoint})});
+          await sub.unsubscribe();
+        } else {
+          try {
+            const s = await reg.pushManager.subscribe(
+              {userVisibleOnly: true, applicationServerKey: toKey(key)});
+            await fetch('/push/subscribe', {method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(s.toJSON())});
+          } catch (e) {
+            st.textContent = 'Notifikácie sa nepodarilo zapnúť (povolenie zamietnuté?).';
+            return;
+          }
+        }
+        render();
+      };
+    };
+    render();
+  })();
+  </script>
+</div>
+
+<div class="card">
   <h2>Vaše dáta</h2>
   <p class="muted">Kompletný export evidencie (platby, úlohy, denník pošty,
      stráženia platnosti) ako CSV v ZIP archíve.</p>

@@ -135,6 +135,67 @@ def epc(
     return "\n".join(lines)
 
 
+def hu_bic(iban: str) -> str:
+    """BIC maďarskej banky z IBANu (register GIRO cez schwifty), '' ak neznámy."""
+    try:
+        from schwifty import IBAN
+
+        bic = str(IBAN(iban.replace(" ", "")).bic or "")
+        return (bic[:8] if bic.endswith("XXX") else bic) or ""
+    except Exception:
+        return ""
+
+
+def mnb_hct(
+    *, iban: str, amount: float, beneficiary_name: str,
+    bic: str = "", remittance: str = "", valid_days: int = 30,
+) -> str:
+    """Maďarský QR kód platby podľa štandardu MNB (HCT, okamžité prevody).
+
+    17 polí oddelených LF (aj za posledným), suma len v HUF a celých
+    forintoch, BIC príjemcu je povinný — bez neho kód nevygenerujeme.
+    Skenujú ho maďarské bankové appky (OTP, K&H, Erste, Raiffeisen...).
+    """
+    iban = iban.replace(" ", "").upper()
+    bic = (bic or hu_bic(iban)).replace(" ", "").upper()
+    if not bic:
+        raise ValueError("BIC príjemcu sa nepodarilo určiť z IBANu")
+    name = (beneficiary_name or "").strip()[:70]
+    if not name:
+        raise ValueError("Meno príjemcu je pre MNB QR povinné")
+
+    from datetime import datetime, timedelta, timezone
+    try:
+        from zoneinfo import ZoneInfo
+
+        local = datetime.now(ZoneInfo("Europe/Budapest"))
+    except Exception:
+        local = datetime.now(timezone(timedelta(hours=1)))
+    validity = local + timedelta(days=valid_days)
+    offset_hours = int(validity.utcoffset().total_seconds() // 3600)
+    validity_str = validity.strftime("%Y%m%d%H%M%S") + f"+{offset_hours}"
+
+    fields = [
+        "HCT",                                 # prevod zadáva platiteľ
+        "001",                                 # verzia
+        "1",                                   # znaková sada: UTF-8
+        bic,
+        name,
+        iban,
+        f"HUF{round(amount)}" if amount > 0 else "",
+        validity_str,
+        "",                                    # účel platby (kód)
+        (remittance or "").strip()[:70],       # správa pre príjemcu
+        "", "", "", "", "", "", "",            # obchodné identifikátory
+    ]
+    code = "\n".join(fields) + "\n"
+    if len(code.encode()) > 345:
+        # skrátime správu — limit štandardu je 345 bajtov
+        fields[9] = fields[9][:20]
+        code = "\n".join(fields) + "\n"
+    return code
+
+
 def qr_png(code: str) -> bytes:
     """Vyrenderuje PAY by square reťazec do QR kódu (PNG bajty)."""
     import qrcode

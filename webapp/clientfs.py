@@ -111,6 +111,7 @@ def list_mailboxes(client_dir: str) -> list[dict]:
             "host": parser[section].get("host", ""),
             "user": parser[section].get("user", ""),
             "security": parser[section].get("security", "ssl"),
+            "auth": parser[section].get("auth", "password"),
         }
         for section in parser.sections()
     ]
@@ -119,6 +120,7 @@ def list_mailboxes(client_dir: str) -> list[dict]:
 def add_mailbox(
     client_dir: str, *, name: str, host: str, port: int, user: str,
     password: str, security: str = "ssl", folder: str = "INBOX",
+    auth: str = "password",
 ) -> None:
     parser = configparser.ConfigParser()
     parser.read(_accounts_file(client_dir), encoding="utf-8")
@@ -128,7 +130,7 @@ def add_mailbox(
     parser[name].update({
         "host": host, "port": str(port), "user": user,
         "password": crypto.encrypt(password, crypto.secret_from_env()),
-        "security": security, "folder": folder,
+        "security": security, "folder": folder, "auth": auth,
     })
     with open(_accounts_file(client_dir), "w", encoding="utf-8") as fh:
         parser.write(fh)

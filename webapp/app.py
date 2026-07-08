@@ -12,6 +12,7 @@ import hmac
 import imaplib
 import json
 import os
+import re
 import time
 from datetime import date
 from urllib.parse import quote
@@ -203,21 +204,23 @@ def _send_welcome(request: Request, user, lang: str = "sk") -> None:
 
 def _render(request: Request, template: str, **ctx) -> HTMLResponse:
     ctx.setdefault("user", None)
+    # analytika (Plausible — bez cookies): zapína sa nastavením PLAUSIBLE_DOMAIN
+    ctx.setdefault("plausible_domain", os.environ.get("PLAUSIBLE_DOMAIN", ""))
     return templates.TemplateResponse(request, template, ctx)
 
 
 # -- registrácia a prihlásenie ------------------------------------------------
 
 @app.get("/register", response_class=HTMLResponse)
-def register_form(request: Request, lang: str = "sk"):
-    return _render(request, "register.html",
+def register_form(request: Request, lang: str = "sk", ref: str = ""):
+    return _render(request, "register.html", ref=ref[:80],
                    lang=lang if lang in ("sk", "cs", "pl", "de", "hu") else "sk")
 
 
 @app.post("/register")
 def register(request: Request, email: str = Form(...), password: str = Form(...),
              account_type: str = Form("business"), lang: str = Form("sk"),
-             consent: str = Form("")):
+             consent: str = Form(""), ref: str = Form("")):
     email = email.strip().lower()
     if account_type not in ("business", "personal", "both"):
         account_type = "business"
@@ -236,6 +239,13 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
             return _render(request, "register.html", error="Účet už existuje — prihláste sa.")
         # bez SMTP sa overovací e-mail nedá poslať — účet je overený rovno
         user = users.create(email, password, verified=not mailer.smtp_configured())
+        # referral: obom predĺžime skúšobnú dobu (novému +14, odporúčajúcemu +30)
+        referrer = users.by_client_dir(ref.strip()) if ref.strip() else None
+        if referrer and referrer["id"] != user["id"]:
+            users.set_referred_by(user["id"], referrer["client_dir"])
+            users.extend_trial(user["id"], 14)
+            users.extend_trial(referrer["id"], 30)
+            user = users.by_id(user["id"])
     finally:
         users.close()
     clientfs.ensure_client(user["client_dir"], reminder_to=email,
@@ -795,6 +805,16 @@ def service_worker():
         "    new Response('<h1>Ste offline</h1><p>VORU potrebuje pripojenie.</p>',\n"
         "      {headers: {'Content-Type': 'text/html; charset=utf-8'}})));\n"
         "});\n"
+        "self.addEventListener('push', e => {\n"
+        "  const d = e.data ? e.data.json() : {};\n"
+        "  e.waitUntil(self.registration.showNotification(d.title || 'VORU', {\n"
+        "    body: d.body || '', icon: '/apple-touch-icon.png',\n"
+        "    badge: '/apple-touch-icon.png', data: {url: d.url || '/'}}));\n"
+        "});\n"
+        "self.addEventListener('notificationclick', e => {\n"
+        "  e.notification.close();\n"
+        "  e.waitUntil(clients.openWindow(e.notification.data.url || '/'));\n"
+        "});\n"
     )
     return Response(content=js, media_type="application/javascript",
                     headers={"Cache-Control": "public, max-age=3600"})
@@ -885,7 +905,80 @@ def mailboxes(request: Request, user=Depends(current_user)):
             forward_addr = template.replace("{token}", token)
     return _render(request, "mailboxes.html", user=user,
                    forward_addr=forward_addr,
+                   google_oauth=bool(os.environ.get("GOOGLE_CLIENT_ID", "")),
                    mailboxes=clientfs.list_mailboxes(user["client_dir"]))
+
+
+# -- Gmail cez OAuth (bez app password) ---------------------------------------------
+
+_GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
+_GOOGLE_SCOPE = "https://mail.google.com/ openid email"
+
+
+@app.get("/oauth/google/start")
+def google_oauth_start(request: Request, user=Depends(current_user)):
+    if not user:
+        return _redirect("/login")
+    if not os.environ.get("GOOGLE_CLIENT_ID"):
+        return _redirect("/mailboxes")
+    params = {
+        "client_id": os.environ["GOOGLE_CLIENT_ID"],
+        "redirect_uri": f"{_base_url(request)}/oauth/google/callback",
+        "response_type": "code",
+        "scope": _GOOGLE_SCOPE,
+        "access_type": "offline",
+        "prompt": "consent",          # vždy vráti refresh token
+        "state": _make_token("oauth", user["id"], hours=1),
+    }
+    from urllib.parse import urlencode
+
+    return _redirect(f"{_GOOGLE_AUTH_URL}?{urlencode(params)}")
+
+
+@app.get("/oauth/google/callback", response_class=HTMLResponse)
+def google_oauth_callback(request: Request, user=Depends(current_user),
+                          code: str = "", state: str = "", error: str = ""):
+    if not user:
+        return _redirect("/login")
+    if error or not code or _check_token("oauth", state) != user["id"]:
+        return _render(request, "message.html", user=user,
+                       title="Pripojenie Gmailu sa nepodarilo",
+                       body="Google prihlásenie bolo prerušené alebo vypršalo. "
+                            "Skúste to znova.",
+                       cta="/mailboxes", cta_label="Späť na schránky")
+    import urllib.parse
+    import urllib.request
+
+    from bill_agent.google_oauth import TOKEN_URL
+
+    data = urllib.parse.urlencode({
+        "client_id": os.environ["GOOGLE_CLIENT_ID"],
+        "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET", ""),
+        "code": code,
+        "grant_type": "authorization_code",
+        "redirect_uri": f"{_base_url(request)}/oauth/google/callback",
+    }).encode()
+    try:
+        with urllib.request.urlopen(
+            urllib.request.Request(TOKEN_URL, data=data), timeout=20
+        ) as resp:
+            tokens = json.load(resp)
+        refresh_token = tokens["refresh_token"]
+        # e-mail adresa je v id_tokene (prišiel priamo od Googlu cez TLS,
+        # podpis netreba overovať)
+        payload = tokens["id_token"].split(".")[1]
+        payload = base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4))
+        email = json.loads(payload)["email"].lower()
+    except Exception:
+        return _render(request, "message.html", user=user,
+                       title="Pripojenie Gmailu sa nepodarilo",
+                       body="Google nevrátil prístupové údaje. Skúste to znova.",
+                       cta="/mailboxes", cta_label="Späť na schránky")
+    name = "gmail-" + re.sub(r"[^a-z0-9]+", "-", email.split("@")[0]).strip("-")
+    clientfs.add_mailbox(user["client_dir"], name=name, host="imap.gmail.com",
+                         port=993, user=email, password=refresh_token,
+                         security="ssl", auth="oauth_google")
+    return _redirect("/mailboxes")
 
 
 @app.post("/mailboxes")
@@ -1102,6 +1195,58 @@ def healthz():
     return "ok"
 
 
+# -- push notifikácie (PWA) ---------------------------------------------------------
+
+def _push_file(user) -> str:
+    from bill_agent.push_notify import SUBSCRIPTIONS_FILE
+
+    return os.path.join(clientfs.client_path(user["client_dir"]),
+                        SUBSCRIPTIONS_FILE)
+
+
+@app.get("/push/key")
+def push_key():
+    from . import push
+
+    key = push.public_key()
+    if not key:
+        return Response(status_code=404)
+    return {"key": key}
+
+
+@app.post("/push/subscribe")
+async def push_subscribe(request: Request, user=Depends(current_user)):
+    if not user:
+        return Response(status_code=401)
+    sub = await request.json()
+    if not isinstance(sub, dict) or "endpoint" not in sub:
+        return Response(status_code=400)
+    path = _push_file(user)
+    subs = []
+    if os.path.exists(path):
+        with open(path) as f:
+            subs = json.load(f)
+    subs = [s for s in subs if s.get("endpoint") != sub["endpoint"]] + [sub]
+    with open(path, "w") as f:
+        json.dump(subs[-5:], f)  # max 5 zariadení na klienta
+    return {"ok": True}
+
+
+@app.post("/push/unsubscribe")
+async def push_unsubscribe(request: Request, user=Depends(current_user)):
+    if not user:
+        return Response(status_code=401)
+    data = await request.json()
+    path = _push_file(user)
+    if os.path.exists(path):
+        with open(path) as f:
+            subs = json.load(f)
+        subs = [s for s in subs if s.get("endpoint") != data.get("endpoint")]
+        with open(path, "w") as f:
+            json.dump(subs, f)
+    return {"ok": True}
+
+
 @app.get("/qr/{payment_id}.png")
 def payment_qr(request: Request, payment_id: int, user=Depends(current_user)):
     """PAY by square / SPAYD QR kód platby ako PNG (len pre vlastné platby)."""
@@ -1169,8 +1314,15 @@ def billing(request: Request, user=Depends(current_user)):
     ref = quote(str(user["id"]))
     monthly = f"{STRIPE_LINK_MONTHLY}?client_reference_id={ref}" if STRIPE_LINK_MONTHLY else ""
     yearly = f"{STRIPE_LINK_YEARLY}?client_reference_id={ref}" if STRIPE_LINK_YEARLY else ""
+    users = Users()
+    try:
+        n_referrals = users.count_referrals(user["client_dir"])
+    finally:
+        users.close()
+    referral_link = f"{_base_url(request)}/register?ref={quote(user['client_dir'])}"
     return _render(request, "billing.html", user=user,
-                   monthly=monthly, yearly=yearly)
+                   monthly=monthly, yearly=yearly,
+                   referral_link=referral_link, n_referrals=n_referrals)
 
 
 def _verify_stripe_signature(payload: bytes, header: str) -> bool:

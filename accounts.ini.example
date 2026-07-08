@@ -32,3 +32,14 @@ port = 1143
 user = jan@proton.me
 password = heslo-z-bridge
 security = starttls
+
+# Gmail cez OAuth (bez app password) — túto sekciu vytvára webová aplikácia
+# sama pri „Pripojiť Gmail cez Google“. password je šifrovaný refresh token.
+# Vyžaduje GOOGLE_CLIENT_ID a GOOGLE_CLIENT_SECRET v prostredí.
+#[gmail-obchod]
+#host = imap.gmail.com
+#port = 993
+#user = obchod@gmail.com
+#password = <šifrovaný refresh token>
+#security = ssl
+#auth = oauth_google

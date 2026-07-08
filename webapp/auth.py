@@ -59,6 +59,10 @@ class Users:
         if "totp_secret" not in cols:
             self.conn.execute(
                 "ALTER TABLE users ADD COLUMN totp_secret TEXT NOT NULL DEFAULT ''")
+        # migrácia: referral program (client_dir odporúčajúceho)
+        if "referred_by" not in cols:
+            self.conn.execute(
+                "ALTER TABLE users ADD COLUMN referred_by TEXT NOT NULL DEFAULT ''")
         self.conn.commit()
 
     def close(self) -> None:
@@ -94,6 +98,32 @@ class Users:
     def mark_verified(self, user_id: int) -> None:
         self.conn.execute("UPDATE users SET verified = 1 WHERE id = ?", (user_id,))
         self.conn.commit()
+
+    def by_client_dir(self, client_dir: str) -> Optional[sqlite3.Row]:
+        return self.conn.execute(
+            "SELECT * FROM users WHERE client_dir = ?", (client_dir,)
+        ).fetchone()
+
+    def set_referred_by(self, user_id: int, referrer_client_dir: str) -> None:
+        self.conn.execute("UPDATE users SET referred_by = ? WHERE id = ?",
+                          (referrer_client_dir, user_id))
+        self.conn.commit()
+
+    def extend_trial(self, user_id: int, days: int) -> None:
+        """Predĺži skúšobnú dobu (odmena za odporúčanie)."""
+        row = self.by_id(user_id)
+        if not row:
+            return
+        base = max(date.fromisoformat(row["trial_until"]), date.today())
+        self.conn.execute(
+            "UPDATE users SET trial_until = ? WHERE id = ?",
+            ((base + timedelta(days=days)).isoformat(), user_id))
+        self.conn.commit()
+
+    def count_referrals(self, client_dir: str) -> int:
+        return self.conn.execute(
+            "SELECT COUNT(*) FROM users WHERE referred_by = ?", (client_dir,)
+        ).fetchone()[0]
 
     def set_totp(self, user_id: int, secret: str) -> None:
         """Zapne ('' vypne) dvojfaktorové overenie."""

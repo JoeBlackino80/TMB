@@ -24,4 +24,17 @@
        <a href="mailto:obchod@sorbxt.sk">obchod@sorbxt.sk</a>.</p>
   {% endif %}
 </div>
+
+<div class="card">
+  <h2>Odporučte VORU — mesiac zadarmo</h2>
+  <p class="muted">Za každého, kto sa zaregistruje cez váš odkaz, dostanete
+     <b>+30 dní</b> služby zadarmo — a nový používateľ <b>+14 dní</b>
+     skúšobnej doby navyše.</p>
+  <p><input readonly value="{{ referral_link }}" onclick="this.select()"
+            style="max-width:480px;font-size:13px"></p>
+  {% if n_referrals %}
+  <p class="muted">Cez váš odkaz sa už zaregistrovali:
+     <b>{{ n_referrals }}</b></p>
+  {% endif %}
+</div>
 {% endblock %}

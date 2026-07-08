@@ -85,8 +85,10 @@ def test_qr_routing_by_country(tmp_path):
 
     assert reminder._payment_qr(pay("AT611904300234573201")) is not None
     assert reminder._payment_qr(pay("DE89370400440532013000")) is not None
-    # maďarské forinty — bez jednotného QR štandardu sa kód neposiela
-    assert reminder._payment_qr(pay("HU42117730161111101800000000", "HUF")) is None
+    # maďarské forinty — MNB QR (HCT)
+    assert reminder._payment_qr(pay("HU42117730161111101800000000", "HUF")) is not None
+    # poľské zloté — jednotný QR štandard chýba, kód sa neposiela
+    assert reminder._payment_qr(pay("PL61109010140000071219812874", "PLN")) is None
 
 
 # -- SPAYD (české QR) ---------------------------------------------------------------

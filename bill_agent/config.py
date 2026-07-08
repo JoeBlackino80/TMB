@@ -31,10 +31,11 @@ class MailAccount:
     name: str
     host: str
     user: str
-    password: str
+    password: str          # heslo, alebo refresh token pri auth=oauth_google
     port: int = 993
     folder: str = "INBOX"
     security: str = "ssl"  # ssl | starttls | plain
+    auth: str = "password"  # password | oauth_google (XOAUTH2)
 
 
 @dataclass
@@ -127,6 +128,11 @@ class Config:
                     )
                 from . import crypto
 
+                auth = sec.get("auth", "password").strip().lower()
+                if auth not in ("password", "oauth_google"):
+                    raise SystemExit(
+                        f"accounts.ini [{section}]: auth musí byť password alebo oauth_google"
+                    )
                 accounts.append(MailAccount(
                     name=section,
                     host=sec.get("host").strip(),
@@ -135,6 +141,7 @@ class Config:
                     password=crypto.decrypt(sec.get("password"), crypto.secret_from_env()),
                     folder=sec.get("folder", "INBOX").strip(),
                     security=security,
+                    auth=auth,
                 ))
             if not accounts:
                 raise SystemExit(f"{self.accounts_file} neobsahuje žiadnu schránku.")

@@ -120,7 +120,15 @@ def fetch_recent(account: MailAccount, lookback_days: int) -> list[Email]:
 
     conn = _connect(account)
     try:
-        conn.login(account.user, account.password)
+        if getattr(account, "auth", "password") == "oauth_google":
+            from . import google_oauth
+
+            token = google_oauth.access_token(account.password)
+            conn.authenticate(
+                "XOAUTH2",
+                lambda _: google_oauth.xoauth2_string(account.user, token))
+        else:
+            conn.login(account.user, account.password)
         conn.select(account.folder, readonly=True)
         status, data = conn.search(None, f"(SINCE {since})")
         if status != "OK":

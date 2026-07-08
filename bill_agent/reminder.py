@@ -34,6 +34,8 @@ def _lang(cfg: Config | None) -> str:
 
 
 def _fmt_amount(p: Payment) -> str:
+    if p.currency == "HUF":  # forinty sa píšu bez desatín
+        return f"{p.amount:,.0f}".replace(",", " ") + " HUF"
     return f"{p.amount:,.2f}".replace(",", " ").replace(".", ",") + f" {p.currency}"
 
 
@@ -56,6 +58,13 @@ def _payment_qr(p: Payment) -> bytes | None:
                 variable_symbol=p.variable_symbol, due_date=due,
                 message=(p.supplier or "")[:60],
             )
+        elif country == "HU" and p.currency == "HUF":
+            # maďarské forinty: MNB QR (HCT) pre okamžité prevody
+            code = pay_by_square.mnb_hct(
+                iban=p.iban, amount=p.amount,
+                beneficiary_name=p.supplier or "Kedvezményezett",
+                remittance=(p.note or p.variable_symbol or p.supplier)[:70],
+            )
         elif country not in ("SK", "") and p.currency == "EUR":
             # ostatné EÚ účty (AT, DE...): EPC QR / Girocode
             code = pay_by_square.epc(
@@ -64,7 +73,7 @@ def _payment_qr(p: Payment) -> bytes | None:
                 remittance=(p.note or p.source_subject or p.supplier)[:140],
             )
         elif country not in ("SK", "") and p.currency != "EUR":
-            return None  # napr. maďarské forinty — jednotný QR štandard chýba
+            return None  # cudzia mena mimo HUF — jednotný QR štandard chýba
         else:
             code = pay_by_square.generate_code(
                 amount=p.amount,
@@ -327,4 +336,14 @@ def send_reminder(cfg: Config, store: Store) -> bool:
         subject = tr["subject_urgent"].format(n=n_urgent)
 
     send_email(cfg, subject, text, html, images)
+
+    # push notifikácia do telefónu (best-effort, ak si ju klient zapol)
+    total = sum(len(v) for v in groups.values())
+    if total:
+        from . import push_notify
+
+        body = i18n.plural(_lang(cfg), total, tr["summary_payments"])
+        if n_urgent:
+            body += tr["summary_urgent"].format(n=n_urgent)
+        push_notify.send_push(subject, body)
     return True
