@@ -9,6 +9,7 @@ e-mail — použije uložené súhrny a spraví len jedno volanie na naratív.
 from datetime import date, timedelta
 from html import escape
 
+from . import email_layout as ly
 from .config import Config
 from .store import Store
 
@@ -75,36 +76,51 @@ def build_digest(cfg: Config, store: Store, days: int) -> tuple[str, str, str] |
 
     narrative = _narrative(cfg, entries, days)
 
+    if days <= 1:
+        date_line = today.strftime("%-d.%-m.%Y")
+    else:
+        since = today - timedelta(days=days)
+        date_line = f"{since.strftime('%-d.%-m.')}–{today.strftime('%-d.%-m.%Y')}"
+
     text_lines: list[str] = [title, ""]
-    html: list[str] = [f"<h2>{title}</h2>"]
+    html: list[str] = [ly.heading(title, date_line)]
 
     if narrative:
         text_lines += [narrative, ""]
         paragraphs = "".join(
-            f"<p>{escape(p)}</p>" for p in narrative.split("\n\n") if p.strip()
+            f"<p style='margin:14px 0 0;font-family:{ly.FONT};font-size:14px;"
+            f"line-height:1.65;color:{ly.INK}'>{escape(p)}</p>"
+            for p in narrative.split("\n\n") if p.strip()
         )
-        html.append(f"<div style='max-width:600px'>{paragraphs}</div>")
+        html.append(paragraphs)
 
     # stav financií a úloh
     stat = (f"Nezaplatených platieb: {n_pending}"
             + (f" (z toho {n_urgent} súrnych!)" if n_urgent else "")
             + f" · aktívnych úloh: {len(tasks)}")
     text_lines += [stat, ""]
-    html.append(f"<p><b>{escape(stat)}</b><br><small>Podrobnosti a QR kódy sú "
-                "v poslednom e-maile „VORU: platby a úlohy“.</small></p>")
+    html.append(ly.note_box(
+        f"<b>{escape(stat)}</b><br><span style='font-size:12px;color:{ly.MUTED}'>"
+        "Podrobnosti a QR kódy sú v poslednom e-maile „VORU: platby a úlohy“."
+        "</span>",
+        tone="danger" if n_urgent else "neutral"))
 
     # strážca pravidelných faktúr — čo malo prísť a neprišlo
     missing = store.missing_recurring()
     if missing:
         text_lines.append("Pravidelné faktúry, ktoré tento cyklus neprišli:")
-        html.append("<h3 style='color:#97590a'>Pravidelné faktúry, ktoré neprišli</h3><ul>")
+        rows = []
         for m in missing:
             line = (f"{m['supplier']} — posledná {m['last_date']}, "
                     f"ďalšia sa čakala do {m['expected_by']}")
             text_lines.append(f"  • {line}")
-            html.append(f"<li>{escape(line)}</li>")
-        html.append("</ul><p><small>Skontrolujte, či faktúra nezapadla, "
-                    "alebo či nechodí inam.</small></p>")
+            rows.append(f"• {escape(line)}")
+        html.append(ly.note_box(
+            "<b>Pravidelné faktúry, ktoré neprišli</b><br>"
+            + "<br>".join(rows)
+            + f"<br><span style='font-size:12px;color:{ly.MUTED}'>Skontrolujte, "
+            "či faktúra nezapadla, alebo či nechodí inam.</span>",
+            tone="warn"))
         text_lines.append("")
 
     # rozpis podľa kategórií
@@ -117,15 +133,19 @@ def build_digest(cfg: Config, store: Store, days: int) -> tuple[str, str, str] |
             continue
         cat_title = _CATEGORY_TITLES[cat]
         text_lines.append(cat_title)
-        html.append(f"<h3>{cat_title} ({len(items)})</h3><ul>")
-        for e in items:
+        html.append(ly.section(cat_title, len(items)))
+        for i, e in enumerate(items):
             text_lines.append(f"  • {e.subject} — {e.summary}")
-            html.append(f"<li><b>{escape(e.subject or '(bez predmetu)')}</b>"
-                        f"<br><small>{escape(e.summary)}</small></li>")
-        html.append("</ul>")
+            html.append(ly.item_row(
+                f"<b>{escape(e.subject or '(bez predmetu)')}</b>"
+                f"<br><span style='font-size:12.5px;color:{ly.MUTED}'>"
+                f"{escape(e.summary)}</span>",
+                last=(i == len(items) - 1)))
         text_lines.append("")
 
-    return subject, "\n".join(text_lines), "".join(html)
+    preheader = narrative.split("\n")[0][:120] if narrative else stat
+    wrapped = ly.wrap("".join(html), preheader=preheader)
+    return subject, "\n".join(text_lines), wrapped
 
 
 _MONTHS_SK = ["január", "február", "marec", "apríl", "máj", "jún", "júl",
@@ -177,24 +197,33 @@ def build_monthly_report(cfg: Config, store: Store) -> tuple[str, str, str] | No
     if compare:
         text.append(compare)
     text += ["", "Podľa dodávateľov:"]
-    html = [f"<h2>{title}</h2>",
-            f"<p style='font-size:22px;margin:6px 0'><b>{_fmt_eur(total)}</b> "
-            f"<small style='color:#666'>· {len(rows)} platieb</small></p>"]
+    html = [ly.heading(title),
+            f"<p style='margin:16px 0 0;font-family:{ly.FONT};font-size:28px;"
+            f"font-weight:800;color:{ly.INK}'>{_fmt_eur(total)} "
+            f"<span style='font-size:13.5px;font-weight:500;color:{ly.MUTED}'>"
+            f"· {len(rows)} platieb</span></p>"]
     if compare:
-        html.append(f"<p style='color:#666'>{escape(compare)}</p>")
-    html.append("<table style='border-collapse:collapse;min-width:340px'>")
+        html.append(f"<p style='margin:4px 0 0;font-family:{ly.FONT};"
+                    f"font-size:13.5px;color:{ly.MUTED}'>{escape(compare)}</p>")
+    html.append(ly.section("Podľa dodávateľov"))
+    html.append("<table role='presentation' width='100%' cellpadding='0'"
+                " cellspacing='0' style='border-collapse:collapse'>")
     for supplier, amount in top:
         text.append(f"  {supplier}: {_fmt_eur(amount)}")
         html.append(
-            "<tr><td style='padding:4px 14px 4px 0;border-bottom:1px solid #eee'>"
+            f"<tr><td style='padding:8px 14px 8px 0;border-bottom:1px solid "
+            f"{ly.LINE2};font-family:{ly.FONT};font-size:13.5px;color:{ly.INK}'>"
             f"{escape(supplier)}</td>"
-            "<td style='padding:4px 0;border-bottom:1px solid #eee;"
-            f"text-align:right'><b>{escape(_fmt_eur(amount))}</b></td></tr>")
+            f"<td align='right' style='padding:8px 0;border-bottom:1px solid "
+            f"{ly.LINE2};font-family:{ly.FONT};font-size:13.5px;font-weight:700;"
+            f"color:{ly.INK};white-space:nowrap'>{escape(_fmt_eur(amount))}"
+            "</td></tr>")
     html.append("</table>")
-    html.append("<p style='color:#666'><small>Kompletné podklady (faktúry + CSV) "
-                "si stiahnete na prehľade v aplikácii — Podklady pre účtovníctvo."
-                "</small></p>")
-    return subject, "\n".join(text) + "\n", "".join(html)
+    footer = ("Kompletné podklady (faktúry + CSV) si stiahnete na prehľade "
+              "v aplikácii — Podklady pre účtovníctvo.")
+    preheader = f"Zaplatené spolu: {_fmt_eur(total)} ({len(rows)} platieb)"
+    wrapped = ly.wrap("".join(html), preheader=preheader, footer=footer)
+    return subject, "\n".join(text) + "\n", wrapped
 
 
 def send_monthly_report(cfg: Config, store: Store) -> bool:

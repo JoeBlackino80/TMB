@@ -8,6 +8,7 @@ from email.message import EmailMessage
 from email.utils import make_msgid
 from html import escape
 
+from . import email_layout as ly
 from . import pay_by_square
 from .config import Config
 from .store import Payment, Store, Task
@@ -19,12 +20,20 @@ _SECTION_TITLES = {
     "no_date": "Bez uvedenej splatnosti",
 }
 
-_SECTION_COLORS = {
-    "overdue": "#b42318",
-    "today": "#b54708",
-    "upcoming": "#175636",
-    "no_date": "#5f7268",
+_SECTION_TONES = {
+    "overdue": "danger",
+    "today": "warn",
+    "upcoming": "ok",
+    "no_date": "neutral",
 }
+
+
+def _plural(n: int, one: str, few: str, many: str) -> str:
+    if n == 1:
+        return f"{n} {one}"
+    if 2 <= n <= 4:
+        return f"{n} {few}"
+    return f"{n} {many}"
 
 
 def _fmt_amount(p: Payment) -> str:
@@ -91,10 +100,6 @@ def _action_url(cfg: Config | None, kind: str, item_id: int, action: str) -> str
             f"&i={item_id}&do={action}&s={sig}")
 
 
-_BTN = ("display:inline-block;padding:7px 14px;border-radius:8px;"
-        "text-decoration:none;font-size:13px;font-weight:bold;margin:8px 8px 0 0;")
-
-
 def _action_buttons(cfg: Config | None, kind: str, item_id: int) -> str:
     """HTML tlačidlá pod položkou; '' ak odkazy nie sú nakonfigurované."""
     if kind == "p":
@@ -102,17 +107,12 @@ def _action_buttons(cfg: Config | None, kind: str, item_id: int) -> str:
         if not paid:
             return ""
         snooze = _action_url(cfg, "p", item_id, "snooze")
-        return (
-            f"<br><a href='{paid}' style='{_BTN}background:#e5f5ec;color:#0b7a51;"
-            "border:1px solid #b7dfc9'>&#10003; Označiť ako zaplatené</a>"
-            f"<a href='{snooze}' style='{_BTN}background:#f6f6f2;color:#7c5c12;"
-            "border:1px solid #e3ddc8'>Odložiť o 3 dni</a>"
-        )
+        return ("<br>" + ly.button(paid, "&#10003; Označiť ako zaplatené", "ok")
+                + ly.button(snooze, "Odložiť o 3 dni", "soft"))
     done = _action_url(cfg, "t", item_id, "done")
     if not done:
         return ""
-    return (f"<br><a href='{done}' style='{_BTN}background:#e5f5ec;color:#0b7a51;"
-            "border:1px solid #b7dfc9'>&#10003; Hotovo</a>")
+    return "<br>" + ly.button(done, "&#10003; Hotovo", "ok")
 
 
 def build_reminder(
@@ -130,8 +130,24 @@ def build_reminder(
     if total_payments == 0 and not tasks and not tax_deadlines:
         return None
 
+    n_urgent = len(groups["overdue"]) + len(groups["today"])
+    summary_bits = []
+    if total_payments:
+        summary_bits.append(
+            _plural(total_payments, "platba čaká", "platby čakajú", "platieb čaká")
+            + " na úhradu" + (f", z toho {n_urgent} súrne" if n_urgent else ""))
+    if tasks:
+        summary_bits.append(_plural(len(tasks), "aktívna úloha", "aktívne úlohy",
+                                    "aktívnych úloh"))
+    preheader = " · ".join(summary_bits)
+    subtitle = preheader
+    if n_urgent:
+        subtitle = preheader.replace(
+            f"{n_urgent} súrne",
+            f"<b style='color:{ly.RED}'>{n_urgent} súrne</b>")
+
     text_lines: list[str] = []
-    html_parts: list[str] = ["<h2>Prehľad platieb a úloh</h2>"]
+    html_parts: list[str] = [ly.heading("Prehľad platieb a úloh", subtitle)]
     images: list[tuple[str, bytes]] = []
 
     for key in ("overdue", "today", "upcoming", "no_date"):
@@ -139,10 +155,10 @@ def build_reminder(
         if not payments:
             continue
         title = _SECTION_TITLES[key]
+        tone = _SECTION_TONES[key]
+        due_color = ly.tone_color(tone) if tone != "neutral" else ly.INK
         text_lines.append(f"\n{title}")
-        html_parts.append(
-            f"<h3 style='color:{_SECTION_COLORS[key]};margin:18px 0 6px'>{title}</h3>"
-        )
+        html_parts.append(ly.section(title, len(payments), tone))
         for p in payments:
             due = p.due_date or "—"
             text_lines.append(
@@ -150,49 +166,68 @@ def build_reminder(
                 f"splatnosť {due}, IBAN {p.iban or '—'}, VS {p.variable_symbol or '—'}"
                 + (f" ({p.note})" if p.note else "")
             )
+            note = ""
+            if p.note:
+                danger = "iný IBAN" in p.note
+                note = (f"<p style='margin:6px 0 0;font-family:{ly.FONT};"
+                        f"font-size:12.5px;line-height:1.55;"
+                        + (f"color:{ly.RED};font-weight:700" if danger
+                           else f"color:{ly.MUTED}")
+                        + f"'>{escape(p.note)}</p>")
             html_parts.append(
-                "<div style='border:1px solid #ddd;border-radius:8px;padding:12px;"
-                "margin:8px 0;max-width:560px'>"
-                f"<span style='background:#eee;border-radius:4px;padding:1px 7px;"
-                f"font-weight:bold'>č. {p.id}</span> &nbsp;"
-                f"<b>{escape(p.supplier or '(neznámy dodávateľ)')}</b> — "
-                f"<b>{escape(_fmt_amount(p))}</b><br>"
-                f"Splatnosť: <b>{escape(due)}</b><br>"
-                f"IBAN: {escape(p.iban or '—')} &nbsp; VS: {escape(p.variable_symbol or '—')}"
-                + (
-                    (f"<br><span style='color:#c00;font-weight:bold'>{escape(p.note)}</span>"
-                     if "iný IBAN" in p.note else f"<br>{escape(p.note)}")
-                    if p.note else ""
-                )
+                "<table role='presentation' width='100%' cellpadding='0'"
+                f" cellspacing='0' style='margin:8px 0'><tr><td style='border:1px"
+                f" solid {ly.LINE};border-radius:10px;padding:14px 16px'>"
+                "<table role='presentation' width='100%' cellpadding='0'"
+                " cellspacing='0'><tr>"
+                f"<td style='font-family:{ly.FONT};font-size:14.5px;font-weight:700;"
+                f"color:{ly.INK}'>{escape(p.supplier or '(neznámy dodávateľ)')}"
+                f" &nbsp;<span style='font-size:11px;font-weight:600;"
+                f"color:{ly.MUTED};background:{ly.BG};border-radius:6px;"
+                f"padding:2px 7px'>č. {p.id}</span></td>"
+                f"<td align='right' style='font-family:{ly.FONT};font-size:16px;"
+                f"font-weight:800;color:{ly.INK};white-space:nowrap'>"
+                f"{escape(_fmt_amount(p))}</td></tr></table>"
+                f"<p style='margin:8px 0 0;font-family:{ly.FONT};font-size:13px;"
+                f"line-height:1.7;color:{ly.MUTED}'>"
+                f"Splatnosť&nbsp;<b style='color:{due_color}'>{escape(due)}</b>"
+                f"<br>IBAN&nbsp;{escape(p.iban or '—')} &nbsp;·&nbsp; "
+                f"VS&nbsp;{escape(p.variable_symbol or '—')}</p>"
+                + note
             )
             png = _payment_qr(p)
             if png:
                 cid = make_msgid()
                 images.append((cid, png))
                 html_parts.append(
-                    f"<br><img src='cid:{cid[1:-1]}' width='170' height='170' "
-                    "alt='PAY by square QR' style='margin-top:8px'>"
-                    "<br><small>Naskenujte v bankovej appke a platbu potvrďte.</small>"
+                    "<div style='margin-top:12px;text-align:center'>"
+                    f"<img src='cid:{cid[1:-1]}' width='150' height='150' "
+                    "alt='QR kód platby' style='display:inline-block;"
+                    f"border:1px solid {ly.LINE2};border-radius:8px'>"
+                    f"<br><span style='font-family:{ly.FONT};font-size:11.5px;"
+                    f"color:{ly.FAINT}'>Naskenujte v bankovej appke "
+                    "a platbu potvrďte.</span></div>"
                 )
             html_parts.append(_action_buttons(cfg, "p", p.id))
             html_parts.append(
-                f"<br><small style='color:#888'>alebo odpovedzte na tento "
-                f"e-mail: <b>zaplatené {p.id}</b></small>"
-                "</div>"
+                ly.muted(f"alebo odpovedzte na tento e-mail: <b>zaplatené {p.id}</b>",
+                         "11.5px")
+                + "</td></tr></table>"
             )
 
     if tasks:
         text_lines.append("\nÚlohy")
-        html_parts.append("<h3 style='margin:18px 0 6px'>Úlohy</h3><ul>")
-        for t in tasks:
+        html_parts.append(ly.section("Úlohy", len(tasks)))
+        for i, t in enumerate(tasks):
             due = f" (do {t.due_date})" if t.due_date else ""
             text_lines.append(f"  [{t.id}] {t.description}{due}")
-            html_parts.append(
-                f"<li><b>č. {t.id}</b> — {escape(t.description)}{escape(due)}"
-                f" &nbsp;<small>(hotovo? odpovedzte: <b>hotovo {t.id}</b>)</small>"
-                f"{_action_buttons(cfg, 't', t.id)}</li>"
-            )
-        html_parts.append("</ul>")
+            html_parts.append(ly.item_row(
+                f"<b>č. {t.id}</b> — {escape(t.description)}"
+                + (f"<span style='color:{ly.MUTED}'>{escape(due)}</span>" if due else "")
+                + f" &nbsp;<span style='font-size:12px;color:{ly.FAINT}'>"
+                f"(hotovo? odpovedzte: <b>hotovo {t.id}</b>)</span>"
+                f"{_action_buttons(cfg, 't', t.id)}",
+                last=(i == len(tasks) - 1)))
 
     # blížiace sa konce platnosti (poistky, STK, domény...) — len informačne,
     # samy o sebe pripomienku nespúšťajú
@@ -201,43 +236,41 @@ def build_reminder(
         from .store import RENEWAL_LABELS
 
         text_lines.append("\nKončí platnosť")
-        html_parts.append(
-            "<h3 style='margin:18px 0 6px;color:#97590a'>Končí platnosť</h3><ul>")
-        for r in renewals:
+        html_parts.append(ly.section("Končí platnosť", tone="warn"))
+        for i, r in enumerate(renewals):
             label = RENEWAL_LABELS.get(r["kind"], "Koniec platnosti")
             line = f"{r['expires_on']}: {label}" + (f" — {r['subject']}" if r["subject"] else "")
             text_lines.append(f"  {line}")
-            html_parts.append(
-                f"<li><b>{escape(r['expires_on'])}</b> — {escape(label)}"
+            html_parts.append(ly.item_row(
+                f"<b>{escape(r['expires_on'])}</b> — {escape(label)}"
                 + (f": {escape(r['subject'])}" if r["subject"] else "")
-                + (f" <small>({escape(r['note'])})</small>" if r["note"] else "")
-                + "</li>")
-        html_parts.append("</ul>")
+                + (f" <span style='font-size:12px;color:{ly.FAINT}'>"
+                   f"({escape(r['note'])})</span>" if r["note"] else ""),
+                last=(i == len(renewals) - 1)))
 
     # daňové termíny podľa profilu klienta
     if tax_deadlines:
         text_lines.append("\nDaňové termíny")
-        html_parts.append("<h3 style='margin:18px 0 6px'>Daňové termíny</h3><ul>")
-        for d in tax_deadlines:
+        html_parts.append(ly.section("Daňové termíny"))
+        for i, d in enumerate(tax_deadlines):
             text_lines.append(f"  {d['date']}: {d['label']}")
-            html_parts.append(
-                f"<li><b>{escape(d['date'])}</b> — {escape(d['label'])}</li>")
-        html_parts.append("</ul>")
+            html_parts.append(ly.item_row(
+                f"<b>{escape(d['date'])}</b> — {escape(d['label'])}",
+                last=(i == len(tax_deadlines) - 1)))
 
-    html_parts.append(
-        "<p style='color:#666'><small>Ovládanie odpoveďou na tento e-mail: "
-        "<b>zaplatené 3</b> (číslo platby), <b>zaplatené všetko</b>, "
-        "<b>ignoruj 5</b>, <b>hotovo 2</b> (číslo úlohy), "
-        "<b>odlož 4 o 5</b> (pripomenie o 5 dní), <b>odlož úlohu 2</b> — "
-        "agent si to pri ďalšej kontrole pošty vybaví sám.</small></p>"
-    )
+    footer = ("Ovládanie odpoveďou na tento e-mail: "
+              "<b>zaplatené 3</b> (číslo platby), <b>zaplatené všetko</b>, "
+              "<b>ignoruj 5</b>, <b>hotovo 2</b> (číslo úlohy), "
+              "<b>odlož 4 o 5</b> (pripomenie o 5 dní), <b>odlož úlohu 2</b> — "
+              "agent si to pri ďalšej kontrole pošty vybaví sám.")
     text_lines.append(
         "\nOvládanie odpoveďou: 'zaplatené 3', 'zaplatené všetko', 'ignoruj 5', "
         "'hotovo 2', 'odlož 4 o 5', 'odlož úlohu 2'."
     )
 
     text = "Prehľad platieb a úloh\n" + "\n".join(text_lines) + "\n"
-    return text, "".join(html_parts), images
+    html = ly.wrap("".join(html_parts), preheader=preheader, footer=footer)
+    return text, html, images
 
 
 def send_email(

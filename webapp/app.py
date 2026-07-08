@@ -21,6 +21,7 @@ from fastapi.responses import (HTMLResponse, PlainTextResponse,
                                RedirectResponse, Response)
 from fastapi.templating import Jinja2Templates
 
+from bill_agent import email_layout as ly
 from bill_agent.reminder import action_sig
 from bill_agent.store import Store
 
@@ -184,16 +185,19 @@ def _send_welcome(request: Request, user, lang: str = "sk") -> None:
     text = (f"{t['title']}\n\n{t['confirm_line']}: {verify_url}\n\n"
             f"{t['guide']}: {guide_url}\n\n{t['how']}:\n{steps_text}\n\n"
             f"{t['questions']}\n")
-    steps_html = "".join(f"<li>{s}</li>" for s in t["steps"])
-    html = (
-        f"<h2>{t['title']}</h2>"
-        f"<p><a href='{verify_url}' style='display:inline-block;padding:10px 20px;"
-        "background:#0b7a51;color:#fff;border-radius:8px;text-decoration:none;"
-        f"font-weight:bold'>{t['confirm']}</a></p>"
-        f"<p><b>{t['how']}:</b></p><ol>{steps_html}</ol>"
-        f"<p><a href='{guide_url}'>{t['guide']}</a></p>"
-        f"<p>{t['questions']}</p>"
+    steps_html = "".join(
+        f"<li style='margin:0 0 10px'>{s}</li>" for s in t["steps"])
+    body = (
+        ly.heading(t["title"], t["confirm_line"] + ":")
+        + ly.button(verify_url, t["confirm"], "dark")
+        + ly.section(t["how"])
+        + f"<ol style='margin:10px 0 0;padding-left:20px;font-family:{ly.FONT};"
+        f"font-size:13.5px;line-height:1.6;color:{ly.INK}'>{steps_html}</ol>"
+        + f"<p style='margin:14px 0 0;font-family:{ly.FONT};font-size:13.5px'>"
+        f"<a href='{guide_url}' style='color:{ly.ACCENT};font-weight:600'>"
+        f"{t['guide']}</a></p>"
     )
+    html = ly.wrap(body, preheader=t["confirm_line"], footer=t["questions"])
     mailer.send(user["email"], t["subject"], text, html)
 
 
@@ -332,12 +336,16 @@ def forgot(request: Request, email: str = Form(...)):
         users.close()
     if user:
         url = f"{_base_url(request)}/reset?t={_make_token('reset', user['id'], hours=2)}"
+        reset_html = ly.wrap(
+            ly.heading("Obnova hesla",
+                       "Nové heslo si nastavíte kliknutím (odkaz platí 2 hodiny):")
+            + ly.button(url, "Nastaviť nové heslo", "dark"),
+            preheader="Odkaz na nastavenie nového hesla platí 2 hodiny.",
+            footer="Ak ste o obnovu nežiadali, e-mail ignorujte.")
         mailer.send(user["email"], "VORU — obnova hesla",
                     f"Nové heslo si nastavíte tu (odkaz platí 2 hodiny): {url}\n\n"
                     "Ak ste o obnovu nežiadali, e-mail ignorujte.",
-                    f"<p>Nové heslo si nastavíte tu (odkaz platí 2 hodiny):</p>"
-                    f"<p><a href='{url}'>{url}</a></p>"
-                    "<p>Ak ste o obnovu nežiadali, e-mail ignorujte.</p>")
+                    reset_html)
     # rovnaká odpoveď bez ohľadu na existenciu účtu — neprezrádzame registrácie
     return _render(request, "message.html", title="E-mail odoslaný",
                    body="Ak účet existuje, poslali sme naň odkaz na obnovu hesla. "
