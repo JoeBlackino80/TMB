@@ -10,13 +10,53 @@
   {% elif done %}
     {% if ok %}
       <h1 style="margin-top:0">Vybavené</h1>
-      <p class="muted">Podarilo sa {{ label }}.</p>
+      {% if count is not none %}
+        <p class="muted">Ako zaplatené sme označili
+           {{ count }} {% if count == 1 %}platbu{% elif count < 5 %}platby{% else %}platieb{% endif %}.</p>
+      {% else %}
+        <p class="muted">Podarilo sa {{ label }}.</p>
+      {% endif %}
     {% else %}
       <h1 style="margin-top:0">Už vybavené</h1>
-      <p class="muted">Položka medzičasom zmenila stav — pravdepodobne ste ju
-         už odškrtli, alebo ju spároval výpis z banky.</p>
+      {% if count is not none %}
+        <p class="muted">Nebolo čo označiť — buď ste nič nevybrali, alebo sú
+           vybrané platby medzičasom zaplatené.</p>
+      {% else %}
+        <p class="muted">Položka medzičasom zmenila stav — pravdepodobne ste ju
+           už odškrtli, alebo ju spároval výpis z banky.</p>
+      {% endif %}
     {% endif %}
     <a class="btn" href="/">Prejsť na prehľad</a>
+  {% elif bulk_items is defined %}
+    <h1 style="margin-top:0">Potvrdenie</h1>
+    {% if bulk_items %}
+      <p>Naozaj {{ label }}? Odškrtnite, čo ešte zaplatené nie je.</p>
+      <form method="post" action="/a">
+        <input type="hidden" name="c" value="{{ c }}">
+        <input type="hidden" name="k" value="{{ k }}">
+        <input type="hidden" name="i" value="{{ i }}">
+        <input type="hidden" name="do" value="{{ do }}">
+        <input type="hidden" name="s" value="{{ s }}">
+        <div style="text-align:left;margin:18px 0">
+          {% for p in bulk_items %}
+          <label style="display:flex;align-items:center;gap:10px;padding:9px 4px;
+                        border-bottom:1px solid var(--line2);cursor:pointer">
+            <input type="checkbox" name="ids" value="{{ p.id }}" checked
+                   style="width:16px;height:16px;accent-color:var(--accent)">
+            <span style="flex:1">{{ p.supplier }}
+              <span class="muted" style="font-size:12.5px">· {{ p.due }}</span></span>
+            <b style="white-space:nowrap">{{ p.amount }}</b>
+          </label>
+          {% endfor %}
+        </div>
+        <button type="submit">Označiť vybrané ako zaplatené</button>
+      </form>
+    {% else %}
+      <p class="muted">Momentálne nemáte žiadne nezaplatené platby.</p>
+      <a class="btn" href="/">Prejsť na prehľad</a>
+    {% endif %}
+    <p class="muted" style="margin-top:14px">Ak ste odkaz neotvorili vy,
+       stránku jednoducho zavrite — nič sa nestane.</p>
   {% else %}
     <h1 style="margin-top:0">Potvrdenie</h1>
     <p>Naozaj {{ label }}?</p>

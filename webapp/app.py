@@ -586,7 +586,28 @@ _ACTION_LABELS = {
     ("p", "paid"): "označiť platbu ako zaplatenú",
     ("p", "snooze"): "odložiť pripomienku o 3 dni",
     ("t", "done"): "označiť úlohu ako hotovú",
+    # hromadná akcia: potvrdzovacia stránka so zoznamom všetkých
+    # nezaplatených platieb a checkboxami (i je vždy 0)
+    ("b", "paid"): "označiť vybrané platby ako zaplatené",
 }
+
+
+def _pending_payment_rows(c: str) -> list[dict]:
+    """Nezaplatené platby klienta pre hromadnú potvrdzovaciu stránku."""
+    db = os.path.join(clientfs.client_path(c), "bill_agent.db")
+    if not os.path.exists(db):
+        return []
+    store = Store(db)
+    try:
+        rows = []
+        for p in store.pending_payments():
+            amount = f"{p.amount:,.2f}".replace(",", " ").replace(".", ",")
+            rows.append({"id": p.id, "supplier": p.supplier or "(neznámy)",
+                         "amount": f"{amount} {p.currency}",
+                         "due": p.due_date or "bez splatnosti"})
+        return rows
+    finally:
+        store.close()
 
 
 def _valid_action(c: str, k: str, i: int, do: str, s: str) -> bool:
@@ -622,6 +643,11 @@ def action_confirm(request: Request, c: str = "", k: str = "", i: int = 0,
                    do: str = "", s: str = ""):
     if not _valid_action(c, k, i, do, s):
         return _render(request, "action.html", invalid=True)
+    if k == "b":
+        return _render(request, "action.html",
+                       label=_ACTION_LABELS[(k, do)],
+                       bulk_items=_pending_payment_rows(c),
+                       c=c, k=k, i=i, do=do, s=s)
     return _render(request, "action.html",
                    label=_ACTION_LABELS[(k, do)], item=_action_item_text(c, k, i),
                    c=c, k=k, i=i, do=do, s=s)
@@ -629,15 +655,24 @@ def action_confirm(request: Request, c: str = "", k: str = "", i: int = 0,
 
 @app.post("/a", response_class=HTMLResponse)
 def action_execute(request: Request, c: str = Form(...), k: str = Form(...),
-                   i: int = Form(...), do: str = Form(...), s: str = Form(...)):
+                   i: int = Form(...), do: str = Form(...), s: str = Form(...),
+                   ids: list[int] = Form(default=[])):
     if not _valid_action(c, k, i, do, s):
         return _render(request, "action.html", invalid=True)
     db = os.path.join(clientfs.client_path(c), "bill_agent.db")
     ok = False
+    count = None
     if os.path.exists(db):
         store = Store(db)
         try:
-            if k == "p" and do == "paid":
+            if k == "b" and do == "paid":
+                # označíme len skutočne nezaplatené — chráni pred zopakovaným
+                # odoslaním formulára aj pred vymyslenými ID
+                pending = {p.id for p in store.pending_payments()}
+                count = sum(1 for pid in ids
+                            if pid in pending and store.set_payment_status(pid, "paid"))
+                ok = count > 0
+            elif k == "p" and do == "paid":
                 ok = store.set_payment_status(i, "paid")
             elif k == "p" and do == "snooze":
                 ok = store.snooze_payment(i, 3)
@@ -645,7 +680,7 @@ def action_execute(request: Request, c: str = Form(...), k: str = Form(...),
                 ok = store.set_task_status(i, "done")
         finally:
             store.close()
-    return _render(request, "action.html", done=True, ok=ok,
+    return _render(request, "action.html", done=True, ok=ok, count=count,
                    label=_ACTION_LABELS[(k, do)])
 
 

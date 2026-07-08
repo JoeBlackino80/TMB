@@ -215,6 +215,17 @@ def build_reminder(
                 + "</td></tr></table>"
             )
 
+    # hromadné odškrtnutie: jeden odkaz na potvrdzovaciu stránku so zoznamom
+    # všetkých nezaplatených platieb (checkboxy) — má zmysel od dvoch platieb
+    if total_payments >= 2:
+        bulk = _action_url(cfg, "b", 0, "paid")
+        if bulk:
+            html_parts.append(
+                ly.button(bulk, "&#10003; Označiť všetko ako zaplatené", "dark")
+                + ly.muted("Otvorí sa potvrdenie so zoznamom platieb — "
+                           "odškrtnete, čo ešte zaplatené nie je.", "11.5px"))
+            text_lines.append(f"\nOznačiť všetko ako zaplatené: {bulk}")
+
     if tasks:
         text_lines.append("\nÚlohy")
         html_parts.append(ly.section("Úlohy", len(tasks)))

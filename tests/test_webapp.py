@@ -164,3 +164,62 @@ def test_expire_disables_expired_trial(tmp_path, monkeypatch):
 
     expire_main()
     assert not clientfs.is_enabled(user["client_dir"])
+
+
+def test_bulk_paid_action(client, tmp_path):
+    """Hromadné „Označiť všetko ako zaplatené": zoznam, výber, vykonanie."""
+    from types import SimpleNamespace
+
+    from bill_agent import reminder
+    from bill_agent.store import Store
+
+    client.post("/register", data={"email": "bulk@x.sk", "password": "tajneheslo"})
+    db = tmp_path / "clients" / "bulk-x-sk" / "bill_agent.db"
+    store = Store(str(db))
+    store.clear_demo()
+    p1 = store.add_payment(supplier="Energo", amount=10.0, currency="EUR",
+                           iban="SK1", variable_symbol="1", due_date="2026-01-01")
+    p2 = store.add_payment(supplier="Telekom", amount=20.0, currency="EUR",
+                           iban="SK2", variable_symbol="2", due_date="2026-01-02")
+    store.close()
+
+    # e-mail s >= 2 platbami obsahuje hromadné tlačidlo
+    cfg = SimpleNamespace(action_base_url="http://test", action_secret="test-secret",
+                          client_slug="bulk-x-sk")
+    store = Store(str(db))
+    _, html, _ = reminder.build_reminder(store, 7, cfg)
+    store.close()
+    assert "Označiť všetko ako zaplatené" in html and "k=b" in html
+
+    sig = reminder.action_sig("test-secret", "bulk-x-sk", "b", 0, "paid")
+
+    # GET zobrazí zoznam s checkboxami, nič nevykoná
+    r = client.get(f"/a?c=bulk-x-sk&k=b&i=0&do=paid&s={sig}")
+    assert r.status_code == 200
+    assert "Energo" in r.text and "Telekom" in r.text and "checkbox" in r.text
+    store = Store(str(db))
+    assert len(store.pending_payments()) == 2
+    store.close()
+
+    # POST označí len vybrané (p1), p2 zostáva nezaplatená
+    r = client.post("/a", data={"c": "bulk-x-sk", "k": "b", "i": 0,
+                                "do": "paid", "s": sig, "ids": [p1]})
+    assert r.status_code == 200 and "Vybavené" in r.text and "1 platbu" in r.text
+    store = Store(str(db))
+    pending = store.pending_payments()
+    assert [p.id for p in pending] == [p2]
+    store.close()
+
+    # POST bez výberu nič neoznačí
+    r = client.post("/a", data={"c": "bulk-x-sk", "k": "b", "i": 0,
+                                "do": "paid", "s": sig})
+    assert "Nebolo čo označiť" in r.text
+    store = Store(str(db))
+    assert len(store.pending_payments()) == 1
+    store.close()
+
+    # jedna platba => hromadné tlačidlo sa v e-maile neukazuje
+    store = Store(str(db))
+    _, html, _ = reminder.build_reminder(store, 7, cfg)
+    store.close()
+    assert "Označiť všetko ako zaplatené" not in html
