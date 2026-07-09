@@ -34,7 +34,9 @@ def test_taxcal_in_reminder(tmp_path):
     store = Store(str(tmp_path / "t.db"))
     cfg = SimpleNamespace(action_base_url="", action_secret="", client_slug="",
                           tax_profile={"szco"})
-    built = reminder.build_reminder(store, 30, cfg)
+    # 45 dní: mesačný termín (8. dňa) padne do okna z ľubovoľného dátumu,
+    # aj s posunom na pracovný deň — 30 dní na hrane mesiaca nestačilo
+    built = reminder.build_reminder(store, 45, cfg)
     assert built is not None  # aj bez platieb — sú daňové termíny
     text, html, _ = built
     assert "Daňové termíny" in text and "Odvody SZČO" in html
