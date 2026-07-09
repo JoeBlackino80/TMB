@@ -734,7 +734,7 @@ _ICON_CACHE: dict = {}
 
 
 def _app_icon(size: int) -> bytes:
-    """Ikona appky (tmavý zaoblený štvorec so zelenou fajkou) ako PNG."""
+    """Ikona appky (tmavý zaoblený štvorec s chevronom z loga) ako PNG."""
     if size in _ICON_CACHE:
         return _ICON_CACHE[size]
     import io
@@ -747,12 +747,16 @@ def _app_icon(size: int) -> bytes:
     draw = ImageDraw.Draw(img)
     draw.rounded_rectangle([0, 0, s - 1, s - 1], radius=s // 4,
                            fill=(10, 12, 16, 255))
-    w = s // 8
-    pts = [(s * 0.28, s * 0.30), (s * 0.50, s * 0.72), (s * 0.72, s * 0.30)]
-    draw.line(pts, fill=(245, 242, 234, 255), width=w, joint="curve")
-    r = w // 2
-    for x, y in pts:
-        draw.ellipse([x - r, y - r, x + r, y + r], fill=(245, 242, 234, 255))
+    # štyri zužujúce sa chevronové pásiky (rovnaká geometria ako _logo.html)
+    cx = s * 0.5
+    for i in range(4):
+        w = s * (0.305 - 0.058 * i)   # polovičná šírka pásika
+        a = s * (0.205 + 0.115 * i)   # horná hrana na okrajoch
+        drop = 0.62 * w               # zostup do špičky
+        t = s * 0.062                 # hrúbka pásika
+        draw.polygon([(cx - w, a), (cx, a + drop), (cx + w, a),
+                      (cx + w, a + t), (cx, a + drop + t), (cx - w, a + t)],
+                     fill=(245, 242, 234, 255))
     img = img.resize((size, size), Image.LANCZOS)
     buf = io.BytesIO()
     img.save(buf, format="PNG")
