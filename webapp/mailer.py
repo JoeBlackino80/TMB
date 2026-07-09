@@ -8,6 +8,8 @@ import os
 import smtplib
 from email.message import EmailMessage
 
+from bill_agent import email_layout
+
 
 def smtp_configured() -> bool:
     return bool(os.environ.get("SMTP_HOST") and os.environ.get("SMTP_USER")
@@ -23,7 +25,7 @@ def send(to: str, subject: str, text: str, html: str = "") -> bool:
     msg["To"] = to
     msg.set_content(text)
     if html:
-        msg.add_alternative(html, subtype="html")
+        msg.add_alternative(email_layout.wrap(html), subtype="html")
     port = int(os.environ.get("SMTP_PORT", "587") or 587)
     try:
         if port == 465:

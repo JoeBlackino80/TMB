@@ -8,7 +8,7 @@ from email.message import EmailMessage
 from email.utils import make_msgid
 from html import escape
 
-from . import pay_by_square
+from . import email_layout, pay_by_square
 from .config import Config
 from .store import Payment, Store, Task
 
@@ -19,11 +19,12 @@ _SECTION_TITLES = {
     "no_date": "Bez uvedenej splatnosti",
 }
 
-_SECTION_COLORS = {
-    "overdue": "#b42318",
-    "today": "#b54708",
-    "upcoming": "#175636",
-    "no_date": "#5f7268",
+# štítok sekcie: (pozadie, text) + farba splatnosti na karte
+_SECTION_CHIP = {
+    "overdue": ("#fef0ef", "#b42318"),
+    "today": ("#fdf3e7", "#b54708"),
+    "upcoming": ("#e8f5ee", "#175636"),
+    "no_date": ("#f2f4f7", "#5f7268"),
 }
 
 
@@ -91,8 +92,9 @@ def _action_url(cfg: Config | None, kind: str, item_id: int, action: str) -> str
             f"&i={item_id}&do={action}&s={sig}")
 
 
-_BTN = ("display:inline-block;padding:7px 14px;border-radius:8px;"
-        "text-decoration:none;font-size:13px;font-weight:bold;margin:8px 8px 0 0;")
+_BTN = ("display:inline-block;padding:10px 18px;border-radius:999px;"
+        "text-decoration:none;font-size:13px;font-weight:700;margin:12px 8px 0 0;"
+        f"font-family:{email_layout.FONT};")
 
 
 def _action_buttons(cfg: Config | None, kind: str, item_id: int) -> str:
@@ -103,16 +105,16 @@ def _action_buttons(cfg: Config | None, kind: str, item_id: int) -> str:
             return ""
         snooze = _action_url(cfg, "p", item_id, "snooze")
         return (
-            f"<br><a href='{paid}' style='{_BTN}background:#e5f5ec;color:#0b7a51;"
-            "border:1px solid #b7dfc9'>&#10003; Označiť ako zaplatené</a>"
-            f"<a href='{snooze}' style='{_BTN}background:#f6f6f2;color:#7c5c12;"
-            "border:1px solid #e3ddc8'>Odložiť o 3 dni</a>"
+            f"<br><a href='{paid}' style='{_BTN}background:#059669;"
+            "color:#ffffff'>&#10003; Označiť ako zaplatené</a>"
+            f"<a href='{snooze}' style='{_BTN}background:#f2f4f7;"
+            "color:#3a4150'>Odložiť o 3 dni</a>"
         )
     done = _action_url(cfg, "t", item_id, "done")
     if not done:
         return ""
-    return (f"<br><a href='{done}' style='{_BTN}background:#e5f5ec;color:#0b7a51;"
-            "border:1px solid #b7dfc9'>&#10003; Hotovo</a>")
+    return (f"<br><a href='{done}' style='{_BTN}background:#059669;"
+            "color:#ffffff'>&#10003; Hotovo</a>")
 
 
 def build_reminder(
@@ -130,8 +132,19 @@ def build_reminder(
     if total_payments == 0 and not tasks and not tax_deadlines:
         return None
 
+    n_urgent = len(groups["overdue"]) + len(groups["today"])
+    subtitle_bits = []
+    if total_payments:
+        subtitle_bits.append(f"{total_payments} platieb čaká na úhradu")
+    if n_urgent:
+        subtitle_bits.append(f"{n_urgent} súrnych")
+    if tasks:
+        subtitle_bits.append(f"{len(tasks)} úloh")
+
     text_lines: list[str] = []
-    html_parts: list[str] = ["<h2>Prehľad platieb a úloh</h2>"]
+    html_parts: list[str] = [
+        email_layout.title("Prehľad platieb a úloh", " · ".join(subtitle_bits))
+    ]
     images: list[tuple[str, bytes]] = []
 
     for key in ("overdue", "today", "upcoming", "no_date"):
@@ -139,10 +152,9 @@ def build_reminder(
         if not payments:
             continue
         title = _SECTION_TITLES[key]
+        chip_bg, chip_fg = _SECTION_CHIP[key]
         text_lines.append(f"\n{title}")
-        html_parts.append(
-            f"<h3 style='color:{_SECTION_COLORS[key]};margin:18px 0 6px'>{title}</h3>"
-        )
+        html_parts.append(email_layout.section(title, chip_bg, chip_fg))
         for p in payments:
             due = p.due_date or "—"
             text_lines.append(
@@ -150,49 +162,65 @@ def build_reminder(
                 f"splatnosť {due}, IBAN {p.iban or '—'}, VS {p.variable_symbol or '—'}"
                 + (f" ({p.note})" if p.note else "")
             )
-            html_parts.append(
-                "<div style='border:1px solid #ddd;border-radius:8px;padding:12px;"
-                "margin:8px 0;max-width:560px'>"
-                f"<span style='background:#eee;border-radius:4px;padding:1px 7px;"
-                f"font-weight:bold'>č. {p.id}</span> &nbsp;"
-                f"<b>{escape(p.supplier or '(neznámy dodávateľ)')}</b> — "
-                f"<b>{escape(_fmt_amount(p))}</b><br>"
-                f"Splatnosť: <b>{escape(due)}</b><br>"
-                f"IBAN: {escape(p.iban or '—')} &nbsp; VS: {escape(p.variable_symbol or '—')}"
-                + (
-                    (f"<br><span style='color:#c00;font-weight:bold'>{escape(p.note)}</span>"
-                     if "iný IBAN" in p.note else f"<br>{escape(p.note)}")
-                    if p.note else ""
-                )
+            inner = (
+                "<table width='100%' cellpadding='0' cellspacing='0' "
+                "role='presentation'><tr>"
+                f"<td style='font-family:{email_layout.FONT};font-size:15px;"
+                f"font-weight:700;color:#1a2130'>{escape(p.supplier or '(neznámy dodávateľ)')}"
+                f"<div style='font-size:12px;color:#98a1b2;font-weight:400;"
+                f"margin-top:3px'>č. {p.id} · VS {escape(p.variable_symbol or '—')}</div></td>"
+                f"<td align='right' style='font-family:{email_layout.FONT};"
+                f"font-size:19px;font-weight:800;color:#1a2130;white-space:nowrap;"
+                f"vertical-align:top'>{escape(_fmt_amount(p))}"
+                f"<div style='font-size:12.5px;color:{chip_fg};font-weight:600;"
+                f"margin-top:3px'>splatnosť {escape(due)}</div></td>"
+                "</tr></table>"
+                f"<div style='font-size:13px;color:#61697a;margin-top:10px'>"
+                f"IBAN {escape(p.iban or '—')}</div>"
             )
+            if p.note:
+                if "iný IBAN" in p.note:
+                    inner += (
+                        "<div style='background:#fef0ef;color:#b42318;font-weight:600;"
+                        "font-size:13px;border-radius:10px;padding:9px 13px;"
+                        f"margin-top:10px'>{escape(p.note)}</div>")
+                else:
+                    inner += (f"<div style='font-size:13px;color:#61697a;"
+                              f"margin-top:6px'>{escape(p.note)}</div>")
             png = _payment_qr(p)
             if png:
                 cid = make_msgid()
                 images.append((cid, png))
-                html_parts.append(
-                    f"<br><img src='cid:{cid[1:-1]}' width='170' height='170' "
-                    "alt='PAY by square QR' style='margin-top:8px'>"
-                    "<br><small>Naskenujte v bankovej appke a platbu potvrďte.</small>"
+                inner += (
+                    f"<div style='margin-top:14px'><img src='cid:{cid[1:-1]}' "
+                    "width='160' height='160' alt='QR kód na úhradu' "
+                    "style='border:1px solid #eff1f5;border-radius:12px'>"
+                    "<div style='font-size:12px;color:#98a1b2;margin-top:4px'>"
+                    "Naskenujte v bankovej appke a platbu potvrďte.</div></div>"
                 )
-            html_parts.append(_action_buttons(cfg, "p", p.id))
-            html_parts.append(
-                f"<br><small style='color:#888'>alebo odpovedzte na tento "
-                f"e-mail: <b>zaplatené {p.id}</b></small>"
-                "</div>"
+            inner += _action_buttons(cfg, "p", p.id)
+            inner += (
+                f"<div style='font-size:12px;color:#98a1b2;margin-top:12px'>"
+                f"alebo odpovedzte na tento e-mail: <b>zaplatené {p.id}</b></div>"
             )
+            html_parts.append(email_layout.card(inner))
 
     if tasks:
         text_lines.append("\nÚlohy")
-        html_parts.append("<h3 style='margin:18px 0 6px'>Úlohy</h3><ul>")
+        html_parts.append(email_layout.section("Úlohy", "#eef1ff", "#4353c6"))
         for t in tasks:
             due = f" (do {t.due_date})" if t.due_date else ""
             text_lines.append(f"  [{t.id}] {t.description}{due}")
-            html_parts.append(
-                f"<li><b>č. {t.id}</b> — {escape(t.description)}{escape(due)}"
-                f" &nbsp;<small>(hotovo? odpovedzte: <b>hotovo {t.id}</b>)</small>"
-                f"{_action_buttons(cfg, 't', t.id)}</li>"
+            inner = (
+                f"<div style='font-size:14.5px;font-weight:600;color:#1a2130'>"
+                f"{escape(t.description)}</div>"
+                f"<div style='font-size:12px;color:#98a1b2;margin-top:3px'>"
+                f"č. {t.id}{escape(due)}</div>"
+                f"{_action_buttons(cfg, 't', t.id)}"
+                f"<div style='font-size:12px;color:#98a1b2;margin-top:12px'>"
+                f"alebo odpovedzte: <b>hotovo {t.id}</b></div>"
             )
-        html_parts.append("</ul>")
+            html_parts.append(email_layout.card(inner))
 
     # blížiace sa konce platnosti (poistky, STK, domény...) — len informačne,
     # samy o sebe pripomienku nespúšťajú
@@ -202,35 +230,54 @@ def build_reminder(
 
         text_lines.append("\nKončí platnosť")
         html_parts.append(
-            "<h3 style='margin:18px 0 6px;color:#97590a'>Končí platnosť</h3><ul>")
+            email_layout.section("Končí platnosť", "#fdf3e7", "#97590a"))
+        rows = []
         for r in renewals:
             label = RENEWAL_LABELS.get(r["kind"], "Koniec platnosti")
             line = f"{r['expires_on']}: {label}" + (f" — {r['subject']}" if r["subject"] else "")
             text_lines.append(f"  {line}")
-            html_parts.append(
-                f"<li><b>{escape(r['expires_on'])}</b> — {escape(label)}"
+            rows.append(
+                "<tr><td style='padding:8px 14px 8px 0;border-bottom:1px solid #eff1f5;"
+                f"font-family:{email_layout.FONT};font-size:13.5px;font-weight:700;"
+                f"color:#1a2130;white-space:nowrap;vertical-align:top'>"
+                f"{escape(r['expires_on'])}</td>"
+                "<td style='padding:8px 0;border-bottom:1px solid #eff1f5;"
+                f"font-family:{email_layout.FONT};font-size:13.5px;color:#3a4150'>"
+                f"<b>{escape(label)}</b>"
                 + (f": {escape(r['subject'])}" if r["subject"] else "")
-                + (f" <small>({escape(r['note'])})</small>" if r["note"] else "")
-                + "</li>")
-        html_parts.append("</ul>")
+                + (f" <span style='color:#98a1b2'>({escape(r['note'])})</span>"
+                   if r["note"] else "")
+                + "</td></tr>")
+        html_parts.append(
+            "<table width='100%' cellpadding='0' cellspacing='0' "
+            f"role='presentation'>{''.join(rows)}</table>")
 
     # daňové termíny podľa profilu klienta
     if tax_deadlines:
         text_lines.append("\nDaňové termíny")
-        html_parts.append("<h3 style='margin:18px 0 6px'>Daňové termíny</h3><ul>")
+        html_parts.append(email_layout.section("Daňové termíny"))
+        rows = []
         for d in tax_deadlines:
             text_lines.append(f"  {d['date']}: {d['label']}")
-            html_parts.append(
-                f"<li><b>{escape(d['date'])}</b> — {escape(d['label'])}</li>")
-        html_parts.append("</ul>")
+            rows.append(
+                "<tr><td style='padding:8px 14px 8px 0;border-bottom:1px solid #eff1f5;"
+                f"font-family:{email_layout.FONT};font-size:13.5px;font-weight:700;"
+                f"color:#1a2130;white-space:nowrap;vertical-align:top'>"
+                f"{escape(d['date'])}</td>"
+                "<td style='padding:8px 0;border-bottom:1px solid #eff1f5;"
+                f"font-family:{email_layout.FONT};font-size:13.5px;color:#3a4150'>"
+                f"{escape(d['label'])}</td></tr>")
+        html_parts.append(
+            "<table width='100%' cellpadding='0' cellspacing='0' "
+            f"role='presentation'>{''.join(rows)}</table>")
 
-    html_parts.append(
-        "<p style='color:#666'><small>Ovládanie odpoveďou na tento e-mail: "
+    html_parts.append(email_layout.note_box(
+        "Ovládanie odpoveďou na tento e-mail: "
         "<b>zaplatené 3</b> (číslo platby), <b>zaplatené všetko</b>, "
         "<b>ignoruj 5</b>, <b>hotovo 2</b> (číslo úlohy), "
         "<b>odlož 4 o 5</b> (pripomenie o 5 dní), <b>odlož úlohu 2</b> — "
-        "agent si to pri ďalšej kontrole pošty vybaví sám.</small></p>"
-    )
+        "agent si to pri ďalšej kontrole pošty vybaví sám."
+    ))
     text_lines.append(
         "\nOvládanie odpoveďou: 'zaplatené 3', 'zaplatené všetko', 'ignoruj 5', "
         "'hotovo 2', 'odlož 4 o 5', 'odlož úlohu 2'."
@@ -252,7 +299,7 @@ def send_email(
     msg["From"] = cfg.smtp_user
     msg["To"] = cfg.reminder_to
     msg.set_content(text)
-    msg.add_alternative(html, subtype="html")
+    msg.add_alternative(email_layout.wrap(html), subtype="html")
     for cid, png in images or []:
         msg.get_payload()[1].add_related(png, "image", "png", cid=cid)
 

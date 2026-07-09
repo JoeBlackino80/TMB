@@ -9,6 +9,7 @@ e-mail — použije uložené súhrny a spraví len jedno volanie na naratív.
 from datetime import date, timedelta
 from html import escape
 
+from . import email_layout
 from .config import Config
 from .store import Store
 
@@ -75,36 +76,42 @@ def build_digest(cfg: Config, store: Store, days: int) -> tuple[str, str, str] |
 
     narrative = _narrative(cfg, entries, days)
 
+    # stav financií a úloh (aj podtitulok e-mailu)
+    stat = (f"Nezaplatených platieb: {n_pending}"
+            + (f" (z toho {n_urgent} súrnych!)" if n_urgent else "")
+            + f" · aktívnych úloh: {len(tasks)}")
+
     text_lines: list[str] = [title, ""]
-    html: list[str] = [f"<h2>{title}</h2>"]
+    html: list[str] = [email_layout.title(title, escape(stat))]
 
     if narrative:
         text_lines += [narrative, ""]
         paragraphs = "".join(
-            f"<p>{escape(p)}</p>" for p in narrative.split("\n\n") if p.strip()
+            f"<p style='font-size:14px;line-height:1.6;color:#3a4150'>{escape(p)}</p>"
+            for p in narrative.split("\n\n") if p.strip()
         )
-        html.append(f"<div style='max-width:600px'>{paragraphs}</div>")
+        html.append(f"<div style='margin-top:14px'>{paragraphs}</div>")
 
-    # stav financií a úloh
-    stat = (f"Nezaplatených platieb: {n_pending}"
-            + (f" (z toho {n_urgent} súrnych!)" if n_urgent else "")
-            + f" · aktívnych úloh: {len(tasks)}")
     text_lines += [stat, ""]
-    html.append(f"<p><b>{escape(stat)}</b><br><small>Podrobnosti a QR kódy sú "
-                "v poslednom e-maile „VORU: platby a úlohy“.</small></p>")
+    html.append("<div style='font-size:12.5px;color:#98a1b2;margin-top:8px'>"
+                "Podrobnosti a QR kódy sú v poslednom e-maile "
+                "„VORU: platby a úlohy“.</div>")
 
     # strážca pravidelných faktúr — čo malo prísť a neprišlo
     missing = store.missing_recurring()
     if missing:
         text_lines.append("Pravidelné faktúry, ktoré tento cyklus neprišli:")
-        html.append("<h3 style='color:#97590a'>Pravidelné faktúry, ktoré neprišli</h3><ul>")
+        html.append(email_layout.section(
+            "Pravidelné faktúry, ktoré neprišli", "#fdf3e7", "#97590a"))
         for m in missing:
             line = (f"{m['supplier']} — posledná {m['last_date']}, "
                     f"ďalšia sa čakala do {m['expected_by']}")
             text_lines.append(f"  • {line}")
-            html.append(f"<li>{escape(line)}</li>")
-        html.append("</ul><p><small>Skontrolujte, či faktúra nezapadla, "
-                    "alebo či nechodí inam.</small></p>")
+            html.append(f"<div style='font-size:13.5px;color:#3a4150;"
+                        f"padding:6px 0;border-bottom:1px solid #eff1f5'>"
+                        f"{escape(line)}</div>")
+        html.append("<div style='font-size:12px;color:#98a1b2;margin-top:6px'>"
+                    "Skontrolujte, či faktúra nezapadla, alebo či nechodí inam.</div>")
         text_lines.append("")
 
     # rozpis podľa kategórií
@@ -117,12 +124,15 @@ def build_digest(cfg: Config, store: Store, days: int) -> tuple[str, str, str] |
             continue
         cat_title = _CATEGORY_TITLES[cat]
         text_lines.append(cat_title)
-        html.append(f"<h3>{cat_title} ({len(items)})</h3><ul>")
+        html.append(email_layout.section(f"{cat_title} · {len(items)}"))
         for e in items:
             text_lines.append(f"  • {e.subject} — {e.summary}")
-            html.append(f"<li><b>{escape(e.subject or '(bez predmetu)')}</b>"
-                        f"<br><small>{escape(e.summary)}</small></li>")
-        html.append("</ul>")
+            html.append(
+                "<div style='padding:8px 0;border-bottom:1px solid #eff1f5'>"
+                f"<div style='font-size:13.5px;font-weight:600;color:#1a2130'>"
+                f"{escape(e.subject or '(bez predmetu)')}</div>"
+                f"<div style='font-size:12.5px;color:#61697a;margin-top:2px'>"
+                f"{escape(e.summary)}</div></div>")
         text_lines.append("")
 
     return subject, "\n".join(text_lines), "".join(html)
@@ -177,23 +187,29 @@ def build_monthly_report(cfg: Config, store: Store) -> tuple[str, str, str] | No
     if compare:
         text.append(compare)
     text += ["", "Podľa dodávateľov:"]
-    html = [f"<h2>{title}</h2>",
-            f"<p style='font-size:22px;margin:6px 0'><b>{_fmt_eur(total)}</b> "
-            f"<small style='color:#666'>· {len(rows)} platieb</small></p>"]
+    html = [email_layout.title(title),
+            f"<div style='font-size:30px;font-weight:800;letter-spacing:-.5px;"
+            f"margin-top:16px'>{_fmt_eur(total)} "
+            f"<span style='font-size:14px;color:#98a1b2;font-weight:400'>"
+            f"· {len(rows)} platieb</span></div>"]
     if compare:
-        html.append(f"<p style='color:#666'>{escape(compare)}</p>")
-    html.append("<table style='border-collapse:collapse;min-width:340px'>")
+        html.append(f"<div style='font-size:13.5px;color:#61697a;margin-top:6px'>"
+                    f"{escape(compare)}</div>")
+    html.append(email_layout.section("Podľa dodávateľov"))
+    html.append("<table width='100%' cellpadding='0' cellspacing='0' role='presentation'>")
     for supplier, amount in top:
         text.append(f"  {supplier}: {_fmt_eur(amount)}")
         html.append(
-            "<tr><td style='padding:4px 14px 4px 0;border-bottom:1px solid #eee'>"
+            "<tr><td style='padding:8px 14px 8px 0;border-bottom:1px solid #eff1f5;"
+            f"font-family:{email_layout.FONT};font-size:13.5px;color:#3a4150'>"
             f"{escape(supplier)}</td>"
-            "<td style='padding:4px 0;border-bottom:1px solid #eee;"
+            "<td style='padding:8px 0;border-bottom:1px solid #eff1f5;"
+            f"font-family:{email_layout.FONT};font-size:13.5px;"
             f"text-align:right'><b>{escape(_fmt_eur(amount))}</b></td></tr>")
     html.append("</table>")
-    html.append("<p style='color:#666'><small>Kompletné podklady (faktúry + CSV) "
-                "si stiahnete na prehľade v aplikácii — Podklady pre účtovníctvo."
-                "</small></p>")
+    html.append(email_layout.note_box(
+        "Kompletné podklady (faktúry + CSV) si stiahnete na prehľade "
+        "v aplikácii — Podklady pre účtovníctvo."))
     return subject, "\n".join(text) + "\n", "".join(html)
 
 
