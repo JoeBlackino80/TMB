@@ -218,8 +218,24 @@ def _send_welcome(request: Request, user, lang: str = "sk") -> None:
     mailer.send(user["email"], t["subject"], text, html)
 
 
+def _user_lang(user) -> str:
+    """Jazyk aplikácie klienta (APP_LANG z jeho .env; 'sk' ako predvolený)."""
+    if not user:
+        return "sk"
+    try:
+        lang = clientfs.read_settings(user["client_dir"])["APP_LANG"]
+    except Exception:
+        lang = ""
+    return lang if lang in webi18n.LANGS else "sk"
+
+
 def _render(request: Request, template: str, **ctx) -> HTMLResponse:
     ctx.setdefault("user", None)
+    # preklady: každá stránka dostane tabuľku t (podľa jazyka klienta,
+    # prípadne explicitného ctx["lang"] — napr. register/login)
+    if not ctx.get("lang"):
+        ctx["lang"] = _user_lang(ctx["user"])
+    ctx.setdefault("t", webi18n.t(ctx["lang"]))
     # analytika (Plausible — bez cookies): zapína sa nastavením PLAUSIBLE_DOMAIN
     ctx.setdefault("plausible_domain", os.environ.get("PLAUSIBLE_DOMAIN", ""))
     return templates.TemplateResponse(request, template, ctx)
@@ -472,9 +488,9 @@ def logout():
 def verify_email(request: Request, t: str = "", user=Depends(current_user)):
     uid = _check_token("verify", t)
     if uid is None:
-        return _render(request, "message.html", user=user, title="Neplatný odkaz",
-                       body="Overovací odkaz je poškodený alebo vypršal. "
-                            "Prihláste sa a nechajte si poslať nový.")
+        tr = webi18n.t(_user_lang(user))
+        return _render(request, "message.html", user=user,
+                       title=tr["v_bad_title"], body=tr["v_bad_body"])
     users = Users()
     try:
         users.mark_verified(uid)
@@ -483,8 +499,9 @@ def verify_email(request: Request, t: str = "", user=Depends(current_user)):
         users.close()
     if verified_user:
         clientfs.set_verified(verified_user["client_dir"], True)
-    return _render(request, "message.html", user=user, title="E-mail overený",
-                   body="Ďakujeme, vaša adresa je potvrdená.", cta="/", cta_label="Prejsť na prehľad")
+    tr = webi18n.t(_user_lang(verified_user or user))
+    return _render(request, "message.html", user=user, title=tr["v_ok_title"],
+                   body=tr["v_ok_body"], cta="/", cta_label=tr["home_cta"])
 
 
 @app.post("/verify/resend")
@@ -496,57 +513,66 @@ def verify_resend(request: Request, user=Depends(current_user)):
 
 
 @app.get("/forgot", response_class=HTMLResponse)
-def forgot_form(request: Request):
-    return _render(request, "forgot.html")
+def forgot_form(request: Request, lang: str = "sk"):
+    lang = lang if lang in webi18n.LANGS else "sk"
+    return _render(request, "forgot.html", lang=lang)
 
 
 @app.post("/forgot", response_class=HTMLResponse)
-def forgot(request: Request, email: str = Form(...)):
+def forgot(request: Request, email: str = Form(...), lang: str = Form("sk")):
+    lang = lang if lang in webi18n.LANGS else "sk"
     users = Users()
     try:
         user = users.by_email(email)
     finally:
         users.close()
     if user:
-        url = f"{_base_url(request)}/reset?t={_make_token('reset', user['id'], hours=2)}"
+        # e-mail posielame v jazyku účtu (nie v jazyku stránky)
+        mail_lang = _user_lang(user)
+        tr = webi18n.t(mail_lang)
+        url = (f"{_base_url(request)}/reset"
+               f"?t={_make_token('reset', user['id'], hours=2)}&lang={mail_lang}")
         reset_html = ly.wrap(
-            ly.heading("Obnova hesla",
-                       "Nové heslo si nastavíte kliknutím (odkaz platí 2 hodiny):")
-            + ly.button(url, "Nastaviť nové heslo", "dark"),
-            preheader="Odkaz na nastavenie nového hesla platí 2 hodiny.",
-            footer="Ak ste o obnovu nežiadali, e-mail ignorujte.")
-        mailer.send(user["email"], "VORU — obnova hesla",
-                    f"Nové heslo si nastavíte tu (odkaz platí 2 hodiny): {url}\n\n"
-                    "Ak ste o obnovu nežiadali, e-mail ignorujte.",
+            ly.heading(tr["reset_mail_title"], tr["reset_mail_lead"])
+            + ly.button(url, tr["reset_mail_btn"], "dark"),
+            preheader=tr["reset_mail_pre"],
+            footer=tr["reset_mail_ignore"])
+        mailer.send(user["email"], tr["reset_mail_subject"],
+                    f"{tr['reset_mail_lead']} {url}\n\n{tr['reset_mail_ignore']}",
                     reset_html)
     # rovnaká odpoveď bez ohľadu na existenciu účtu — neprezrádzame registrácie
-    return _render(request, "message.html", title="E-mail odoslaný",
-                   body="Ak účet existuje, poslali sme naň odkaz na obnovu hesla. "
-                        "Skontrolujte si schránku (aj spam).")
+    tr = webi18n.t(lang)
+    return _render(request, "message.html", lang=lang,
+                   title=tr["fp_sent_title"], body=tr["fp_sent_body"])
 
 
 @app.get("/reset", response_class=HTMLResponse)
-def reset_form(request: Request, t: str = ""):
+def reset_form(request: Request, t: str = "", lang: str = "sk"):
+    lang = lang if lang in webi18n.LANGS else "sk"
+    tr = webi18n.t(lang)
     if _check_token("reset", t) is None:
-        return _render(request, "message.html", title="Neplatný odkaz",
-                       body="Odkaz na obnovu hesla je poškodený alebo vypršal — "
-                            "vyžiadajte si nový.", cta="/forgot", cta_label="Vyžiadať nový")
-    return _render(request, "reset.html", t=t)
+        return _render(request, "message.html", lang=lang,
+                       title=tr["rp_invalid_title"], body=tr["rp_invalid_body"],
+                       cta=f"/forgot?lang={lang}", cta_label=tr["rp_new_btn"])
+    return _render(request, "reset.html", reset_token=t, lang=lang)
 
 
 @app.post("/reset", response_class=HTMLResponse)
-def reset(request: Request, t: str = Form(...), password: str = Form(...)):
-    uid = _check_token("reset", t)
+def reset(request: Request, reset_token: str = Form(...),
+          password: str = Form(...), lang: str = Form("sk")):
+    lang = lang if lang in webi18n.LANGS else "sk"
+    tr = webi18n.t(lang)
+    uid = _check_token("reset", reset_token)
     if uid is None or len(password) < 8:
-        return _render(request, "reset.html", t=t,
-                       error="Odkaz vypršal alebo je heslo kratšie než 8 znakov.")
+        return _render(request, "reset.html", reset_token=reset_token,
+                       lang=lang, error=tr["rp_err"])
     users = Users()
     try:
         users.set_password(uid, password)
     finally:
         users.close()
-    return _render(request, "message.html", title="Heslo zmenené",
-                   body="Prihláste sa novým heslom.", cta="/login", cta_label="Prihlásiť sa")
+    return _render(request, "message.html", lang=lang, title=tr["rp_done_title"],
+                   body=tr["rp_done_body"], cta="/login", cta_label=tr["login_cta"])
 
 
 # -- landing + dashboard --------------------------------------------------------
@@ -641,17 +667,19 @@ def dashboard(request: Request, user=Depends(current_user)):
     for _ in range(3):
         months.append(f"{y:04d}-{m:02d}")
         y, m = (y, m - 1) if m > 1 else (y - 1, 12)
+    from bill_agent import i18n as agent_i18n
     from bill_agent import taxcal
-    from bill_agent.store import RENEWAL_LABELS
     settings = clientfs.read_settings(user["client_dir"])
     account_type = settings["ACCOUNT_TYPE"] or "business"
+    lang = settings["APP_LANG"] if settings["APP_LANG"] in webi18n.LANGS else "sk"
     profile = {p for p in settings["TAX_PROFILE"].split(",") if p}
     tax_deadlines = taxcal.upcoming(profile, 30) if account_type != "personal" else []
     has_demo = any(p.get("source_subject") == "UKÁŽKA" for p in payments)
     return _render(request, "dashboard.html", user=user, payments=payments,
                    tasks=tasks, enabled=enabled, stats=stats, missing=missing,
                    months=months, tax_deadlines=tax_deadlines, has_demo=has_demo,
-                   renewals=renewals, renewal_labels=RENEWAL_LABELS,
+                   renewals=renewals, lang=lang,
+                   renewal_labels=agent_i18n.t(lang)["renewal_labels"],
                    account_type=account_type,
                    mailboxes=clientfs.list_mailboxes(user["client_dir"]))
 
@@ -760,17 +788,24 @@ def bundle(request: Request, month: str = "", user=Depends(current_user)):
 
 # -- jednoklikové akcie z e-mailu -------------------------------------------------
 
+# platné kombinácie akcií → kľúč popisu v prekladovej tabuľke
 _ACTION_LABELS = {
-    ("p", "paid"): "označiť platbu ako zaplatenú",
-    ("p", "snooze"): "odložiť pripomienku o 3 dni",
-    ("t", "done"): "označiť úlohu ako hotovú",
+    ("p", "paid"): "a_label_paid",
+    ("p", "snooze"): "a_label_snooze",
+    ("t", "done"): "a_label_done",
     # hromadná akcia: potvrdzovacia stránka so zoznamom všetkých
     # nezaplatených platieb a checkboxami (i je vždy 0)
-    ("b", "paid"): "označiť vybrané platby ako zaplatené",
+    ("b", "paid"): "a_label_bulk",
 }
 
 
-def _pending_payment_rows(c: str) -> list[dict]:
+def _client_lang(c: str) -> str:
+    """Jazyk klienta podľa slugu adresára (pre akčné stránky z e-mailu)."""
+    lang = clientfs.read_settings(c)["APP_LANG"]
+    return lang if lang in webi18n.LANGS else "sk"
+
+
+def _pending_payment_rows(c: str, tr: dict) -> list[dict]:
     """Nezaplatené platby klienta pre hromadnú potvrdzovaciu stránku."""
     db = os.path.join(clientfs.client_path(c), "bill_agent.db")
     if not os.path.exists(db):
@@ -780,9 +815,9 @@ def _pending_payment_rows(c: str) -> list[dict]:
         rows = []
         for p in store.pending_payments():
             amount = f"{p.amount:,.2f}".replace(",", " ").replace(".", ",")
-            rows.append({"id": p.id, "supplier": p.supplier or "(neznámy)",
+            rows.append({"id": p.id, "supplier": p.supplier or "—",
                          "amount": f"{amount} {p.currency}",
-                         "due": p.due_date or "bez splatnosti"})
+                         "due": p.due_date or tr["a_no_due"]})
         return rows
     finally:
         store.close()
@@ -821,13 +856,15 @@ def action_confirm(request: Request, c: str = "", k: str = "", i: int = 0,
                    do: str = "", s: str = ""):
     if not _valid_action(c, k, i, do, s):
         return _render(request, "action.html", invalid=True)
+    lang = _client_lang(c)
+    tr = webi18n.t(lang)
+    label = tr[_ACTION_LABELS[(k, do)]]
     if k == "b":
-        return _render(request, "action.html",
-                       label=_ACTION_LABELS[(k, do)],
-                       bulk_items=_pending_payment_rows(c),
+        return _render(request, "action.html", lang=lang, label=label,
+                       bulk_items=_pending_payment_rows(c, tr),
                        c=c, k=k, i=i, do=do, s=s)
-    return _render(request, "action.html",
-                   label=_ACTION_LABELS[(k, do)], item=_action_item_text(c, k, i),
+    return _render(request, "action.html", lang=lang, label=label,
+                   item=_action_item_text(c, k, i),
                    c=c, k=k, i=i, do=do, s=s)
 
 
@@ -858,8 +895,14 @@ def action_execute(request: Request, c: str = Form(...), k: str = Form(...),
                 ok = store.set_task_status(i, "done")
         finally:
             store.close()
-    return _render(request, "action.html", done=True, ok=ok, count=count,
-                   label=_ACTION_LABELS[(k, do)])
+    from bill_agent.i18n import plural
+    lang = _client_lang(c)
+    tr = webi18n.t(lang)
+    count_msg = (plural(lang, count, tr["a_done_count"])
+                 if count is not None else None)
+    return _render(request, "action.html", lang=lang, done=True, ok=ok,
+                   count=count, count_msg=count_msg,
+                   label=tr[_ACTION_LABELS[(k, do)]])
 
 
 # -- PWA (mobilná aplikácia) --------------------------------------------------------
@@ -917,7 +960,8 @@ def manifest():
     data = {
         "name": "VORU",
         "short_name": "VORU",
-        "description": "AI strážca faktúr, platieb a termínov",
+        "description": "AI strážca faktúr, platieb a termínov · "
+                       "AI guard for invoices, payments and deadlines",
         "start_url": "/",
         "display": "standalone",
         "background_color": "#f7f8fa",
@@ -960,24 +1004,42 @@ def service_worker():
 
 # -- právne stránky ----------------------------------------------------------------
 
+def _localized_template(base: str, lang: str) -> str:
+    """Vráti preloženú šablónu (help_de.html…), ak existuje; inak slovenskú."""
+    if lang and lang != "sk":
+        candidate = f"{base}_{lang}.html"
+        if os.path.exists(os.path.join(os.path.dirname(__file__),
+                                       "templates", candidate)):
+            return candidate
+    return f"{base}.html"
+
+
 @app.get("/navod", response_class=HTMLResponse)
-def help_page(request: Request, user=Depends(current_user)):
-    return _render(request, "help.html", user=user)
+def help_page(request: Request, lang: str = "", user=Depends(current_user)):
+    lang = lang if lang in webi18n.LANGS else _user_lang(user)
+    return _render(request, _localized_template("help", lang), user=user,
+                   lang=lang)
 
 
 @app.get("/podmienky", response_class=HTMLResponse)
-def terms(request: Request, user=Depends(current_user)):
-    return _render(request, "terms.html", user=user)
+def terms(request: Request, lang: str = "", user=Depends(current_user)):
+    lang = lang if lang in webi18n.LANGS else _user_lang(user)
+    return _render(request, _localized_template("terms", lang), user=user,
+                   lang=lang)
 
 
 @app.get("/dpa", response_class=HTMLResponse)
-def dpa(request: Request, user=Depends(current_user)):
-    return _render(request, "dpa.html", user=user)
+def dpa(request: Request, lang: str = "", user=Depends(current_user)):
+    lang = lang if lang in webi18n.LANGS else _user_lang(user)
+    return _render(request, _localized_template("dpa", lang), user=user,
+                   lang=lang)
 
 
 @app.get("/gdpr", response_class=HTMLResponse)
-def gdpr(request: Request, user=Depends(current_user)):
-    return _render(request, "gdpr.html", user=user)
+def gdpr(request: Request, lang: str = "", user=Depends(current_user)):
+    lang = lang if lang in webi18n.LANGS else _user_lang(user)
+    return _render(request, _localized_template("gdpr", lang), user=user,
+                   lang=lang)
 
 
 # -- SEO ------------------------------------------------------------------------
@@ -1027,16 +1089,14 @@ def _test_imap(host: str, port: int, user: str, password: str, security: str) ->
                 pass
         return ""
     except Exception as exc:
-        return f"Pripojenie zlyhalo: {exc}"
+        return str(exc) or exc.__class__.__name__
 
 
 def _unverified_page(request: Request, user) -> HTMLResponse:
+    tr = webi18n.t(_user_lang(user))
     return _render(request, "message.html", user=user,
-                   title="Najprv potvrďte e-mail",
-                   body="Pripojenie schránky sa odomkne po potvrdení vašej "
-                        "e-mailovej adresy — klik na odkaz v uvítacom e-maile. "
-                        "Nový odkaz si pošlete tlačidlom na prehľade.",
-                   cta="/", cta_label="Späť na prehľad")
+                   title=tr["v_gate_title"], body=tr["v_gate_body"],
+                   cta="/", cta_label=tr["v_gate_cta"])
 
 
 @app.get("/mailboxes", response_class=HTMLResponse)
@@ -1091,12 +1151,11 @@ def google_oauth_callback(request: Request, user=Depends(current_user),
                           code: str = "", state: str = "", error: str = ""):
     if not user:
         return _redirect("/login")
+    tr = webi18n.t(_user_lang(user))
     if error or not code or _check_token("oauth", state) != user["id"]:
         return _render(request, "message.html", user=user,
-                       title="Pripojenie Gmailu sa nepodarilo",
-                       body="Google prihlásenie bolo prerušené alebo vypršalo. "
-                            "Skúste to znova.",
-                       cta="/mailboxes", cta_label="Späť na schránky")
+                       title=tr["g_fail_title"], body=tr["g_fail_auth"],
+                       cta="/mailboxes", cta_label=tr["mb_back"])
     import urllib.parse
     import urllib.request
 
@@ -1122,9 +1181,8 @@ def google_oauth_callback(request: Request, user=Depends(current_user),
         email = json.loads(payload)["email"].lower()
     except Exception:
         return _render(request, "message.html", user=user,
-                       title="Pripojenie Gmailu sa nepodarilo",
-                       body="Google nevrátil prístupové údaje. Skúste to znova.",
-                       cta="/mailboxes", cta_label="Späť na schránky")
+                       title=tr["g_fail_title"], body=tr["g_fail_token"],
+                       cta="/mailboxes", cta_label=tr["mb_back"])
     name = "gmail-" + re.sub(r"[^a-z0-9]+", "-", email.split("@")[0]).strip("-")
     clientfs.add_mailbox(user["client_dir"], name=name, host="imap.gmail.com",
                          port=993, user=email, password=refresh_token,
@@ -1145,7 +1203,11 @@ def add_mailbox(request: Request, user=Depends(current_user),
         security = "ssl"
     error = _test_imap(host.strip(), port, imap_user.strip(), password, security)
     if error:
-        return _render(request, "mailboxes.html", user=user, error=error,
+        tr = webi18n.t(_user_lang(user))
+        return _render(request, "mailboxes.html", user=user,
+                       error=tr["mb_conn_fail"].format(err=error),
+                       verified=bool(user["verified"]),
+                       google_oauth=bool(os.environ.get("GOOGLE_CLIENT_ID", "")),
                        mailboxes=clientfs.list_mailboxes(user["client_dir"]))
     clientfs.add_mailbox(
         user["client_dir"], name=name.strip() or imap_user.strip(),
@@ -1230,11 +1292,11 @@ def change_password(request: Request, user=Depends(current_user),
                     old_password: str = Form(...), new_password: str = Form(...)):
     if not user:
         return _redirect("/login")
+    tr = webi18n.t(_user_lang(user))
     if not verify_password(old_password, user["pw_hash"]):
-        return _settings_page(request, user, pw_error="Súčasné heslo nesedí.")
+        return _settings_page(request, user, pw_error=tr["err_pw_old"])
     if len(new_password) < 8:
-        return _settings_page(request, user,
-                              pw_error="Nové heslo musí mať aspoň 8 znakov.")
+        return _settings_page(request, user, pw_error=tr["err_pw_short"])
     users = Users()
     try:
         users.set_password(user["id"], new_password)
@@ -1258,9 +1320,10 @@ def totp_confirm(request: Request, user=Depends(current_user),
     if not user:
         return _redirect("/login")
     if not totp.verify(secret, code):
+        tr = webi18n.t(_user_lang(user))
         return _settings_page(request, user, totp_setup=secret,
                               totp_uri=totp.otpauth_uri(secret, user["email"]),
-                              totp_error="Kód nesedí — skúste znova.")
+                              totp_error=tr["err_totp_code"])
     users = Users()
     try:
         users.set_totp(user["id"], secret)
@@ -1275,7 +1338,8 @@ def totp_disable(request: Request, user=Depends(current_user),
     if not user:
         return _redirect("/login")
     if not verify_password(password, user["pw_hash"]):
-        return _settings_page(request, user, totp_error="Heslo nesedí.")
+        tr = webi18n.t(_user_lang(user))
+        return _settings_page(request, user, totp_error=tr["err_totp_pw"])
     users = Users()
     try:
         users.set_totp(user["id"], "")
@@ -1327,17 +1391,17 @@ def delete_account(request: Request, user=Depends(current_user),
 
     if not user:
         return _redirect("/login")
+    tr = webi18n.t(_user_lang(user))
     if not verify_password(password, user["pw_hash"]):
-        return _settings_page(request, user, delete_error="Heslo nesedí.")
+        return _settings_page(request, user, delete_error=tr["err_del_pw"])
     shutil.rmtree(clientfs.client_path(user["client_dir"]), ignore_errors=True)
     users = Users()
     try:
         users.delete(user["id"])
     finally:
         users.close()
-    response = _render(request, "message.html", title="Účet zrušený",
-                       body="Váš účet aj všetky dáta sme zmazali. "
-                            "Ďakujeme, že ste VORU vyskúšali.")
+    response = _render(request, "message.html", title=tr["s_del_done_title"],
+                       body=tr["s_del_done_body"])
     response.delete_cookie("session")
     return response
 
@@ -1430,11 +1494,12 @@ def sepa_export(request: Request, user=Depends(current_user)):
     if not user:
         return _redirect("/login")
     settings = clientfs.read_settings(user["client_dir"])
+    tr = webi18n.t(_user_lang(user))
     if not settings["OWN_IBAN"]:
-        return _render(request, "message.html", user=user, title="Chýba váš IBAN",
-                       body="Do hromadného príkazu treba doplniť IBAN vášho účtu, "
-                            "z ktorého sa bude platiť.",
-                       cta="/settings", cta_label="Doplniť v nastaveniach")
+        return _render(request, "message.html", user=user,
+                       title=tr["sepa_missing_title"],
+                       body=tr["sepa_missing_body"],
+                       cta="/settings", cta_label=tr["sepa_missing_cta"])
     payments = []
     if os.path.exists(_client_db(user)):
         store = Store(_client_db(user))
@@ -1448,9 +1513,9 @@ def sepa_export(request: Request, user=Depends(current_user)):
             debtor_iban=settings["OWN_IBAN"], payments=payments,
         )
     except ValueError:
-        return _render(request, "message.html", user=user, title="Nie je čo uhradiť",
-                       body="Žiadna nezaplatená platba s IBANom v EUR.",
-                       cta="/", cta_label="Späť na prehľad")
+        return _render(request, "message.html", user=user,
+                       title=tr["sepa_empty_title"], body=tr["sepa_empty_body"],
+                       cta="/", cta_label=tr["v_gate_cta"])
     return Response(
         content=xml, media_type="application/xml",
         headers={"Content-Disposition":

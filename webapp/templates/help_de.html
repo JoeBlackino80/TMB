@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Anleitung zum Verbinden Ihres Postfachs — VORU{% endblock %}
+{% block content %}
+<div class="card" style="max-width:760px;margin:30px auto">
+  <h1 style="margin-top:0">So verbinden Sie Ihr Postfach — Schritt für Schritt</h1>
+  <p class="muted">Die gesamte Einrichtung dauert 2–5 Minuten. Wenn Sie irgendwo
+     nicht weiterkommen, schreiben Sie an <a href="mailto:obchod@sorbxt.sk">obchod@sorbxt.sk</a> —
+     wir helfen Ihnen gern.</p>
+
+  <h2 style="margin-top:22px">1. Was Sie benötigen</h2>
+  <p>Die E-Mail-Adresse, an die Ihre Rechnungen eingehen, und das zugehörige
+     Passwort. Bei Gmail und iCloud nicht das normale Passwort, sondern ein
+     <b>App-Passwort</b> — ein sichererer Schlüssel, den Sie jederzeit widerrufen
+     können (Anleitung weiter unten).</p>
+
+  <h2 style="margin-top:22px">2. Postfach hinzufügen</h2>
+  <p>Öffnen Sie in der Anwendung <b>Postfächer → Postfach hinzufügen</b> und
+     wählen Sie im ersten Feld Ihren Anbieter (Gmail, Webhouse, Websupport...).
+     Server, Port und Verschlüsselung werden automatisch ausgefüllt — Sie tragen
+     nur Ihre Adresse und Ihr Passwort ein. Die Anmeldung wird sofort geprüft;
+     falls etwas nicht stimmt, sehen Sie es sofort.</p>
+
+  <h2 style="margin-top:22px">3. App-Passwort für Gmail</h2>
+  <p>1. Öffnen Sie <a href="https://myaccount.google.com/apppasswords" target="_blank"
+     rel="noopener">myaccount.google.com/apppasswords</a> (die Bestätigung in
+     zwei Schritten muss aktiviert sein — Google führt Sie durch die Einrichtung).<br>
+     2. Geben Sie einen Namen ein, z. B. „VORU", und klicken Sie auf Erstellen.<br>
+     3. Google zeigt ein 16-stelliges Passwort an — kopieren Sie es und fügen
+     Sie es in VORU als Postfach-Passwort ein. Dieses Passwort können Sie
+     jederzeit widerrufen, ohne Ihr Hauptpasswort zu ändern.</p>
+
+  <h2 style="margin-top:22px">4. Firmen-E-Mail (Webhouse, Websupport, eigene Domain)</h2>
+  <p>Verwenden Sie die vollständige E-Mail-Adresse und das Passwort, mit dem Sie
+     sich im Webmail anmelden. Der IMAP-Server hat bei eigenen Domains meist die
+     Form <b>mail.ihredomain.de</b>, oder es ist der Server des Hosters
+     (Webhouse: <b>mail.webhouse.sk</b>, Websupport:
+     <b>imap.websupport.sk</b>). Sie finden ihn auch in der Dokumentation Ihres
+     Hosters unter dem Stichwort „IMAP-Einstellungen".</p>
+
+  <h2 style="margin-top:22px">5. Sie möchten kein Passwort eingeben? Leiten Sie weiter.</h2>
+  <p>Auf der Seite Postfächer finden Sie Ihre persönliche <b>Weiterleitungsadresse</b>.
+     Rechnungen können Sie manuell dorthin weiterleiten, oder Sie richten in
+     Ihrem E-Mail-Programm eine Regel ein, die alles (oder nur Rechnungen)
+     automatisch weiterleitet — dann müssen Sie uns überhaupt kein Passwort geben.</p>
+
+  <h2 style="margin-top:22px">6. Wie es weitergeht</h2>
+  <p>Wählen Sie in den <b>Einstellungen</b>, wann Sie Ihre Übersichten erhalten
+     möchten, aktivieren Sie Ihr Steuerprofil (MwSt., Abgaben) und hinterlegen
+     Sie bei Bedarf das Passwort für PDF-Kontoauszüge Ihrer Bank — VORU hakt
+     bezahlte Rechnungen dann automatisch ab. Die erste Übersicht kommt am
+     nächsten Morgen; Zahlungen erledigen Sie per QR-Code-Scan und haken sie
+     mit einem Klick direkt in der E-Mail ab.</p>
+
+  <p style="margin-top:24px"><a class="btn" href="/register?lang=de">14 Tage kostenlos testen</a></p>
+</div>
+{% endblock %}

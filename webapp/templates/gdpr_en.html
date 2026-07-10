@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Privacy Policy — VORU{% endblock %}
+{% block content %}
+<div class="card" style="max-width:760px;margin:30px auto">
+  <h1 style="margin-top:0">Privacy Policy</h1>
+  <p class="muted">This is an English translation provided for convenience. The <a href="/gdpr">Slovak version</a> is the legally binding one.</p>
+  <p class="muted">Controller: SORB XT s.r.o. · contact: obchod@sorbxt.sk</p>
+
+  <h2>What Data We Process</h2>
+  <p>In providing the service we process: (a) registration data — the account
+     e-mail address and password (the password is stored only as a
+     cryptographic hash); (b) access credentials for connected mailboxes —
+     stored in encrypted form; (c) the content of e-mails in connected
+     mailboxes, including attachments, to the extent necessary to recognise
+     invoices, payments and deadlines; (d) billing data at the time of
+     payment (processed by Stripe).</p>
+
+  <h2>Why and on What Legal Basis</h2>
+  <p>We process the data solely to provide the service (performance of a
+     contract under Art. 6(1)(b) GDPR). We do not use the content of your
+     mail for advertising, nor do we sell it to third parties.</p>
+
+  <h2>Processors</h2>
+  <p>For content recognition we use the API of Anthropic (Claude); the text
+     processed is not used for training and is not retained by the API
+     provider beyond the processing of the request, in accordance with its
+     contractual terms. Payments are processed by Stripe. The servers are
+     located in the EU (Hetzner, Germany).</p>
+
+  <h2>How Long We Keep the Data</h2>
+  <p>Payment history, mail summaries and saved attachments are retained for
+     the duration of the account. Upon account cancellation (Settings →
+     Cancel account) all data is deleted immediately; copies in backups
+     expire within 14 days. Mailbox access credentials are deleted
+     immediately when a mailbox is removed from the account.</p>
+
+  <h2>Your Rights</h2>
+  <p>You have the right of access to your data, and the rights to
+     rectification, erasure, restriction of processing, data portability and
+     objection. An export of all your data and full account cancellation
+     (the right to erasure) are available self-service in Settings; for
+     anything else, write to obchod@sorbxt.sk. A complaint may be lodged with
+     the Slovak Data Protection Authority (dataprotection.gov.sk).</p>
+
+  <h2>Security</h2>
+  <p>Communication with the server and with mail servers is encrypted
+     (HTTPS/TLS). Mailbox passwords are stored on disk in encrypted form and
+     account passwords as PBKDF2 hashes. Access to the server is
+     restricted.</p>
+
+  <h2>Business Clients (DPA)</h2>
+  <p>If you use the service as a business to process your company's mail,
+     SORB XT s.r.o. acts as a processor within the meaning of Art. 28 GDPR.
+     The terms of processing are governed by the
+     <a href="/dpa?lang=en">data processing agreement (DPA)</a>, which forms
+     part of the terms of service. A written copy is available
+     on request.</p>
+</div>
+{% endblock %}

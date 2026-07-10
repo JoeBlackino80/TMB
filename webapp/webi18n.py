@@ -280,9 +280,10 @@ _EN = {
     "opt_both": "both",
     "email_label": "Your e-mail (overviews will arrive here)",
     "password_label": "Password (min. 8 characters)",
-    "consent_html": "I agree to the <a href='/podmienky' target='_blank'>terms "
-                    "of service</a> and to the processing of personal data "
-                    "under the <a href='/gdpr' target='_blank'>privacy "
+    "consent_html": "I agree to the <a href='/podmienky?lang=en' "
+                    "target='_blank'>terms of service</a> and to the "
+                    "processing of personal data under the "
+                    "<a href='/gdpr?lang=en' target='_blank'>privacy "
                     "policy</a> (including processing the contents of the "
                     "connected mailbox for the service).",
     "reg_btn": "Sign up",
@@ -319,3 +320,315 @@ _TABLES = {"sk": _SK, "cs": _CS, "pl": _PL, "de": _DE, "hu": _HU, "en": _EN}
 
 def t(lang: str | None) -> dict:
     return _TABLES.get(lang or "sk", _SK)
+
+
+# ---------------------------------------------------------------------------
+# Vnútro aplikácie (po prihlásení) + akčné/systémové stránky.
+# Slovenčina je zdroj pravdy; preklady sú v webapp/translations/<lang>.py
+# a chýbajúce kľúče padajú späť na slovenčinu.
+
+_SK_APP = {
+    # bočné menu a pätička
+    "m_overview": "Prehľad", "m_mailboxes": "Schránky",
+    "m_settings": "Nastavenia", "m_billing": "Predplatné",
+    "m_logout": "Odhlásiť sa",
+    "f_terms": "Podmienky", "f_privacy": "Osobné údaje",
+    # prehľad
+    "d_verify": "Potvrďte prosím svoju e-mailovú adresu — poslali sme vám "
+                "odkaz. Nič vám neprišlo?",
+    "d_verify_btn": "Poslať znova",
+    "d_paused": "Služba je pozastavená — skúšobná doba vypršala alebo "
+                "predplatné skončilo. <a href='/billing'>Aktivujte si "
+                "predplatné</a>.",
+    "d_trial": "Skúšobná doba do <b>{date}</b>. <a href='/billing'>Prejsť na "
+               "predplatné</a> — 4,99 €/mes. alebo 49 €/rok.",
+    "d_start_title": "Začnite pridaním schránky",
+    "d_start_body": "VORU potrebuje prístup k schránke, kam vám chodia faktúry.",
+    "d_start_btn": "Pridať schránku",
+    "d_demo": "Toto sú <b>ukážkové dáta</b>, nech vidíte, ako bude prehľad "
+              "vyzerať. Zmiznú automaticky po pridaní schránky.",
+    "d_demo_btn": "Zmazať ukážku",
+    "d_overdue": "po splatnosti", "d_unpaid": "nezaplatené",
+    "d_this_month": "odíde do konca mesiaca", "d_next_month": "budúci mesiac",
+    "d_open_tasks": "otvorené úlohy",
+    "d_missing_title": "Pravidelné faktúry, ktoré neprišli",
+    "d_missing_last": "posledná {d}", "d_missing_exp": "čakala sa do {d}",
+    "d_missing_note": "Skontrolujte, či faktúra nezapadla v spame, alebo či "
+                      "nechodí na inú adresu.",
+    "d_payments_title": "Nezaplatené platby",
+    "th_supplier": "Dodávateľ", "th_amount": "Suma", "th_due": "Splatnosť",
+    "d_other_iban": "iný IBAN — overiť!", "d_today": "dnes",
+    "d_qr_btn": "QR platba", "d_paid_btn": "Zaplatené",
+    "d_ignore_btn": "Ignorovať", "d_ignore_confirm": "Ignorovať túto platbu?",
+    "d_qr_alt": "QR kód na platbu",
+    "d_qr_note": "Naskenujte v bankovej appke — suma, IBAN aj VS sú "
+                 "predvyplnené.",
+    "d_pay_note": "QR kódy na zaplatenie nájdete v e-mailových prehľadoch. "
+                  "Zaplatené odškrtne aj výpis z banky alebo odpoveď "
+                  "„zaplatené č.“ na e-mail.",
+    "d_sepa_btn": "Hromadný príkaz na úhradu (SEPA XML)",
+    "d_sepa_note": "Súbor nahráte do internet bankingu a všetky úhrady "
+                   "potvrdíte naraz.",
+    "d_no_payments": "Žiadne evidované nezaplatené platby.",
+    "d_renewals_title": "Končí platnosť", "d_done_btn": "Vybavené",
+    "d_renewals_note": "Poistky, STK, domény a predplatné, ktoré VORU našlo "
+                       "vo vašej pošte. Vybavené odškrtnite, nech vám ich "
+                       "nepripomíname.",
+    "d_tax_title": "Daňové termíny (najbližších 30 dní)",
+    "d_bundle_title": "Podklady pre účtovníctvo",
+    "d_bundle_note": "ZIP s faktúrami (PDF) a prehľadom platieb za mesiac — "
+                     "pošlite účtovníčke jedným klikom.",
+    "d_tasks_title": "Úlohy", "d_task_due": "do {d}", "d_task_done": "Hotovo",
+    "d_no_tasks": "Žiadne otvorené úlohy.",
+    # schránky
+    "mb_title": "E-mailové schránky",
+    "mb_fwd_title": "Vaša preposielacia adresa",
+    "mb_fwd_body": "Nechcete zadávať heslo k schránke? Stačí faktúry "
+                   "preposielať na túto adresu (ručne alebo pravidlom vo "
+                   "vašej pošte) a VORU ich spracuje rovnako. Adresa je "
+                   "unikátna pre váš účet — nezverejňujte ju.",
+    "mb_verify_title": "Najprv potvrďte e-mail",
+    "mb_verify_body": "Pripojenie schránky sa odomkne po potvrdení vašej "
+                      "e-mailovej adresy — kliknite na odkaz v uvítacom "
+                      "e-maile (skontrolujte aj spam).",
+    "mb_verify_btn": "Poslať overovací e-mail znova",
+    "mb_gmail_title": "Gmail jedným klikom",
+    "mb_gmail_body": "Gmail pripojíte bez hesla aplikácie — prihlásite sa "
+                     "u Googlu a povolíte VORU čítanie schránky. Prístup "
+                     "viete kedykoľvek odobrať na myaccount.google.com.",
+    "mb_gmail_btn": "Pripojiť Gmail cez Google",
+    "mb_none": "Zatiaľ žiadna schránka — pridajte prvú nižšie.",
+    "th_name": "Názov", "th_server": "Server", "th_login": "Prihlásenie",
+    "mb_remove": "Odobrať", "mb_remove_confirm": "Odobrať schránku?",
+    "mb_add_title": "Pridať schránku",
+    "mb_add_lead": "Vyberte poskytovateľa — nastavenia servera vyplníme za "
+                   "vás. Prihlásenie sa hneď overí. Podrobný postup: "
+                   "<a href='/navod' target='_blank'>návod na pripojenie</a>.",
+    "mb_where": "Kde máte e-mail?",
+    "mb_pick": "— vyberte poskytovateľa —",
+    "mb_other_provider": "Iný / vlastná doména",
+    "mb_name_label": "Názov (napr. „mojafirma“)",
+    "mb_host_label": "IMAP server",
+    "mb_port_label": "Port",
+    "mb_user_label": "Prihlasovací e-mail",
+    "mb_pass_label": "Heslo schránky / heslo aplikácie",
+    "mb_sec_label": "Zabezpečenie",
+    "mb_sec_ssl": "SSL (bežné, port 993)",
+    "mb_sec_starttls": "STARTTLS (napr. Proton Bridge)",
+    "mb_sec_plain": "bez šifrovania",
+    "mb_submit": "Overiť a pridať",
+    "hint_gmail": "Gmail vyžaduje <b>heslo aplikácie</b> (nie bežné heslo): "
+                  "zapnite dvojkrokové overenie a vytvorte si ho na "
+                  "<a href='https://myaccount.google.com/apppasswords' "
+                  "target='_blank' rel='noopener'>myaccount.google.com/"
+                  "apppasswords</a>.",
+    "hint_webmail": "Použite celú e-mailovú adresu a heslo schránky (to, čo "
+                    "zadávate do webmailu).",
+    "hint_m365": "Microsoft 365: ak prihlásenie zlyhá, správca musí povoliť "
+                 "IMAP a heslá aplikácií v nastaveniach Microsoft 365.",
+    "hint_icloud": "iCloud vyžaduje <b>heslo aplikácie</b>: vytvoríte si ho na "
+                   "<a href='https://account.apple.com' target='_blank' "
+                   "rel='noopener'>account.apple.com</a> → Prihlásenie a "
+                   "zabezpečenie → Heslá aplikácií.",
+    "hint_simple": "Použite celú adresu a heslo, ktorým sa prihlasujete.",
+    "hint_other": "Server býva <b>mail.vasadomena.sk</b> alebo ho nájdete v "
+                  "dokumentácii vášho hostingu pod „IMAP“. Ak si neviete rady, "
+                  "napíšte nám na <a href='mailto:obchod@sorbxt.sk'>"
+                  "obchod@sorbxt.sk</a> — poradíme.",
+    # nastavenia
+    "s_account_type": "Typ účtu",
+    "s_type_business": "firma / živnostník",
+    "s_type_personal": "súkromná osoba",
+    "s_type_both": "obidvoje — firma aj súkromné",
+    "s_reminder_to": "Kam posielať prehľady a upozornenia",
+    "s_pdf": "Heslá k chráneným PDF (výpisy z banky) — viac oddeľte čiarkou",
+    "s_pdf_ph": "napr. rodné číslo alebo heslo z banky",
+    "s_pdf_note": "Heslo sa použije len lokálne na odomknutie PDF výpisov, "
+                  "aby VORU vedelo samo odškrtnúť zaplatené platby.",
+    "s_iban": "IBAN vášho účtu (pre hromadný príkaz na úhradu)",
+    "s_name": "Názov firmy / meno (objaví sa v príkaze)",
+    "s_name_ph": "Moja firma s.r.o.",
+    "s_remind": "Ranný prehľad platieb (s QR kódmi)",
+    "s_workdays": "pracovné dni", "s_daily": "každý deň",
+    "s_weekly": "len v piatok (za týždeň)", "s_off": "neposielať",
+    "s_at": "o {h}:00",
+    "s_digest": "Zhrnutie prijatej pošty",
+    "s_digest_note": "V piatok príde vždy zhrnutie celého týždňa. E-mail sa "
+                     "posiela, len keď je čo povedať.",
+    "s_report": "Mesačný report výdavkov (1. deň v mesiaci)",
+    "s_tax": "Daňový kalendár — čo sa vás týka",
+    "s_tax_note": "VORU pripomenie zákonné termíny (DPH, odvody, preddavky) "
+                  "v ranných prehľadoch.",
+    "s_save": "Uložiť",
+    "s_pw_title": "Zmena hesla",
+    "s_pw_ok": "Heslo je zmenené.",
+    "s_pw_old": "Súčasné heslo",
+    "s_pw_new": "Nové heslo (min. 8 znakov)",
+    "s_pw_btn": "Zmeniť heslo",
+    "err_pw_old": "Súčasné heslo nesedí.",
+    "err_pw_short": "Nové heslo musí mať aspoň 8 znakov.",
+    "s_totp_title": "Dvojfaktorové overenie (2FA)",
+    "s_totp_on": "<b>Zapnuté.</b> <span class='muted'>Pri prihlásení sa okrem "
+                 "hesla vyžaduje kód z autentifikačnej aplikácie.</span>",
+    "s_totp_off_pw": "Heslo (na potvrdenie vypnutia)",
+    "s_totp_off_btn": "Vypnúť 2FA",
+    "s_totp_step1": "1. Do autentifikačnej aplikácie (Google Authenticator, "
+                    "Aegis, 1Password…) pridajte tento kľúč:",
+    "s_totp_link": "alebo otvorte na telefóne odkaz:",
+    "s_totp_add": "pridať do aplikácie",
+    "s_totp_step2": "2. Zadajte kód z aplikácie",
+    "s_totp_on_btn": "Zapnúť 2FA",
+    "s_totp_lead": "Druhá vrstva ochrany účtu: pri prihlásení sa okrem hesla "
+                   "vyžaduje kód z aplikácie v telefóne. Odporúčame zapnúť.",
+    "err_totp_code": "Kód nesedí — skúste znova.",
+    "err_totp_pw": "Heslo nesedí.",
+    "s_push_title": "Push notifikácie",
+    "s_push_lead": "Ranné upozornenie na čakajúce platby priamo do telefónu — "
+                   "funguje po nainštalovaní VORU na plochu (pozri Mobilná "
+                   "aplikácia nižšie).",
+    "s_push_unsupported": "Tento prehliadač push notifikácie nepodporuje.",
+    "s_push_nokeys": "Server zatiaľ nemá nastavené notifikačné kľúče.",
+    "s_push_on": "Zapnúť notifikácie", "s_push_off": "Vypnúť notifikácie",
+    "s_push_active": "Notifikácie sú na tomto zariadení zapnuté.",
+    "s_push_denied": "Notifikácie sa nepodarilo zapnúť (povolenie zamietnuté?).",
+    "s_data_title": "Vaše dáta",
+    "s_data_lead": "Kompletný export evidencie (platby, úlohy, denník pošty, "
+                   "stráženia platnosti) ako CSV v ZIP archíve.",
+    "s_data_btn": "Stiahnuť export dát",
+    "s_del_title": "Zrušenie účtu",
+    "s_del_lead": "Nenávratne zmaže účet aj všetky dáta (schránky, platby, "
+                  "úlohy, súbory). Ak niečo potrebujete, najprv si stiahnite "
+                  "export.",
+    "s_del_pw": "Heslo (na potvrdenie)",
+    "s_del_btn": "Zmazať účet aj všetky dáta",
+    "s_del_confirm": "Naozaj nenávratne zmazať účet aj všetky dáta?",
+    "err_del_pw": "Heslo nesedí.",
+    "s_app_title": "Mobilná aplikácia",
+    "s_app_lead": "VORU si nainštalujete na plochu telefónu — funguje ako "
+                  "bežná appka, bez App Store.",
+    "s_app_ios": "<b>iPhone:</b> otvorte voru.sk v Safari → tlačidlo Zdieľať "
+                 "<span class='muted'>(štvorec so šípkou)</span> → "
+                 "<b>Pridať na plochu</b>.",
+    "s_app_android": "<b>Android:</b> otvorte voru.sk v Chrome → menu ⋮ → "
+                     "<b>Pridať na plochu / Inštalovať aplikáciu</b>.",
+    # predplatné
+    "b_status": "Stav účtu:",
+    "b_active": "aktívne predplatné",
+    "b_trial": "skúšobná doba do {date}",
+    "b_inactive": "neaktívne",
+    "b_pick": "Vyberte si plán — platba prebieha bezpečne cez Stripe:",
+    "b_monthly": "4,99 € / mesiac",
+    "b_yearly": "49 € / rok — 2 mesiace zadarmo",
+    "b_auto": "Po zaplatení sa účet aktivuje automaticky do minúty.",
+    "b_manual": "Platobná brána sa pripravuje — napíšte nám na "
+                "<a href='mailto:obchod@sorbxt.sk'>obchod@sorbxt.sk</a> "
+                "a aktivujeme vás ručne.",
+    "b_thanks": "Ďakujeme, že VORU využívate. Zrušenie predplatného: cez "
+                "odkaz v potvrdení od Stripe, alebo nám napíšte na "
+                "<a href='mailto:obchod@sorbxt.sk'>obchod@sorbxt.sk</a>.",
+    "b_ref_title": "Odporučte VORU — mesiac zadarmo",
+    "b_ref_lead": "Za každého, kto sa zaregistruje cez váš odkaz, dostanete "
+                  "<b>+30 dní</b> služby zadarmo — a nový používateľ "
+                  "<b>+14 dní</b> skúšobnej doby navyše.",
+    "b_ref_count": "Cez váš odkaz sa už zaregistrovali:",
+    # zabudnuté heslo / reset
+    "fp_title": "Zabudnuté heslo",
+    "fp_lead": "Pošleme vám e-mail s odkazom na nastavenie nového hesla.",
+    "fp_email": "E-mail účtu",
+    "fp_btn": "Poslať odkaz",
+    "fp_back": "Späť na prihlásenie",
+    "fp_sent_title": "E-mail odoslaný",
+    "fp_sent_body": "Ak účet existuje, poslali sme naň odkaz na obnovu hesla. "
+                    "Skontrolujte si schránku (aj spam).",
+    "rp_title": "Nastavte si nové heslo",
+    "rp_pw": "Nové heslo (min. 8 znakov)",
+    "rp_btn": "Uložiť heslo",
+    "rp_invalid_title": "Neplatný odkaz",
+    "rp_invalid_body": "Odkaz na obnovu hesla vypršal alebo je poškodený — "
+                       "vyžiadajte si nový.",
+    "rp_done_title": "Heslo zmenené",
+    "rp_done_body": "Prihláste sa novým heslom.",
+    "reset_mail_subject": "VORU — obnova hesla",
+    "reset_mail_title": "Obnova hesla",
+    "reset_mail_lead": "Nové heslo si nastavíte kliknutím (odkaz platí 2 hodiny):",
+    "reset_mail_btn": "Nastaviť nové heslo",
+    "reset_mail_ignore": "Ak ste o obnovu nežiadali, e-mail ignorujte.",
+    "reset_mail_pre": "Odkaz na nastavenie nového hesla platí 2 hodiny.",
+    # overenie e-mailu / systémové stránky
+    "v_ok_title": "E-mail overený",
+    "v_ok_body": "Ďakujeme, adresa je potvrdená. Schránky aj prehľady sú "
+                 "odomknuté.",
+    "v_bad_title": "Neplatný odkaz",
+    "v_bad_body": "Overovací odkaz je poškodený alebo vypršal. Prihláste sa "
+                  "a nechajte si poslať nový.",
+    "v_gate_title": "Najprv potvrďte e-mail",
+    "v_gate_body": "Pripojenie schránky sa odomkne po potvrdení vašej "
+                   "e-mailovej adresy — klik na odkaz v uvítacom e-maile. "
+                   "Nový odkaz si pošlete tlačidlom na prehľade.",
+    "v_gate_cta": "Späť na prehľad",
+    "login_cta": "Prihlásiť sa",
+    "home_cta": "Prejsť na prehľad",
+    # akčné stránky (jednoklik z e-mailu)
+    "a_title": "Potvrdenie",
+    "a_invalid_title": "Neplatný odkaz",
+    "a_invalid_body": "Odkaz je poškodený alebo neúplný. Otvorte ho znova "
+                      "z e-mailu, prípadne položku vybavte po prihlásení "
+                      "v prehľade.",
+    "a_done_title": "Vybavené",
+    "a_done_count": ("Ako zaplatenú sme označili {n} platbu.",
+                     "Ako zaplatené sme označili {n} platby.",
+                     "Ako zaplatených sme označili {n} platieb."),
+    "a_done_single": "Podarilo sa {label}.",
+    "a_already_title": "Už vybavené",
+    "a_already_bulk": "Nebolo čo označiť — buď ste nič nevybrali, alebo sú "
+                      "vybrané platby medzičasom zaplatené.",
+    "a_already_single": "Položka medzičasom zmenila stav — pravdepodobne ste "
+                        "ju už odškrtli, alebo ju spároval výpis z banky.",
+    "a_confirm_q": "Naozaj {label}?",
+    "a_bulk_q": "Naozaj {label}? Odškrtnite, čo ešte zaplatené nie je.",
+    "a_bulk_empty": "Momentálne nemáte žiadne nezaplatené platby.",
+    "a_bulk_btn": "Označiť vybrané ako zaplatené",
+    "a_no_due": "bez splatnosti",
+    "a_yes": "Áno, potvrdiť",
+    "a_safe": "Ak ste odkaz neotvorili vy, stránku jednoducho zavrite — nič "
+              "sa nestane.",
+    "a_label_paid": "označiť platbu ako zaplatenú",
+    "a_label_snooze": "odložiť pripomienku o 3 dni",
+    "a_label_done": "označiť úlohu ako hotovú",
+    "a_label_bulk": "označiť vybrané platby ako zaplatené",
+    # SEPA
+    "sepa_missing_title": "Chýba váš IBAN",
+    "sepa_missing_body": "Do hromadného príkazu treba doplniť IBAN vášho "
+                         "účtu, z ktorého sa bude platiť.",
+    "sepa_missing_cta": "Doplniť v nastaveniach",
+    "sepa_empty_title": "Nie je čo uhradiť",
+    "sepa_empty_body": "Žiadna nezaplatená platba s IBANom v EUR.",
+    # Gmail OAuth a ďalšie systémové hlášky
+    "g_fail_title": "Pripojenie Gmailu sa nepodarilo",
+    "g_fail_auth": "Google prihlásenie bolo prerušené alebo vypršalo. "
+                   "Skúste to znova.",
+    "g_fail_token": "Google nevrátil prístupové údaje. Skúste to znova.",
+    "mb_back": "Späť na schránky",
+    "mb_conn_fail": "Pripojenie zlyhalo: {err}",
+    "rp_new_btn": "Vyžiadať nový",
+    "rp_err": "Odkaz vypršal alebo je heslo kratšie než 8 znakov.",
+    "s_del_done_title": "Účet zrušený",
+    "s_del_done_body": "Váš účet aj všetky dáta sme zmazali. Ďakujeme, "
+                       "že ste VORU vyskúšali.",
+}
+
+
+def _load_app_translation(lang: str) -> dict:
+    try:
+        import importlib
+
+        mod = importlib.import_module(f".translations.{lang}", __package__)
+        return mod.APP
+    except Exception:
+        return {}
+
+
+for _code, _table in _TABLES.items():
+    _table.update(_SK_APP)
+    if _code != "sk":
+        _table.update(_load_app_translation(_code))

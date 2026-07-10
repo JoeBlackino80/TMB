@@ -92,7 +92,7 @@ def test_verify_and_reset_flow(client):
     token = app_module._make_token("reset", uid, hours=2)
     r = client.get(f"/reset?t={token}")
     assert "nové heslo" in r.text.lower()
-    r = client.post("/reset", data={"t": token, "password": "novetajne123"})
+    r = client.post("/reset", data={"reset_token": token, "password": "novetajne123"})
     assert "Heslo zmenené" in r.text
     r = client.post("/login", data={"email": "over@x.sk", "password": "novetajne123"})
     assert r.status_code == 303

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Návod na připojení schránky — VORU{% endblock %}
+{% block content %}
+<div class="card" style="max-width:760px;margin:30px auto">
+  <h1 style="margin-top:0">Jak připojit schránku — krok za krokem</h1>
+  <p class="muted">Celé nastavení zabere 2–5 minut. Pokud se kdekoli zaseknete,
+     napište na <a href="mailto:obchod@sorbxt.sk">obchod@sorbxt.sk</a> —
+     pomůžeme.</p>
+
+  <h2 style="margin-top:22px">1. Co budete potřebovat</h2>
+  <p>E-mailovou adresu, na kterou vám chodí faktury, a její heslo. U Gmailu
+     a iCloudu ne běžné heslo, ale <b>heslo aplikace</b> — bezpečnější klíč,
+     který můžete kdykoli zrušit (návod níže).</p>
+
+  <h2 style="margin-top:22px">2. Přidání schránky</h2>
+  <p>V aplikaci otevřete <b>Schránky → Přidat schránku</b> a v prvním políčku
+     vyberte svého poskytovatele (Gmail, Webhouse, Websupport...). Server,
+     port i zabezpečení se vyplní samy — vy doplníte jen svou adresu
+     a heslo. Přihlášení se okamžitě ověří; pokud je něco špatně, hned to uvidíte.</p>
+
+  <h2 style="margin-top:22px">3. Heslo aplikace pro Gmail</h2>
+  <p>1. Otevřete <a href="https://myaccount.google.com/apppasswords" target="_blank"
+     rel="noopener">myaccount.google.com/apppasswords</a> (musíte mít zapnuté
+     dvoufázové ověření — Google vás provede).<br>
+     2. Zadejte název, např. „VORU", a klikněte na Vytvořit.<br>
+     3. Google zobrazí 16znakové heslo — zkopírujte ho a vložte do VORU
+     jako heslo schránky. Toto heslo můžete kdykoli zrušit bez změny svého
+     hlavního hesla.</p>
+
+  <h2 style="margin-top:22px">4. Firemní pošta (Webhouse, Websupport, vlastní doména)</h2>
+  <p>Použijte celou e-mailovou adresu a heslo, kterým se přihlašujete do webmailu.
+     IMAP server bývá u vlastních domén ve tvaru <b>mail.vasedomena.cz</b>,
+     případně server hostingu (Webhouse: <b>mail.webhouse.sk</b>, Websupport:
+     <b>imap.websupport.sk</b>). Najdete ho i v dokumentaci hostingu pod
+     heslem „IMAP nastavení".</p>
+
+  <h2 style="margin-top:22px">5. Nechcete zadávat heslo? Přeposílejte.</h2>
+  <p>Na stránce Schránky najdete svou unikátní <b>přeposílací adresu</b>.
+     Faktury na ni můžete přeposílat ručně, nebo si ve své poště nastavíte
+     pravidlo, které přeposílá všechno (nebo jen faktury) automaticky — a heslo
+     nám nemusíte dávat vůbec.</p>
+
+  <h2 style="margin-top:22px">6. Co bude dál</h2>
+  <p>V <b>Nastavení</b> si vyberte, kdy vám mají chodit přehledy, zaškrtněte
+     daňový profil (DPH, odvody) a případně doplňte heslo k PDF výpisům z banky —
+     VORU pak samo odškrtává zaplacené. První přehled přijde druhý den
+     ráno; platby zaplatíte naskenováním QR kódu a odškrtnete jedním kliknutím
+     přímo v e-mailu.</p>
+
+  <p style="margin-top:24px"><a class="btn" href="/register?lang=cs">Vyzkoušet 14 dní zdarma</a></p>
+</div>
+{% endblock %}

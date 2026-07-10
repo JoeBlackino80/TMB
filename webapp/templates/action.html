@@ -1,36 +1,32 @@
 {% extends "base.html" %}
-{% block title %}Potvrdenie — VORU{% endblock %}
+{% block title %}{{ t.a_title }} — VORU{% endblock %}
 {% block content %}
 <div class="card" style="max-width:480px;margin:48px auto;text-align:center">
   {% if invalid %}
-    <h1 style="margin-top:0">Neplatný odkaz</h1>
-    <p class="muted">Odkaz je poškodený alebo neúplný. Otvorte ho znova
-       z e-mailu, prípadne položku vybavte po prihlásení v prehľade.</p>
-    <a class="btn" href="/login">Prihlásiť sa</a>
+    <h1 style="margin-top:0">{{ t.a_invalid_title }}</h1>
+    <p class="muted">{{ t.a_invalid_body }}</p>
+    <a class="btn" href="/login">{{ t.login_cta }}</a>
   {% elif done %}
     {% if ok %}
-      <h1 style="margin-top:0">Vybavené</h1>
-      {% if count is not none %}
-        <p class="muted">Ako zaplatené sme označili
-           {{ count }} {% if count == 1 %}platbu{% elif count < 5 %}platby{% else %}platieb{% endif %}.</p>
+      <h1 style="margin-top:0">{{ t.a_done_title }}</h1>
+      {% if count_msg %}
+        <p class="muted">{{ count_msg }}</p>
       {% else %}
-        <p class="muted">Podarilo sa {{ label }}.</p>
+        <p class="muted">{{ t.a_done_single.format(label=label) }}</p>
       {% endif %}
     {% else %}
-      <h1 style="margin-top:0">Už vybavené</h1>
+      <h1 style="margin-top:0">{{ t.a_already_title }}</h1>
       {% if count is not none %}
-        <p class="muted">Nebolo čo označiť — buď ste nič nevybrali, alebo sú
-           vybrané platby medzičasom zaplatené.</p>
+        <p class="muted">{{ t.a_already_bulk }}</p>
       {% else %}
-        <p class="muted">Položka medzičasom zmenila stav — pravdepodobne ste ju
-           už odškrtli, alebo ju spároval výpis z banky.</p>
+        <p class="muted">{{ t.a_already_single }}</p>
       {% endif %}
     {% endif %}
-    <a class="btn" href="/">Prejsť na prehľad</a>
+    <a class="btn" href="/">{{ t.home_cta }}</a>
   {% elif bulk_items is defined %}
-    <h1 style="margin-top:0">Potvrdenie</h1>
+    <h1 style="margin-top:0">{{ t.a_title }}</h1>
     {% if bulk_items %}
-      <p>Naozaj {{ label }}? Odškrtnite, čo ešte zaplatené nie je.</p>
+      <p>{{ t.a_bulk_q.format(label=label) }}</p>
       <form method="post" action="/a">
         <input type="hidden" name="c" value="{{ c }}">
         <input type="hidden" name="k" value="{{ k }}">
@@ -49,17 +45,16 @@
           </label>
           {% endfor %}
         </div>
-        <button type="submit">Označiť vybrané ako zaplatené</button>
+        <button type="submit">{{ t.a_bulk_btn }}</button>
       </form>
     {% else %}
-      <p class="muted">Momentálne nemáte žiadne nezaplatené platby.</p>
-      <a class="btn" href="/">Prejsť na prehľad</a>
+      <p class="muted">{{ t.a_bulk_empty }}</p>
+      <a class="btn" href="/">{{ t.home_cta }}</a>
     {% endif %}
-    <p class="muted" style="margin-top:14px">Ak ste odkaz neotvorili vy,
-       stránku jednoducho zavrite — nič sa nestane.</p>
+    <p class="muted" style="margin-top:14px">{{ t.a_safe }}</p>
   {% else %}
-    <h1 style="margin-top:0">Potvrdenie</h1>
-    <p>Naozaj {{ label }}?</p>
+    <h1 style="margin-top:0">{{ t.a_title }}</h1>
+    <p>{{ t.a_confirm_q.format(label=label) }}</p>
     {% if item %}<p><b>{{ item }}</b></p>{% endif %}
     <form method="post" action="/a">
       <input type="hidden" name="c" value="{{ c }}">
@@ -67,10 +62,9 @@
       <input type="hidden" name="i" value="{{ i }}">
       <input type="hidden" name="do" value="{{ do }}">
       <input type="hidden" name="s" value="{{ s }}">
-      <button type="submit">Áno, potvrdiť</button>
+      <button type="submit">{{ t.a_yes }}</button>
     </form>
-    <p class="muted" style="margin-top:14px">Ak ste odkaz neotvorili vy,
-       stránku jednoducho zavrite — nič sa nestane.</p>
+    <p class="muted" style="margin-top:14px">{{ t.a_safe }}</p>
   {% endif %}
 </div>
 {% endblock %}

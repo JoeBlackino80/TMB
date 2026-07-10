@@ -1,75 +1,72 @@
 {% extends "base.html" %}
-{% block title %}Nastavenia — VORU{% endblock %}
+{% block title %}{{ t.m_settings }} — VORU{% endblock %}
 {% block content %}
-<h1>Nastavenia</h1>
+<h1>{{ t.m_settings }}</h1>
 <div class="card">
   <form method="post" action="/settings">
-    <label>Typ účtu</label>
+    <label>{{ t.s_account_type }}</label>
     <select name="account_type" style="max-width:260px"
             onchange="document.querySelectorAll('.biz-only').forEach(
                       el => el.style.display = this.value === 'personal' ? 'none' : '')">
-      <option value="business" {% if settings['ACCOUNT_TYPE'] not in ('personal', 'both') %}selected{% endif %}>firma / živnostník</option>
-      <option value="personal" {% if settings['ACCOUNT_TYPE'] == 'personal' %}selected{% endif %}>súkromná osoba</option>
-      <option value="both" {% if settings['ACCOUNT_TYPE'] == 'both' %}selected{% endif %}>obidvoje — firma aj súkromné</option>
+      <option value="business" {% if settings['ACCOUNT_TYPE'] not in ('personal', 'both') %}selected{% endif %}>{{ t.s_type_business }}</option>
+      <option value="personal" {% if settings['ACCOUNT_TYPE'] == 'personal' %}selected{% endif %}>{{ t.s_type_personal }}</option>
+      <option value="both" {% if settings['ACCOUNT_TYPE'] == 'both' %}selected{% endif %}>{{ t.s_type_both }}</option>
     </select>
 
-    <label>Kam posielať prehľady a upozornenia</label>
+    <label>{{ t.s_reminder_to }}</label>
     <input type="email" name="reminder_to" value="{{ settings['REMINDER_TO'] }}" required>
-    <label>Heslá k chráneným PDF (výpisy z banky) — viac oddeľte čiarkou</label>
+    <label>{{ t.s_pdf }}</label>
     <input name="pdf_passwords" value="{{ settings['PDF_PASSWORDS'] }}"
-           placeholder="napr. rodné číslo alebo heslo z banky">
-    <p class="muted">Heslo sa použije len lokálne na odomknutie PDF výpisov,
-       aby VORU vedelo samo odškrtnúť zaplatené platby.</p>
+           placeholder="{{ t.s_pdf_ph }}">
+    <p class="muted">{{ t.s_pdf_note }}</p>
     <div class="biz-only" {% if settings['ACCOUNT_TYPE'] == 'personal' %}style="display:none"{% endif %}>
-    <label>IBAN vášho účtu (pre hromadný príkaz na úhradu)</label>
+    <label>{{ t.s_iban }}</label>
     <input name="own_iban" value="{{ settings['OWN_IBAN'] }}"
            placeholder="SK00 0000 0000 0000 0000 0000">
-    <label>Názov firmy / meno (objaví sa v príkaze)</label>
+    <label>{{ t.s_name }}</label>
     <input name="own_name" value="{{ settings['OWN_NAME'] }}"
-           placeholder="Moja firma s.r.o.">
+           placeholder="{{ t.s_name_ph }}">
     </div>
 
-    <label style="margin-top:18px">Ranný prehľad platieb (s QR kódmi)</label>
+    <label style="margin-top:18px">{{ t.s_remind }}</label>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <select name="remind_schedule" style="max-width:220px">
-        <option value="workdays" {% if settings['REMIND_SCHEDULE'] in ('', 'workdays') %}selected{% endif %}>pracovné dni</option>
-        <option value="daily" {% if settings['REMIND_SCHEDULE'] == 'daily' %}selected{% endif %}>každý deň</option>
-        <option value="off" {% if settings['REMIND_SCHEDULE'] == 'off' %}selected{% endif %}>neposielať</option>
+        <option value="workdays" {% if settings['REMIND_SCHEDULE'] in ('', 'workdays') %}selected{% endif %}>{{ t.s_workdays }}</option>
+        <option value="daily" {% if settings['REMIND_SCHEDULE'] == 'daily' %}selected{% endif %}>{{ t.s_daily }}</option>
+        <option value="off" {% if settings['REMIND_SCHEDULE'] == 'off' %}selected{% endif %}>{{ t.s_off }}</option>
       </select>
       <select name="remind_hour" style="max-width:120px">
         {% for h in range(5, 22) %}
-        <option value="{{ h }}" {% if (settings['REMIND_HOUR'] or '7') == h|string %}selected{% endif %}>o {{ h }}:00</option>
+        <option value="{{ h }}" {% if (settings['REMIND_HOUR'] or '7') == h|string %}selected{% endif %}>{{ t.s_at.format(h=h) }}</option>
         {% endfor %}
       </select>
     </div>
 
-    <label style="margin-top:14px">Zhrnutie prijatej pošty</label>
+    <label style="margin-top:14px">{{ t.s_digest }}</label>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <select name="digest_schedule" style="max-width:220px">
-        <option value="workdays" {% if settings['DIGEST_SCHEDULE'] in ('', 'workdays') %}selected{% endif %}>pracovné dni</option>
-        <option value="daily" {% if settings['DIGEST_SCHEDULE'] == 'daily' %}selected{% endif %}>každý deň</option>
-        <option value="weekly" {% if settings['DIGEST_SCHEDULE'] == 'weekly' %}selected{% endif %}>len v piatok (za týždeň)</option>
-        <option value="off" {% if settings['DIGEST_SCHEDULE'] == 'off' %}selected{% endif %}>neposielať</option>
+        <option value="workdays" {% if settings['DIGEST_SCHEDULE'] in ('', 'workdays') %}selected{% endif %}>{{ t.s_workdays }}</option>
+        <option value="daily" {% if settings['DIGEST_SCHEDULE'] == 'daily' %}selected{% endif %}>{{ t.s_daily }}</option>
+        <option value="weekly" {% if settings['DIGEST_SCHEDULE'] == 'weekly' %}selected{% endif %}>{{ t.s_weekly }}</option>
+        <option value="off" {% if settings['DIGEST_SCHEDULE'] == 'off' %}selected{% endif %}>{{ t.s_off }}</option>
       </select>
       <select name="digest_hour" style="max-width:120px">
         {% for h in range(5, 22) %}
-        <option value="{{ h }}" {% if (settings['DIGEST_HOUR'] or '17') == h|string %}selected{% endif %}>o {{ h }}:00</option>
+        <option value="{{ h }}" {% if (settings['DIGEST_HOUR'] or '17') == h|string %}selected{% endif %}>{{ t.s_at.format(h=h) }}</option>
         {% endfor %}
       </select>
     </div>
-    <p class="muted" style="margin-top:6px">V piatok príde vždy zhrnutie celého
-       týždňa. E-mail sa posiela, len keď je čo povedať.</p>
+    <p class="muted" style="margin-top:6px">{{ t.s_digest_note }}</p>
 
     <label style="display:flex;align-items:center;gap:8px;margin:12px 0;font-weight:500">
       <input type="checkbox" name="report_enabled" value="1" style="width:auto"
              {% if settings['REPORT_ENABLED'] != '0' %}checked{% endif %}>
-      Mesačný report výdavkov (1. deň v mesiaci)
+      {{ t.s_report }}
     </label>
 
     <div class="biz-only" {% if settings['ACCOUNT_TYPE'] == 'personal' %}style="display:none"{% endif %}>
-    <label style="margin-top:18px">Daňový kalendár — čo sa vás týka</label>
-    <p class="muted" style="margin-bottom:8px">VORU pripomenie zákonné
-       termíny (DPH, odvody, preddavky) v ranných prehľadoch.</p>
+    <label style="margin-top:18px">{{ t.s_tax }}</label>
+    <p class="muted" style="margin-bottom:8px">{{ t.s_tax_note }}</p>
     {% set profile = settings['TAX_PROFILE'].split(',') %}
     {% for key, label in tax_profiles.items() %}
     <label style="display:flex;align-items:center;gap:8px;margin:6px 0;font-weight:500">
@@ -78,76 +75,77 @@
     </label>
     {% endfor %}
     </div>
-    <button type="submit">Uložiť</button>
+    <button type="submit">{{ t.s_save }}</button>
   </form>
 </div>
 
 <div class="card">
-  <h2>Zmena hesla</h2>
-  {% if pw_ok %}<div class="notice">Heslo je zmenené.</div>{% endif %}
+  <h2>{{ t.s_pw_title }}</h2>
+  {% if pw_ok %}<div class="notice">{{ t.s_pw_ok }}</div>{% endif %}
   {% if pw_error %}<div class="error">{{ pw_error }}</div>{% endif %}
   <form method="post" action="/settings/password">
-    <label>Súčasné heslo</label>
+    <label>{{ t.s_pw_old }}</label>
     <input type="password" name="old_password" required
            autocomplete="current-password" style="max-width:320px">
-    <label>Nové heslo (min. 8 znakov)</label>
+    <label>{{ t.s_pw_new }}</label>
     <input type="password" name="new_password" minlength="8" required
            autocomplete="new-password" style="max-width:320px">
-    <button type="submit">Zmeniť heslo</button>
+    <button type="submit">{{ t.s_pw_btn }}</button>
   </form>
 </div>
 
 <div class="card">
-  <h2>Dvojfaktorové overenie (2FA)</h2>
+  <h2>{{ t.s_totp_title }}</h2>
   {% if totp_error %}<div class="error">{{ totp_error }}</div>{% endif %}
   {% if user['totp_secret'] %}
-    <p><b>Zapnuté.</b> <span class="muted">Pri prihlásení sa okrem hesla
-       vyžaduje kód z autentifikačnej aplikácie.</span></p>
+    <p>{{ t.s_totp_on|safe }}</p>
     <form method="post" action="/settings/totp/disable" style="margin-top:8px">
-      <label>Heslo (na potvrdenie vypnutia)</label>
+      <label>{{ t.s_totp_off_pw }}</label>
       <input type="password" name="password" required style="max-width:320px">
-      <button type="submit" class="small danger">Vypnúť 2FA</button>
+      <button type="submit" class="small danger">{{ t.s_totp_off_btn }}</button>
     </form>
   {% elif totp_setup %}
-    <p class="muted">1. Do autentifikačnej aplikácie (Google Authenticator,
-       Aegis, 1Password…) pridajte tento kľúč:</p>
+    <p class="muted">{{ t.s_totp_step1 }}</p>
     <p style="font-family:monospace;font-size:15px;letter-spacing:1px;
               background:var(--accent-soft);border-radius:8px;padding:10px 14px;
               display:inline-block">{{ totp_setup }}</p>
-    <p class="muted">alebo otvorte na telefóne odkaz:
-       <a href="{{ totp_uri }}">pridať do aplikácie</a></p>
+    <p class="muted">{{ t.s_totp_link }}
+       <a href="{{ totp_uri }}">{{ t.s_totp_add }}</a></p>
     <form method="post" action="/settings/totp/confirm">
       <input type="hidden" name="secret" value="{{ totp_setup }}">
-      <label>2. Zadajte kód z aplikácie</label>
+      <label>{{ t.s_totp_step2 }}</label>
       <input name="code" required inputmode="numeric" placeholder="123456"
              autocomplete="one-time-code" style="max-width:200px">
-      <button type="submit">Zapnúť 2FA</button>
+      <button type="submit">{{ t.s_totp_on_btn }}</button>
     </form>
   {% else %}
-    <p class="muted">Druhá vrstva ochrany účtu: pri prihlásení sa okrem hesla
-       vyžaduje kód z aplikácie v telefóne. Odporúčame zapnúť.</p>
+    <p class="muted">{{ t.s_totp_lead }}</p>
     <form method="post" action="/settings/totp/start">
-      <button type="submit" class="small">Zapnúť 2FA</button>
+      <button type="submit" class="small">{{ t.s_totp_on_btn }}</button>
     </form>
   {% endif %}
 </div>
 
 <div class="card">
-  <h2>Push notifikácie</h2>
-  <p class="muted">Ranné upozornenie na čakajúce platby priamo do telefónu —
-     funguje po nainštalovaní VORU na plochu (pozri Mobilná aplikácia nižšie).</p>
+  <h2>{{ t.s_push_title }}</h2>
+  <p class="muted">{{ t.s_push_lead }}</p>
   <p id="push-status" class="muted"></p>
   <button type="button" id="push-btn" class="small" style="display:none"></button>
   <script>
   (async () => {
+    const T = {unsupported: {{ t.s_push_unsupported|tojson }},
+               nokeys: {{ t.s_push_nokeys|tojson }},
+               on: {{ t.s_push_on|tojson }}, off: {{ t.s_push_off|tojson }},
+               active: {{ t.s_push_active|tojson }},
+               denied: {{ t.s_push_denied|tojson }}};
     const st = document.getElementById('push-status');
     const btn = document.getElementById('push-btn');
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      st.textContent = 'Tento prehliadač push notifikácie nepodporuje.'; return;
+      st.textContent = T.unsupported; return;
     }
     const keyResp = await fetch('/push/key');
     if (!keyResp.ok) {
-      st.textContent = 'Server zatiaľ nemá nastavené notifikačné kľúče.'; return;
+      st.textContent = T.nokeys; return;
     }
     const { key } = await keyResp.json();
     const toKey = s => Uint8Array.from(
@@ -157,8 +155,8 @@
     const render = async () => {
       const sub = await reg.pushManager.getSubscription();
       btn.style.display = '';
-      btn.textContent = sub ? 'Vypnúť notifikácie' : 'Zapnúť notifikácie';
-      st.textContent = sub ? 'Notifikácie sú na tomto zariadení zapnuté.' : '';
+      btn.textContent = sub ? T.off : T.on;
+      st.textContent = sub ? T.active : '';
       btn.onclick = async () => {
         if (sub) {
           await fetch('/push/unsubscribe', {method: 'POST',
@@ -173,7 +171,7 @@
               headers: {'Content-Type': 'application/json'},
               body: JSON.stringify(s.toJSON())});
           } catch (e) {
-            st.textContent = 'Notifikácie sa nepodarilo zapnúť (povolenie zamietnuté?).';
+            st.textContent = T.denied;
             return;
           }
         }
@@ -186,31 +184,25 @@
 </div>
 
 <div class="card">
-  <h2>Vaše dáta</h2>
-  <p class="muted">Kompletný export evidencie (platby, úlohy, denník pošty,
-     stráženia platnosti) ako CSV v ZIP archíve.</p>
-  <a class="btn" href="/export">Stiahnuť export dát</a>
+  <h2>{{ t.s_data_title }}</h2>
+  <p class="muted">{{ t.s_data_lead }}</p>
+  <a class="btn" href="/export">{{ t.s_data_btn }}</a>
 
-  <h2 style="margin-top:26px">Zrušenie účtu</h2>
+  <h2 style="margin-top:26px">{{ t.s_del_title }}</h2>
   {% if delete_error %}<div class="error">{{ delete_error }}</div>{% endif %}
-  <p class="muted">Nenávratne zmaže účet aj všetky dáta (schránky, platby,
-     úlohy, súbory). Ak niečo potrebujete, najprv si stiahnite export.</p>
+  <p class="muted">{{ t.s_del_lead }}</p>
   <form method="post" action="/account/delete"
-        onsubmit="return confirm('Naozaj nenávratne zmazať účet aj všetky dáta?')">
-    <label>Heslo (na potvrdenie)</label>
+        onsubmit="return confirm({{ t.s_del_confirm|tojson }})">
+    <label>{{ t.s_del_pw }}</label>
     <input type="password" name="password" required style="max-width:320px">
-    <button type="submit" class="small danger">Zmazať účet aj všetky dáta</button>
+    <button type="submit" class="small danger">{{ t.s_del_btn }}</button>
   </form>
 </div>
 
 <div class="card">
-  <h2>Mobilná aplikácia</h2>
-  <p class="muted">VORU si nainštalujete na plochu telefónu — funguje ako
-     bežná appka, bez App Store.</p>
-  <p style="margin-top:10px"><b>iPhone:</b> otvorte voru.sk v Safari →
-     tlačidlo Zdieľať <span class="muted">(štvorec so šípkou)</span> →
-     <b>Pridať na plochu</b>.</p>
-  <p><b>Android:</b> otvorte voru.sk v Chrome → menu ⋮ →
-     <b>Pridať na plochu / Inštalovať aplikáciu</b>.</p>
+  <h2>{{ t.s_app_title }}</h2>
+  <p class="muted">{{ t.s_app_lead }}</p>
+  <p style="margin-top:10px">{{ t.s_app_ios|safe }}</p>
+  <p>{{ t.s_app_android|safe }}</p>
 </div>
 {% endblock %}

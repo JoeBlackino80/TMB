@@ -1,14 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Zabudnuté heslo — VORU{% endblock %}
+{% block title %}{{ t.fp_title }} — VORU{% endblock %}
 {% block content %}
 <div class="card" style="max-width:440px;margin:48px auto">
-  <h1 style="margin-top:0">Zabudnuté heslo</h1>
-  <p class="muted">Pošleme vám e-mail s odkazom na nastavenie nového hesla.</p>
+  <h1 style="margin-top:0">{{ t.fp_title }}</h1>
+  <p class="muted">{{ t.fp_lead }}</p>
   <form method="post" action="/forgot">
-    <label>E-mail účtu</label>
+    <input type="hidden" name="lang" value="{{ lang or 'sk' }}">
+    <label>{{ t.fp_email }}</label>
     <input type="email" name="email" required autocomplete="email">
-    <button type="submit">Poslať odkaz</button>
+    <button type="submit">{{ t.fp_btn }}</button>
   </form>
-  <p class="muted" style="margin-top:18px"><a href="/login">Späť na prihlásenie</a></p>
+  <p class="muted" style="margin-top:18px"><a href="/login?lang={{ lang or 'sk' }}">{{ t.fp_back }}</a></p>
 </div>
 {% endblock %}

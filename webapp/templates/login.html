@@ -27,7 +27,7 @@
     <p class="muted" style="margin-top:18px">{{ tt.no_account }}
        <a href="/register?lang={{ lang or 'sk' }}">{{ tt.register_link }}</a>
        {{ tt.trial_note }}<br>
-       <a href="/forgot">{{ tt.forgot }}</a></p>
+       <a href="/forgot?lang={{ lang or 'sk' }}">{{ tt.forgot }}</a></p>
   {% endif %}
 </div>
 {% endblock %}

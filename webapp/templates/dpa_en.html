@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Data Processing Agreement (DPA) — VORU{% endblock %}
+{% block content %}
+<div class="card" style="max-width:760px;margin:30px auto">
+  <h1 style="margin-top:0">Data Processing Agreement (DPA)</h1>
+  <p class="muted">This is an English translation provided for convenience. The <a href="/dpa">Slovak version</a> is the legally binding one.</p>
+  <p class="muted">pursuant to Art. 28 of Regulation (EU) 2016/679 (GDPR) ·
+     an integral part of the VORU terms of service</p>
+
+  <h2>1. Parties</h2>
+  <p><b>Controller:</b> the client — the user of the VORU service (a company
+     or sole trader who has connected their mailboxes).<br>
+     <b>Processor:</b> SORB XT s.r.o., contact obchod@sorbxt.sk
+     (the "provider").</p>
+
+  <h2>2. Subject Matter and Nature of the Processing</h2>
+  <p>The provider processes, on the client's behalf and in an automated
+     manner, e-mail messages in the connected mailboxes, including
+     attachments, for the purpose of recognising invoices, payments,
+     deadlines and tasks and of sending reminders and summaries. The
+     processing lasts for the duration of the client's account.</p>
+
+  <h2>3. Categories of Data and Data Subjects</h2>
+  <p>Data contained in received mail: identification and contact details of
+     senders, billing and payment data (amounts, IBANs, payment symbols),
+     and the content of messages and attachments. Data subjects: the
+     client's business partners, suppliers and correspondents.</p>
+
+  <h2>4. Instructions and Confidentiality</h2>
+  <p>The provider processes the data solely for the purpose of providing the
+     service under this agreement and the client's documented instructions
+     (account settings). Persons with access to the data are bound by
+     confidentiality. The content of mail is not used for advertising or for
+     profiling outside the service, nor is it sold.</p>
+
+  <h2>5. Sub-processors</h2>
+  <p>The client grants general authorisation for the engagement of the
+     following sub-processors: <b>Anthropic</b> (content-recognition API —
+     the text is not used for training and is not retained beyond the
+     processing of the request), <b>Hetzner</b> (server infrastructure in
+     the EU), and <b>Stripe</b> (subscription payments). The provider will
+     give advance notice of any change to this list by e-mail; the client
+     may object by ceasing to use the service.</p>
+
+  <h2>6. Security Measures</h2>
+  <p>Encrypted transmission (HTTPS/TLS, IMAPS), encrypted storage of mailbox
+     access credentials, account passwords stored as PBKDF2 hashes, server
+     access via SSH keys only, daily backups, and optional two-factor
+     account authentication.</p>
+
+  <h2>7. Assistance to the Controller and Erasure</h2>
+  <p>The provider will assist the client in fulfilling data subjects'
+     rights and in notifying incidents (without undue delay after becoming
+     aware of them). Data export and full account erasure are available to
+     the client self-service in Settings; upon account cancellation the data
+     is deleted immediately and backups expire
+     within 14 days.</p>
+
+  <h2>8. Audit</h2>
+  <p>Upon request, the provider will make available the information
+     necessary to demonstrate compliance with the obligations under Art. 28
+     GDPR and will allow for a reasonable audit conducted in a manner agreed
+     by the parties.</p>
+
+  <p class="muted" style="margin-top:22px">This DPA is concluded by
+     accepting the terms of service upon registration. A signed written copy
+     is available on request at obchod@sorbxt.sk.</p>
+</div>
+{% endblock %}

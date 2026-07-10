@@ -1,40 +1,34 @@
 {% extends "base.html" %}
-{% block title %}Predplatné — VORU{% endblock %}
+{% block title %}{{ t.m_billing }} — VORU{% endblock %}
 {% block content %}
-<h1>Predplatné</h1>
+<h1>{{ t.m_billing }}</h1>
 <div class="card">
-  <p>Stav účtu:
-    {% if user['status'] == 'active' %}<span class="badge b-green">aktívne predplatné</span>
-    {% elif user['status'] == 'trial' %}<span class="badge b-amber">skúšobná doba do {{ user['trial_until'] }}</span>
-    {% else %}<span class="badge b-red">neaktívne</span>{% endif %}
+  <p>{{ t.b_status }}
+    {% if user['status'] == 'active' %}<span class="badge b-green">{{ t.b_active }}</span>
+    {% elif user['status'] == 'trial' %}<span class="badge b-amber">{{ t.b_trial.format(date=user['trial_until']) }}</span>
+    {% else %}<span class="badge b-red">{{ t.b_inactive }}</span>{% endif %}
   </p>
   {% if user['status'] != 'active' %}
     {% if monthly or yearly %}
-      <p>Vyberte si plán — platba prebieha bezpečne cez Stripe:</p>
-      {% if monthly %}<p><a class="btn" href="{{ monthly }}">4,99 € / mesiac</a></p>{% endif %}
-      {% if yearly %}<p><a class="btn" href="{{ yearly }}">49 € / rok — 2 mesiace zadarmo</a></p>{% endif %}
-      <p class="muted">Po zaplatení sa účet aktivuje automaticky do minúty.</p>
+      <p>{{ t.b_pick }}</p>
+      {% if monthly %}<p><a class="btn" href="{{ monthly }}">{{ t.b_monthly }}</a></p>{% endif %}
+      {% if yearly %}<p><a class="btn" href="{{ yearly }}">{{ t.b_yearly }}</a></p>{% endif %}
+      <p class="muted">{{ t.b_auto }}</p>
     {% else %}
-      <p class="muted">Platobná brána sa pripravuje — napíšte nám na
-         <a href="mailto:obchod@sorbxt.sk">obchod@sorbxt.sk</a> a aktivujeme vás ručne.</p>
+      <p class="muted">{{ t.b_manual|safe }}</p>
     {% endif %}
   {% else %}
-    <p class="muted">Ďakujeme, že VORU využívate. Zrušenie predplatného:
-       cez odkaz v potvrdení od Stripe, alebo nám napíšte na
-       <a href="mailto:obchod@sorbxt.sk">obchod@sorbxt.sk</a>.</p>
+    <p class="muted">{{ t.b_thanks|safe }}</p>
   {% endif %}
 </div>
 
 <div class="card">
-  <h2>Odporučte VORU — mesiac zadarmo</h2>
-  <p class="muted">Za každého, kto sa zaregistruje cez váš odkaz, dostanete
-     <b>+30 dní</b> služby zadarmo — a nový používateľ <b>+14 dní</b>
-     skúšobnej doby navyše.</p>
+  <h2>{{ t.b_ref_title }}</h2>
+  <p class="muted">{{ t.b_ref_lead|safe }}</p>
   <p><input readonly value="{{ referral_link }}" onclick="this.select()"
             style="max-width:480px;font-size:13px"></p>
   {% if n_referrals %}
-  <p class="muted">Cez váš odkaz sa už zaregistrovali:
-     <b>{{ n_referrals }}</b></p>
+  <p class="muted">{{ t.b_ref_count }} <b>{{ n_referrals }}</b></p>
   {% endif %}
 </div>
 {% endblock %}

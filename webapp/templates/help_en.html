@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}How to connect your mailbox — VORU{% endblock %}
+{% block content %}
+<div class="card" style="max-width:760px;margin:30px auto">
+  <h1 style="margin-top:0">How to connect your mailbox — step by step</h1>
+  <p class="muted">The whole setup takes 2–5 minutes. If you get stuck anywhere,
+     write to <a href="mailto:obchod@sorbxt.sk">obchod@sorbxt.sk</a> —
+     we'll help you out.</p>
+
+  <h2 style="margin-top:22px">1. What you'll need</h2>
+  <p>The e-mail address your invoices arrive at, and its password. For Gmail
+     and iCloud, not your regular password but an <b>app password</b> — a safer
+     key you can revoke at any time (instructions below).</p>
+
+  <h2 style="margin-top:22px">2. Adding your mailbox</h2>
+  <p>In the app, open <b>Mailboxes → Add mailbox</b> and pick your provider
+     in the first field (Gmail, Webhouse, Websupport...). The server, port
+     and security settings fill in automatically — you only enter your address
+     and password. The login is verified right away; if anything is wrong,
+     you'll see it immediately.</p>
+
+  <h2 style="margin-top:22px">3. App password for Gmail</h2>
+  <p>1. Open <a href="https://myaccount.google.com/apppasswords" target="_blank"
+     rel="noopener">myaccount.google.com/apppasswords</a> (you need two-step
+     verification turned on — Google will walk you through it).<br>
+     2. Enter a name, e.g. "VORU", and click Create.<br>
+     3. Google shows a 16-character password — copy it and paste it into VORU
+     as your mailbox password. You can revoke this password at any time without
+     changing your main password.</p>
+
+  <h2 style="margin-top:22px">4. Business e-mail (Webhouse, Websupport, your own domain)</h2>
+  <p>Use your full e-mail address and the password you use to sign in to
+     webmail. With your own domain, the IMAP server is usually
+     <b>mail.yourdomain.com</b>, or your hosting provider's server (Webhouse:
+     <b>mail.webhouse.sk</b>, Websupport: <b>imap.websupport.sk</b>). You'll
+     also find it in your hosting provider's documentation under
+     "IMAP settings".</p>
+
+  <h2 style="margin-top:22px">5. Don't want to enter a password? Forward instead.</h2>
+  <p>On the Mailboxes page you'll find your unique <b>forwarding address</b>.
+     You can forward invoices to it manually, or set up a rule in your mailbox
+     that forwards everything (or just invoices) automatically — and you never
+     have to give us your password at all.</p>
+
+  <h2 style="margin-top:22px">6. What happens next</h2>
+  <p>In <b>Settings</b>, choose when you'd like to receive your summaries, tick
+     your tax profile (VAT, social contributions) and, if you like, add the
+     password for your bank's PDF statements — VORU will then tick off paid
+     invoices by itself. Your first summary arrives the next morning; you pay
+     by scanning a QR code and tick items off with a single click right in
+     the e-mail.</p>
+
+  <p style="margin-top:24px"><a class="btn" href="/register?lang=en">Try 14 days free</a></p>
+</div>
+{% endblock %}

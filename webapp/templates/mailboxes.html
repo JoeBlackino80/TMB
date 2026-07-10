@@ -1,70 +1,62 @@
 {% extends "base.html" %}
-{% block title %}Schránky — VORU{% endblock %}
+{% block title %}{{ t.m_mailboxes }} — VORU{% endblock %}
 {% block content %}
-<h1>E-mailové schránky</h1>
+<h1>{{ t.mb_title }}</h1>
 
 {% if forward_addr %}
 <div class="card" style="border-color:#c3e5d3;background:#f4faf7">
-  <h2>Vaša preposielacia adresa</h2>
+  <h2>{{ t.mb_fwd_title }}</h2>
   <p style="font-size:17px"><b>{{ forward_addr }}</b></p>
-  <p class="muted">Nechcete zadávať heslo k schránke? Stačí faktúry preposielať
-     na túto adresu (ručne alebo pravidlom vo vašej pošte) a VORU ich
-     spracuje rovnako. Adresa je unikátna pre váš účet — nezverejňujte ju.</p>
+  <p class="muted">{{ t.mb_fwd_body }}</p>
 </div>
 {% endif %}
 
 <div class="card">
   {% if mailboxes %}
   <table>
-    <tr><th>Názov</th><th>Server</th><th>Prihlásenie</th><th></th></tr>
+    <tr><th>{{ t.th_name }}</th><th>{{ t.th_server }}</th><th>{{ t.th_login }}</th><th></th></tr>
     {% for m in mailboxes %}
     <tr>
       <td><b>{{ m.name }}</b></td><td>{{ m.host }}</td><td>{{ m.user }}</td>
       <td style="text-align:right"><form method="post" action="/mailboxes/delete" style="margin:0">
         <input type="hidden" name="name" value="{{ m.name }}">
         <button class="small danger"
-                onclick="return confirm('Odobrať schránku?')">Odobrať</button>
+                onclick="return confirm({{ t.mb_remove_confirm|tojson }})">{{ t.mb_remove }}</button>
       </form></td>
     </tr>
     {% endfor %}
   </table>
   {% else %}
-  <p class="muted">Zatiaľ žiadna schránka — pridajte prvú nižšie.</p>
+  <p class="muted">{{ t.mb_none }}</p>
   {% endif %}
 </div>
 
 {% if not verified %}
 <div class="card">
-  <h2>Najprv potvrďte e-mail</h2>
-  <p class="muted">Pripojenie schránky sa odomkne po potvrdení vašej
-     e-mailovej adresy — kliknite na odkaz v uvítacom e-maile
-     (skontrolujte aj spam).</p>
+  <h2>{{ t.mb_verify_title }}</h2>
+  <p class="muted">{{ t.mb_verify_body }}</p>
   <form method="post" action="/verify/resend">
-    <button class="small">Poslať overovací e-mail znova</button>
+    <button class="small">{{ t.mb_verify_btn }}</button>
   </form>
 </div>
 {% endif %}
 
 {% if verified and google_oauth %}
 <div class="card">
-  <h2>Gmail jedným klikom</h2>
-  <p class="muted">Gmail pripojíte bez hesla aplikácie — prihlásite sa
-     u Googlu a povolíte VORU čítanie schránky. Prístup viete kedykoľvek
-     odobrať na myaccount.google.com.</p>
-  <a class="btn" href="/oauth/google/start">Pripojiť Gmail cez Google</a>
+  <h2>{{ t.mb_gmail_title }}</h2>
+  <p class="muted">{{ t.mb_gmail_body }}</p>
+  <a class="btn" href="/oauth/google/start">{{ t.mb_gmail_btn }}</a>
 </div>
 {% endif %}
 
 {% if verified %}
 <div class="card">
-  <h2>Pridať schránku</h2>
-  <p class="muted">Vyberte poskytovateľa — nastavenia servera vyplníme za vás.
-     Prihlásenie sa hneď overí. Podrobný postup:
-     <a href="/navod" target="_blank">návod na pripojenie</a>.</p>
+  <h2>{{ t.mb_add_title }}</h2>
+  <p class="muted">{{ t.mb_add_lead|safe }}</p>
   <form method="post" action="/mailboxes">
-    <label>Kde máte e-mail?</label>
+    <label>{{ t.mb_where }}</label>
     <select id="provider" onchange="fillProvider()">
-      <option value="">— vyberte poskytovateľa —</option>
+      <option value="">{{ t.mb_pick }}</option>
       <option value="gmail">Gmail (Google)</option>
       <option value="webhouse">Webhouse</option>
       <option value="websupport">Websupport</option>
@@ -73,59 +65,52 @@
       <option value="azet">Azet.sk</option>
       <option value="zoznam">Zoznam.sk</option>
       <option value="forpsi">Forpsi</option>
-      <option value="other">Iný / vlastná doména</option>
+      <option value="other">{{ t.mb_other_provider }}</option>
     </select>
     <div id="provider-hint" class="muted" style="display:none;margin-top:8px;
          padding:10px 14px;background:#f8f9fb;border:1px solid var(--line);
          border-radius:8px"></div>
 
-    <label>Názov (napr. „mojafirma“)</label>
+    <label>{{ t.mb_name_label }}</label>
     <input name="name" placeholder="mojafirma">
-    <label>IMAP server</label>
-    <input id="f-host" name="host" placeholder="napr. mail.webhouse.sk" required>
-    <label>Port</label>
+    <label>{{ t.mb_host_label }}</label>
+    <input id="f-host" name="host" placeholder="mail.webhouse.sk" required>
+    <label>{{ t.mb_port_label }}</label>
     <input id="f-port" name="port" type="number" value="993">
-    <label>Prihlasovací e-mail</label>
+    <label>{{ t.mb_user_label }}</label>
     <input name="imap_user" type="email" required>
-    <label>Heslo schránky / heslo aplikácie</label>
+    <label>{{ t.mb_pass_label }}</label>
     <input name="password" type="password" required>
-    <label>Zabezpečenie</label>
+    <label>{{ t.mb_sec_label }}</label>
     <select id="f-sec" name="security">
-      <option value="ssl">SSL (bežné, port 993)</option>
-      <option value="starttls">STARTTLS (napr. Proton Bridge)</option>
-      <option value="plain">bez šifrovania</option>
+      <option value="ssl">{{ t.mb_sec_ssl }}</option>
+      <option value="starttls">{{ t.mb_sec_starttls }}</option>
+      <option value="plain">{{ t.mb_sec_plain }}</option>
     </select>
-    <div><button type="submit">Overiť a pridať</button></div>
+    <div><button type="submit">{{ t.mb_submit }}</button></div>
   </form>
 </div>
 
 <script>
 const PROVIDERS = {
   gmail: {host: "imap.gmail.com", port: 993, sec: "ssl",
-    hint: "Gmail vyžaduje <b>heslo aplikácie</b> (nie bežné heslo): zapnite " +
-      "dvojkrokové overenie a vytvorte si ho na <a href='https://myaccount.google.com/apppasswords' " +
-      "target='_blank' rel='noopener'>myaccount.google.com/apppasswords</a>."},
+    hint: {{ t.hint_gmail|tojson }}},
   webhouse: {host: "mail.webhouse.sk", port: 993, sec: "ssl",
-    hint: "Použite celú e-mailovú adresu a heslo schránky (to, čo zadávate do webmailu Webhouse)."},
+    hint: {{ t.hint_webmail|tojson }}},
   websupport: {host: "imap.websupport.sk", port: 993, sec: "ssl",
-    hint: "Použite celú e-mailovú adresu a heslo schránky (to, čo zadávate do webmailu Websupport)."},
+    hint: {{ t.hint_webmail|tojson }}},
   m365: {host: "outlook.office365.com", port: 993, sec: "ssl",
-    hint: "Microsoft 365: ak prihlásenie zlyhá, správca musí povoliť IMAP a " +
-      "heslá aplikácií v nastaveniach Microsoft 365 (Zabezpečenie → Ďalšie overenie)."},
+    hint: {{ t.hint_m365|tojson }}},
   icloud: {host: "imap.mail.me.com", port: 993, sec: "ssl",
-    hint: "iCloud vyžaduje <b>heslo aplikácie</b>: vytvoríte si ho na " +
-      "<a href='https://account.apple.com' target='_blank' rel='noopener'>account.apple.com</a> " +
-      "→ Prihlásenie a zabezpečenie → Heslá aplikácií."},
+    hint: {{ t.hint_icloud|tojson }}},
   azet: {host: "imap.azet.sk", port: 993, sec: "ssl",
-    hint: "Použite celú adresu (meno@azet.sk) a heslo, ktorým sa prihlasujete."},
+    hint: {{ t.hint_simple|tojson }}},
   zoznam: {host: "imap.zoznam.sk", port: 993, sec: "ssl",
-    hint: "Použite celú adresu (meno@zoznam.sk) a heslo, ktorým sa prihlasujete."},
+    hint: {{ t.hint_simple|tojson }}},
   forpsi: {host: "imap.forpsi.com", port: 993, sec: "ssl",
-    hint: "Použite celú e-mailovú adresu a heslo schránky."},
+    hint: {{ t.hint_webmail|tojson }}},
   other: {host: "", port: 993, sec: "ssl",
-    hint: "Server býva <b>mail.vasadomena.sk</b> alebo ho nájdete v dokumentácii " +
-      "vášho hostingu pod „IMAP“. Ak si neviete rady, napíšte nám na " +
-      "<a href='mailto:obchod@sorbxt.sk'>obchod@sorbxt.sk</a> — poradíme."},
+    hint: {{ t.hint_other|tojson }}},
 };
 function fillProvider() {
   const p = PROVIDERS[document.getElementById("provider").value];
