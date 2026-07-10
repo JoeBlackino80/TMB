@@ -53,6 +53,10 @@ class Config:
     smtp_port: int = field(default_factory=lambda: _int_env("SMTP_PORT", 465))
     smtp_user: str = field(default_factory=lambda: os.environ.get("SMTP_USER", ""))
     smtp_password: str = field(default_factory=lambda: os.environ.get("SMTP_PASSWORD", ""))
+    # odosielacia adresa, ak sa líši od SMTP prihlásenia (napr. agent@voru.sk);
+    # server ju musí pre prihlásený účet povoliť
+    smtp_from: str = field(default_factory=lambda: (
+        os.environ.get("SMTP_FROM", "") or os.environ.get("SMTP_USER", "")))
 
     reminder_to: str = field(default_factory=lambda: os.environ.get("REMINDER_TO", ""))
     reminder_days_ahead: int = field(default_factory=lambda: _int_env("REMINDER_DAYS_AHEAD", 7))

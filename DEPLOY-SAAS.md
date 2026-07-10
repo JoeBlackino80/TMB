@@ -199,6 +199,26 @@ v spame. Nastavte pre doménu, z ktorej odchádza pošta (SMTP_USER):
 Aplikácia pridáva hlavičku `List-Unsubscribe` automaticky (Gmail ju od
 pravidelných odosielateľov vyžaduje).
 
+**Značková odosielacia adresa (agent@voru.sk):**
+
+1. Vo Webhouse aktivujte e-mail hosting pre doménu voru.sk a vytvorte
+   schránku `agent@voru.sk` (nie noreply@ — odpovede sú súčasť produktu).
+2. Do DNS zóny voru.sk pridajte MX záznamy Webhouse + SPF/DKIM/DMARC
+   podľa bodov vyššie (tentokrát pre voru.sk).
+3. V `.env.master` prepnite SMTP na novú schránku:
+   ```
+   SMTP_USER=agent@voru.sk
+   SMTP_PASSWORD=...
+   ```
+   (SMTP_HOST/PORT ostávajú, ak schránka beží tiež na mail.webhouse.sk).
+   Alternatívne nechajte prihlásenie ako je a nastavte len
+   `SMTP_FROM=agent@voru.sk` — funguje, len ak to server pre daný účet
+   dovolí.
+4. `systemctl restart platby-web`. E-maily odchádzajú ako
+   „VORU <agent@voru.sk>"; pripomienky majú Reply-To na klientovu
+   schránku (nutné pre príkazy odpoveďou), systémové e-maily majú
+   Reply-To na SMTP_USER (podpora).
+
 ## 6i. Monitoring
 
 - **Uptime**: aplikácia má endpoint `GET /healthz` (vracia `ok`).

@@ -292,13 +292,17 @@ def send_email(
     """Pošle HTML e-mail s voliteľnými vloženými obrázkami cez SMTP."""
     cfg.require("smtp_host", "smtp_user", "smtp_password", "reminder_to")
 
+    sender = getattr(cfg, "smtp_from", "") or cfg.smtp_user
     msg = EmailMessage()
     msg["Subject"] = subject
-    msg["From"] = cfg.smtp_user
+    msg["From"] = f"VORU <{sender}>"
     msg["To"] = cfg.reminder_to
+    # odpovede musia prísť do klientovej schránky — príkazy typu „zaplatené 3“
+    # číta agent z nej, nie z centrálnej odosielacej adresy
+    msg["Reply-To"] = cfg.reminder_to
     # doručiteľnosť: Gmail/Outlook vyžadujú od pravidelných odosielateľov
     # možnosť odhlásenia — periodicitu si klient nastaví v aplikácii
-    unsub = [f"<mailto:{cfg.smtp_user}?subject=unsubscribe>"]
+    unsub = [f"<mailto:{sender}?subject=unsubscribe>"]
     if getattr(cfg, "action_base_url", ""):
         unsub.insert(0, f"<{cfg.action_base_url}/settings>")
     msg["List-Unsubscribe"] = ", ".join(unsub)

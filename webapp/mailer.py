@@ -17,11 +17,15 @@ def smtp_configured() -> bool:
 def send(to: str, subject: str, text: str, html: str = "") -> bool:
     if not smtp_configured():
         return False
+    sender = os.environ.get("SMTP_FROM", "") or os.environ["SMTP_USER"]
     msg = EmailMessage()
     msg["Subject"] = subject
-    msg["From"] = os.environ["SMTP_USER"]
+    msg["From"] = f"VORU <{sender}>"
     msg["To"] = to
-    msg["List-Unsubscribe"] = f"<mailto:{os.environ['SMTP_USER']}?subject=unsubscribe>"
+    if sender != os.environ["SMTP_USER"]:
+        # odpovede na systémové e-maily (otázky klientov) majú prísť podpore
+        msg["Reply-To"] = os.environ["SMTP_USER"]
+    msg["List-Unsubscribe"] = f"<mailto:{sender}?subject=unsubscribe>"
     msg.set_content(text)
     if html:
         msg.add_alternative(html, subtype="html")

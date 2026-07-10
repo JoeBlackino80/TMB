@@ -117,3 +117,41 @@ def test_schedule_settings_roundtrip(client, tmp_path):
     }, cookies={"session": session})
     env = (tmp_path / "clients" / "roz-x-sk" / ".env").read_text()
     assert "REMIND_SCHEDULE=workdays" in env and "REMIND_HOUR=7" in env
+
+
+def test_reminder_email_headers(monkeypatch, tmp_path):
+    """Odosielateľ VORU <SMTP_FROM> a Reply-To do klientovej schránky."""
+    import smtplib
+
+    from bill_agent import reminder
+    from bill_agent.config import Config
+    from bill_agent.store import Store
+
+    for key, value in {"SMTP_HOST": "smtp.test", "SMTP_PORT": "587",
+                       "SMTP_USER": "obchod@sorbxt.sk",
+                       "SMTP_PASSWORD": "x", "SMTP_FROM": "agent@voru.sk",
+                       "REMINDER_TO": "klient@firma.sk"}.items():
+        monkeypatch.setenv(key, value)
+
+    sent = {}
+
+    class FakeSMTP:
+        def __init__(self, *a, **kw): pass
+        def starttls(self): pass
+        def login(self, *a): pass
+        def send_message(self, msg): sent["msg"] = msg
+        def quit(self): pass
+
+    monkeypatch.setattr(smtplib, "SMTP", FakeSMTP)
+    monkeypatch.setattr(smtplib, "SMTP_SSL", FakeSMTP)
+
+    store = Store(str(tmp_path / "h.db"))
+    store.add_payment(supplier="Energo", amount=1.0, currency="EUR", iban="",
+                      variable_symbol="1", due_date="2026-01-01")
+    assert reminder.send_reminder(Config(), store) is True
+    store.close()
+
+    msg = sent["msg"]
+    assert msg["From"] == "VORU <agent@voru.sk>"
+    assert msg["Reply-To"] == "klient@firma.sk"
+    assert "unsubscribe" in msg["List-Unsubscribe"]
