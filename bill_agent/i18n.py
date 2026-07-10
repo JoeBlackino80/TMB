@@ -5,7 +5,7 @@ podporované sú trhy sk / cs / pl / de / hu. Slovenčina je predvolená
 a zároveň referenčná — každý kľúč musí existovať vo všetkých jazykoch.
 """
 
-LANGS = ("sk", "cs", "pl", "de", "hu")
+LANGS = ("sk", "cs", "pl", "de", "hu", "en")
 
 
 def plural(lang: str, n: int, forms: tuple[str, str, str]) -> str:
@@ -417,7 +417,85 @@ _HU = {
                      "töltheti le — Könyvelési dokumentumok.",
 }
 
-_TABLES = {"sk": _SK, "cs": _CS, "pl": _PL, "de": _DE, "hu": _HU}
+_EN = {
+    "subject_reminder": "VORU: payments and tasks",
+    "subject_urgent": "VORU: payments and tasks — {n} urgent",
+    "title": "Payments and tasks overview",
+    "summary_payments": ("{n} payment waiting to be paid",
+                         "{n} payments waiting to be paid",
+                         "{n} payments waiting to be paid"),
+    "summary_urgent": ", {n} of them urgent",
+    "summary_tasks": ("{n} open task", "{n} open tasks", "{n} open tasks"),
+    "sec_overdue": "Overdue",
+    "sec_today": "Due today",
+    "sec_upcoming": "Due in the next days",
+    "sec_no_date": "No due date",
+    "unknown_supplier": "(unknown supplier)",
+    "unknown_supplier_short": "(unknown)",
+    "item_no": "no.",
+    "due": "Due",
+    "vs": "Ref",
+    "qr_hint": "Scan in your banking app and confirm the payment.",
+    "btn_paid": "Mark as paid",
+    "btn_snooze": "Snooze 3 days",
+    "btn_done": "Done",
+    "btn_all_paid": "Mark everything as paid",
+    "bulk_hint": "Opens a confirmation page listing all payments — untick "
+                 "whatever is not paid yet.",
+    "bulk_text": "Mark everything as paid",
+    "reply_hint": "or reply to this e-mail: <b>paid {id}</b>",
+    "cmd_paid": "paid",
+    "cmd_done": "done",
+    "tasks": "Tasks",
+    "task_due": "(by {d})",
+    "task_hint": "done? reply: <b>done {id}</b>",
+    "renewals": "Expiring soon",
+    "tax": "Tax deadlines",
+    "footer_commands": "Control by replying to this e-mail: <b>paid 3</b> "
+                       "(payment number), <b>paid all</b>, <b>ignore 5</b>, "
+                       "<b>done 2</b> (task number), <b>snooze 4 by 5</b> "
+                       "(reminds in 5 days), <b>snooze task 2</b> — the agent "
+                       "handles it on the next mail check.",
+    "footer_commands_text": "Control by reply: 'paid 3', 'paid all', 'ignore 5', "
+                            "'done 2', 'snooze 4 by 5', 'snooze task 2'.",
+    "renewal_labels": {"pzp": "Motor liability insurance",
+                       "havarijne": "Collision insurance",
+                       "stk": "Vehicle inspection (MOT)",
+                       "ek": "Emissions test", "poistka": "Insurance policy",
+                       "domena": "Domain", "predplatne": "Subscription",
+                       "zmluva": "Contract", "ine": "Expiry"},
+    "digest_subject_day": "VORU: Daily digest — {date}",
+    "digest_subject_week": "VORU: Weekly digest {range}",
+    "digest_title_day": "Daily digest",
+    "digest_title_week": "Weekly digest",
+    "digest_stat": "Unpaid payments: {n}",
+    "digest_stat_urgent": " ({n} of them urgent!)",
+    "digest_stat_tasks": " · open tasks: {n}",
+    "digest_stat_note": "Details and QR codes are in the latest "
+                        "“VORU: payments and tasks” e-mail.",
+    "digest_missing": "Recurring invoices that did not arrive",
+    "digest_missing_text": "Recurring invoices that did not arrive this cycle:",
+    "digest_missing_line": "{s} — last one {last}, next expected by {exp}",
+    "digest_missing_note": "Check whether the invoice slipped through or goes "
+                           "somewhere else.",
+    "cat_faktura": "Invoices and payments", "cat_banka": "Bank",
+    "cat_objednavka": "Orders and deliveries", "cat_uloha": "Tasks and deadlines",
+    "cat_marketing": "Marketing / newsletters", "cat_ine": "Other",
+    "no_subject": "(no subject)",
+    "ai_language": "in English",
+    "months": ["January", "February", "March", "April", "May", "June", "July",
+               "August", "September", "October", "November", "December"],
+    "report_title": "Monthly report — {month} {year}",
+    "report_payments": ("{n} payment", "{n} payments", "{n} payments"),
+    "report_total_text": "Total paid",
+    "report_more": "more", "report_less": "less",
+    "report_compare": "{diff} ({pct}%) {dir} than the previous month ({prev})",
+    "report_by_supplier": "By supplier",
+    "report_footer": "Download the complete records (invoices + CSV) in the app "
+                     "— Accounting documents.",
+}
+
+_TABLES = {"sk": _SK, "cs": _CS, "pl": _PL, "de": _DE, "hu": _HU, "en": _EN}
 
 # predmety pripomienok vo všetkých jazykoch — podľa nich commands.py spozná,
 # že odpoveď patrí k pripomienke (malé písmená)

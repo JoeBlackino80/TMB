@@ -175,6 +175,22 @@ _WELCOME = {
         "guide": "Részletes útmutató a postafiók csatlakoztatásához",
         "questions": "Kérdése van? Válaszoljon erre az e-mailre.",
     },
+    "en": {
+        "subject": "Welcome to VORU — confirm your address",
+        "title": "Welcome to VORU!",
+        "confirm": "Confirm e-mail address",
+        "confirm_line": "Please confirm your address by clicking",
+        "how": "Getting started",
+        "steps": [
+            "Sign in and add the mailbox where your invoices arrive in the "
+            "Mailboxes section. For Gmail use an App Password.",
+            "In Settings you can add the password for PDF bank statements — "
+            "VORU will then tick off paid payments automatically.",
+            "Overviews with QR codes will arrive by e-mail every morning.",
+        ],
+        "guide": "Step-by-step guide to connecting your mailbox",
+        "questions": "Questions? Just reply to this e-mail.",
+    },
 }
 
 
@@ -302,7 +318,7 @@ def _register_page(request: Request, lang: str = "sk", ref: str = "",
     return _render(request, "register.html", ref=ref[:80], error=error,
                    ts=_reg_ts(),
                    turnstile_site_key=os.environ.get("TURNSTILE_SITE_KEY", ""),
-                   lang=lang if lang in ("sk", "cs", "pl", "de", "hu") else "sk")
+                   lang=lang if lang in ("sk", "cs", "pl", "de", "hu", "en") else "sk")
 
 
 @app.get("/register", response_class=HTMLResponse)
@@ -319,7 +335,7 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
     email = email.strip().lower()
     if account_type not in ("business", "personal", "both"):
         account_type = "business"
-    if lang not in ("sk", "cs", "pl", "de", "hu"):
+    if lang not in ("sk", "cs", "pl", "de", "hu", "en"):
         lang = "sk"
     bot_error = _register_bot_error(request, website, ts, turnstile)
     if bot_error:
@@ -551,6 +567,11 @@ def landing_de(request: Request):
 @app.get("/hu", response_class=HTMLResponse)
 def landing_hu(request: Request):
     return _render(request, "landing_hu.html")
+
+
+@app.get("/en", response_class=HTMLResponse)
+def landing_en(request: Request):
+    return _render(request, "landing_en.html")
 
 
 def _landing_for_host(request: Request) -> str:
@@ -969,7 +990,7 @@ def sitemap(request: Request):
     host = request.url.hostname or "voru.sk"
     urls = "".join(
         f"<url><loc>https://{host}{path}</loc></url>"
-        for path in ("/", "/cs", "/pl", "/de", "/hu", "/register", "/login", "/navod",
+        for path in ("/", "/cs", "/pl", "/de", "/hu", "/en", "/register", "/login", "/navod",
                      "/podmienky", "/gdpr", "/dpa")
     )
     xml = ('<?xml version="1.0" encoding="UTF-8"?>'

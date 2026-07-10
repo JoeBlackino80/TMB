@@ -92,3 +92,32 @@ def test_subject_markers_cover_all_langs():
     for lang in i18n.LANGS:
         subject = "re: " + i18n.t(lang)["subject_reminder"].lower()
         assert any(m in subject for m in i18n.SUBJECT_MARKERS), lang
+
+
+def test_reminder_localized_en(tmp_path):
+    store = _store_with_payment(tmp_path, "en.db")
+    cfg = SimpleNamespace(action_base_url="", action_secret="", client_slug="",
+                          lang="en")
+    text, html, _ = reminder.build_reminder(store, 7, cfg)
+    store.close()
+    assert "Overdue" in html and "Mark as paid" not in html  # tlačidlá len s action_base_url
+    assert "payment waiting to be paid" in html
+    assert "paid 3" in html or "paid all" in html  # ovládanie v pätičke
+
+
+def test_commands_understand_en(tmp_path):
+    store = Store(str(tmp_path / "en-cmd.db"))
+    p1 = store.add_payment(supplier="A", amount=1.0, currency="EUR", iban="",
+                           variable_symbol="1", due_date=None)
+    p2 = store.add_payment(supplier="B", amount=2.0, currency="EUR", iban="",
+                           variable_symbol="2", due_date="2026-01-01")
+    t1 = store.add_task(description="X", due_date=None)
+
+    mail = Email(message_id="<e@x>", subject="Re: VORU: payments and tasks",
+                 sender="me@company.com", date="",
+                 body=f"paid {p1}\ndone {t1}\nsnooze {p2} by 7\n")
+    assert commands.is_command_email(mail, ["me@company.com"])
+    actions = commands.apply(store, mail)
+    assert len(actions) == 3
+    assert store.get_payment(p1).status == "paid"
+    store.close()

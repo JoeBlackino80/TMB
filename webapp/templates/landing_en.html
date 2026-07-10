@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VORU — AI guardian for invoices, payments and deadlines</title>
+<meta name="description" content="VORU reads your inbox, extracts what to pay, when and where from your invoices, watches deadlines and sends you a daily overview with a payment QR code. Your bank statement ticks off paid items automatically. 14 days free.">
+<meta name="keywords" content="invoices, payments, payment reminders, QR payment, SEPA, AI assistant, invoice payment, due date, entrepreneur, freelancer, small business">
+<link rel="canonical" href="https://voru.sk/en">
+<link rel="alternate" hreflang="sk" href="https://voru.sk/">
+<link rel="alternate" hreflang="cs" href="https://voru.cz/">
+<link rel="alternate" hreflang="pl" href="https://voru.pl/">
+<link rel="alternate" hreflang="de" href="https://voru.at/">
+<link rel="alternate" hreflang="hu" href="https://voru.hu/">
+<link rel="alternate" hreflang="en" href="https://voru.sk/en">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="VORU">
+<meta property="og:title" content="VORU — AI guardian for invoices, payments and deadlines">
+<meta property="og:description" content="Connect your inbox and VORU watches invoices, due dates and deadlines for you. Daily overview with a QR code — scan and pay.">
+<meta property="og:url" content="https://voru.sk/en">
+<meta property="og:locale" content="en_GB">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="index, follow">
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230a0c10'/><g fill='%23f5f2ea'><polygon points='6,7 16,13 26,7 26,10.2 16,16.2 6,10.2'/><polygon points='8.5,12.5 16,17 23.5,12.5 23.5,15.7 16,20.2 8.5,15.7'/><polygon points='11,18 16,21 21,18 21,21.2 16,24.2 11,21.2'/></g></svg>">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0a0c10">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "VORU",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Web",
+  "url": "https://voru.sk/en",
+  "description": "An AI assistant that reads incoming invoices, watches due dates and deadlines and sends overviews with a payment QR code.",
+  "inLanguage": "en",
+  "offers": [
+    {"@type": "Offer", "price": "4.99", "priceCurrency": "EUR",
+     "description": "Monthly subscription, first 14 days free"},
+    {"@type": "Offer", "price": "49", "priceCurrency": "EUR",
+     "description": "Yearly subscription, first 14 days free"}
+  ],
+  "provider": {"@type": "Organization", "name": "SORB XT s.r.o.",
+               "email": "obchod@sorbxt.sk"}
+}
+</script>
+{% include "_landing_style.html" %}
+{% if plausible_domain %}
+<script defer data-domain="{{ plausible_domain }}" src="https://plausible.io/js/script.js"></script>
+{% endif %}
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap navrow">
+    <a class="brand" href="/en">
+      {% include "_logo.html" %}
+    </a>
+    <nav class="navlinks">
+      <a href="#funkcie">Features</a>
+      <a href="#ako">How it works</a>
+      <a href="#cennik">Pricing</a>
+    </nav>
+    <div class="navcta">
+      <a class="signin" href="/">SK</a>
+      <a class="signin" href="/cs">CZ</a>
+      <a class="signin" href="/pl">PL</a>
+      <a class="signin" href="/de">DE</a>
+      <a class="signin" href="/hu">HU</a>
+      <a class="signin" href="/login">Sign in</a>
+      <a class="btn sm" href="/register?lang=en">Try for free</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="pill rv in"><span class="dot"></span> AI assistant for businesses and households</div>
+    <h1 class="rv in">Invoices under control.<br><span class="acc">Without reading your inbox.</span></h1>
+    <p class="lead rv in d1">VORU reads your mailbox, extracts the amount, account number
+       and due date from every invoice and sends a morning overview with a payment QR code.
+       Scan, pay — your bank statement ticks off paid items automatically.</p>
+    <div class="ctarow rv in d1">
+      <a class="btn lg" href="/register?lang=en">Try 14 days free</a>
+      <a class="btn lg ghost" href="#ako">How it works</a>
+    </div>
+    <div class="subnote rv in d2">No credit card · 2-minute setup</div>
+  </div>
+
+  <div class="stagewrap">
+    <div class="wrap">
+      <div class="window rv in d2" aria-hidden="true">
+        <div class="winbar"><i></i><i></i><i></i><span class="url">voru.sk</span></div>
+        <div class="app">
+          <aside>
+            <div class="abrand">
+              {% include "_logo.html" %}
+            </div>
+            <nav>
+              <a class="on">Overview</a><a>Mailboxes</a><a>Settings</a><a>Billing</a>
+            </nav>
+          </aside>
+          <main>
+            <h2>Overview</h2>
+            <div class="tiles">
+              <div class="tile bad"><b>1</b><span>overdue</span></div>
+              <div class="tile"><b>4</b><span>unpaid</span></div>
+              <div class="tile"><b>€642.10</b><span>due this month</span></div>
+              <div class="tile"><b>€218.00</b><span>next month</span></div>
+            </div>
+            <div class="lst">
+              <div class="lrow">
+                <span class="sup">Energy Supplier Ltd.</span>
+                <span class="chip red">overdue</span>
+                <span class="amt">€184.20</span>
+                <span class="mbtn">QR pay</span>
+              </div>
+              <div class="lrow">
+                <span class="sup">Webhosting Inc.</span>
+                <span class="chip amber">due today</span>
+                <span class="amt">€14.90</span>
+                <span class="mbtn">QR pay</span>
+              </div>
+              <div class="lrow">
+                <span class="sup">BuildMat Supplies</span>
+                <span class="chip red">different IBAN — verify!</span>
+                <span class="amt">€420.00</span>
+                <span class="mbtn">QR pay</span>
+              </div>
+              <div class="lrow">
+                <span class="sup">Telecom O2</span>
+                <span class="chip green">paid — matched</span>
+                <span class="amt" style="text-decoration:line-through;color:var(--faint)">€25.00</span>
+                <span class="mbtn" style="opacity:.4">✓</span>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+
+      <div class="trust rv">
+        <span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#98a1b2" stroke-width="1.8"><path d="M10 2l7 3v5c0 4.5-3 7.5-7 8-4-.5-7-3.5-7-8V5z"/></svg> Passwords stored encrypted</span>
+        <span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#98a1b2" stroke-width="1.8"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M7 10l2 2 4-4"/></svg> Payment QR codes for banks across Central Europe</span>
+        <span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#98a1b2" stroke-width="1.8"><circle cx="10" cy="10" r="7.5"/><path d="M10 5.5V10l3 2"/></svg> EU servers · GDPR</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="funkcie" style="padding-top: 40px">
+  <div class="wrap">
+    <div class="kick rv">Features</div>
+    <h2 class="sec rv">Everything about payments handled<br>before you finish your coffee</h2>
+    <p class="sub rv d1">VORU works in the background — you receive ready-made
+       results in your inbox and clear them with a single click.</p>
+    <div class="bento">
+      <div class="cell w3 rv">
+        <h3>A QR code for every payment</h3>
+        <p>A payment QR code with the amount, account number and reference
+           pre-filled — in the e-mail and on the web. Scan, confirm, done.</p>
+        <div class="demo">
+          <svg class="qrbox" width="66" height="66" viewBox="0 0 21 21" shape-rendering="crispEdges"><rect width="21" height="21" fill="#fff"/><path fill="#0d1117" d="M0 0h7v7H0zM14 0h7v7h-7zM0 14h7v7H0zM2 2h3v3H2zM16 2h3v3h-3zM2 16h3v3H2zM9 0h1v2H9zM11 1h2v1h-2zM9 3h3v1H9zM12 4h1v2h-1zM8 5h2v1H8zM9 7h1v2H9zM0 9h2v1H0zM3 8h2v2H3zM6 9h3v1H6zM11 8h2v1h-2zM14 9h2v1h-2zM17 8h1v2h-1zM19 9h2v1h-2zM1 11h1v2H1zM4 11h2v1H4zM7 12h2v1H7zM10 11h1v3h-1zM12 12h2v1h-2zM15 11h2v2h-2zM18 12h3v1h-3zM8 14h2v2H8zM11 15h2v1h-2zM14 14h1v2h-1zM16 15h2v1h-2zM19 14h2v2h-2zM9 17h1v2H9zM11 18h3v1h-3zM15 17h2v2h-2zM18 18h2v1h-2zM8 20h4v1H8zM14 20h3v1h-3z"/></svg>
+          <b>VORU: payments and tasks — 2 urgent</b><br>
+          Energy Supplier — €184.20 · due today · ref 202600412<br>
+          <span style="color:var(--accent);font-weight:600">✓ Mark as paid</span> ·
+          Snooze 3 days
+        </div>
+      </div>
+      <div class="cell w3 rv d1">
+        <h3>IBAN fraud guard</h3>
+        <p>VORU remembers the bank accounts of all your suppliers. When an invoice
+           arrives with a different account number than before, it warns you before
+           you send money to a fraudster.</p>
+        <div class="demo">
+          <span class="chip red" style="float:none">WARNING: different IBAN</span><br>
+          Supplier "BuildMat Supplies" used a different account than on the last
+          12 invoices. Verify the invoice by phone.
+        </div>
+      </div>
+      <div class="cell rv">
+        <h3>Your bank ticks items off</h3>
+        <p>Forward your bank statement — even a password-protected PDF — and paid
+           items are matched automatically.</p>
+      </div>
+      <div class="cell rv d1">
+        <h3>Batch payment order</h3>
+        <p>Upload a single file with all payments to your internet banking and
+           confirm everything at once (SEPA XML).</p>
+      </div>
+      <div class="cell rv d2">
+        <h3>Cashflow at a glance</h3>
+        <p>How much goes out by the end of this month and the next — you know it
+           before the statement arrives.</p>
+        <div class="bars"><i style="height:38%"></i><i style="height:62%"></i><i class="hi" style="height:88%"></i><i style="height:46%"></i><i style="height:30%"></i><i style="height:55%"></i></div>
+      </div>
+      <div class="cell rv">
+        <h3>Daily and weekly digest</h3>
+        <p>A short AI summary of your whole inbox every evening — what came in,
+           what's urgent, what can wait. Marketing in one sentence.</p>
+      </div>
+      <div class="cell rv d1">
+        <h3>Recurring invoice watchdog</h3>
+        <p>When a monthly invoice doesn't arrive, you'll know — before the late
+           fee does.</p>
+      </div>
+      <div class="cell rv d2">
+        <h3>Multiple companies, multiple inboxes</h3>
+        <p>Unlimited mailboxes in one account. You can also just forward invoices
+           to your unique address.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ako" style="padding-top: 30px">
+  <div class="wrap">
+    <div class="kick rv">How it works</div>
+    <h2 class="sec rv">Set up once, works forever</h2>
+    <div class="steps" style="margin-top: 40px">
+      <div class="step rv">
+        <h3>Connect your e-mail</h3>
+        <p>The address where your invoices arrive — Gmail, Outlook or company
+           mail. Or just forward invoices, no password needed.</p>
+      </div>
+      <div class="step rv d1">
+        <h3>VORU reads your mail for you</h3>
+        <p>It extracts amounts, account numbers, references and due dates from
+           invoices and PDF attachments. It also recognises tasks, deadlines
+           and bank statements.</p>
+      </div>
+      <div class="step rv d2">
+        <h3>You get ready-made overviews</h3>
+        <p>What to pay with QR codes in the morning, a digest in the evening.
+           Paid items tick themselves off — by click, by reply or by statement.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="cennik" style="padding-top: 30px">
+  <div class="wrap">
+    <div class="kick rv">Pricing</div>
+    <h2 class="sec rv">Less than one coffee a month</h2>
+    <p class="sub rv d1">A single missed late fee costs more than a year of VORU.</p>
+    <div class="plans">
+      <div class="plan rv">
+        <h3>Monthly</h3>
+        <div class="price">€4.99 <small>/ month</small></div>
+        <div class="per">cancel anytime</div>
+        <ul>
+          <li>14 days free, no credit card</li>
+          <li>all features, no limits</li>
+          <li>unlimited mailboxes and companies</li>
+        </ul>
+        <a class="btn" href="/register?lang=en">Start for free</a>
+      </div>
+      <div class="plan hot rv d1">
+        <div class="tag">Save 17%</div>
+        <h3>Yearly</h3>
+        <div class="price">€49 <small>/ year</small></div>
+        <div class="per">works out at €4.08 a month</div>
+        <ul>
+          <li>14 days free, no credit card</li>
+          <li>all features, no limits</li>
+          <li>unlimited mailboxes and companies</li>
+        </ul>
+        <a class="btn" href="/register?lang=en">Start for free</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq" style="padding-top: 20px; padding-bottom: 70px">
+  <div class="wrap">
+    <div class="kick rv">FAQ</div>
+    <h2 class="sec rv">What people ask</h2>
+    <div class="faq rv d1">
+      <details>
+        <summary>Is it safe to enter my mailbox password?</summary>
+        <p>The password is stored encrypted and used solely to read mail over an
+           encrypted IMAP connection. We recommend an app password you can revoke
+           at any time. And if you'd rather not enter a password at all, just
+           forward invoices to your unique VORU address.</p>
+      </details>
+      <details>
+        <summary>I don't know my mail server — can I manage?</summary>
+        <p>Yes. When adding a mailbox you simply pick your provider (Gmail,
+           Outlook and others) and the technical details fill themselves in.
+           The <a href="/navod">connection guide</a> shows it step by step —
+           and if you get stuck, write to us and we'll set it up with you.</p>
+      </details>
+      <details>
+        <summary>Which banks do the QR payments work with?</summary>
+        <p>All Slovak banks (PAY by square), Czech banks (QR Platba), Hungarian
+           banks (MNB QR) and EPC/SEPA QR codes accepted by banking apps across
+           the euro area, including Austria and Germany.</p>
+      </details>
+      <details>
+        <summary>How do payments get marked as paid?</summary>
+        <p>The most convenient way: forward your bank statement and VORU matches
+           the payments itself. Or click the button right in the e-mail, reply
+           "paid 3", or tick it off in the app — whatever suits you.</p>
+      </details>
+      <details>
+        <summary>Do I need a credit card for the trial?</summary>
+        <p>No. Registration is card-free and everything is free for 14 days.
+           If you decide to continue, you pay by card via Stripe.</p>
+      </details>
+      <details>
+        <summary>I run several companies — can it cope?</summary>
+        <p>Yes. Add any number of mailboxes for different companies to one
+           account and everything comes together in one overview and one e-mail.</p>
+      </details>
+      <details>
+        <summary>Is there a mobile app?</summary>
+        <p>Yes — install VORU on your phone's home screen straight from the
+           browser, no App Store needed. iPhone: Safari → Share → Add to Home
+           Screen. Android: Chrome → menu → Install app. Everything important
+           also arrives by e-mail, so you barely need to open the app.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<div class="band">
+  <div class="in">
+    <h2>Stop keeping due dates in your head</h2>
+    <p>Connecting your inbox takes two minutes. Your first overview arrives today.</p>
+    <a class="btn lg" href="/register?lang=en">Try 14 days free</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="/en">
+      {% include "_logo.html" %}
+    </a>
+    <span>© SORB XT s.r.o.</span>
+    <a href="mailto:obchod@sorbxt.sk">obchod@sorbxt.sk</a>
+    <a href="/login">Sign in</a>
+    <a href="/register?lang=en">Register</a>
+    <a href="/navod">Guide</a>
+    <a href="/podmienky">Terms</a>
+    <a href="/gdpr">Privacy</a>
+    <a href="/">Slovensky</a>
+    <a href="/cs">Česky</a>
+    <a href="/pl">Polski</a>
+    <a href="/de">Deutsch</a>
+    <a href="/hu">Magyar</a>
+  </div>
+</footer>
+
+<script>
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) {
+      e.target.classList.add("in"); io.unobserve(e.target);
+    }
+  }, { threshold: 0.12 });
+  document.querySelectorAll(".rv:not(.in)").forEach((el) => io.observe(el));
+</script>
+</body>
+</html>

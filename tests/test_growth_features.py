@@ -118,3 +118,12 @@ def test_plausible_snippet(client, monkeypatch):
     s = _login(client, "anal@x.sk")
     r = client.get("/settings", cookies={"session": s})
     assert "plausible.io" not in r.text
+
+
+def test_landing_en(client):
+    r = client.get("/en")
+    assert r.status_code == 200
+    assert "Invoices under control" in r.text and 'href="/cs"' in r.text
+    # slovenská mutácia odkazuje na anglickú
+    r = client.get("/")
+    assert 'href="/en"' in r.text

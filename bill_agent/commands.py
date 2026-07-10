@@ -23,25 +23,27 @@ SUBJECT_MARKER = "platby a úlohy"
 
 _REPLY_PREFIXES = ("re:", "odp:", "odp.:", "aw:", "wg:", "sv:", "vá:", "fwd:", "fw:")
 
-# rozumieme tvarom vo všetkých jazykoch mutácií: sk/cs/pl/de/hu
-# (zaplatené, zaplaceno, zapłacone, bezahlt, fizetve...)
+# rozumieme tvarom vo všetkých jazykoch mutácií: sk/cs/pl/de/hu/en
+# (zaplatené, zaplaceno, zapłacone, bezahlt, fizetve, paid...)
 _PAID_RE = re.compile(
     r"^(?:zaplat|zaplac|zap[łl]ac|op[łl]ac|uhrad|uhraz|bezahl|fizet|kifizet|paid)\S*\s+"
-    r"(\d+|v[sš]etko|v[sš]e(?:chno)?|wszystko|alles|mind(?:en)?|all)[.!]?\s*$", re.I)
+    r"(\d+|v[sš]etko|v[sš]e(?:chno)?|wszystko|alles|mind(?:en)?|all|everything)[.!]?\s*$",
+    re.I)
 _IGNORE_RE = re.compile(r"^ignor\S*\s+(\d+)[.!]?\s*$", re.I)
 _TASK_RE = re.compile(
     r"^(?:hotovo?|splnen|gotowe|zrobion|erledigt|k[eé]sz|done)\S*\s+(\d+)[.!]?\s*$", re.I)
-_SNOOZE_WORD = r"(?:odlo[zž]|od[łl][oó][żz]|prze[łl][oó][żz]|verschieb|halaszd?|halaszt)"
+_SNOOZE_WORD = (r"(?:odlo[zž]|od[łl][oó][żz]|prze[łl][oó][żz]|verschieb"
+                r"|halaszd?|halaszt|snooze|postpone)")
 # "odlož úlohu 2 o 5" pred všeobecným "odlož 4 o 5" (platba)
-_SNOOZE_SEP = r"(?:o|um|na)"
+_SNOOZE_SEP = r"(?:o|um|na|by)"
 _SNOOZE_TASK_RE = re.compile(
-    _SNOOZE_WORD + r"\S*\s+(?:[uú]loh|[uú]kol|zadani|aufgabe|teend[oő])\S*\s+"
+    _SNOOZE_WORD + r"\S*\s+(?:[uú]loh|[uú]kol|zadani|aufgabe|teend[oő]|task)\S*\s+"
     r"(\d+)(?:\s+" + _SNOOZE_SEP + r"\s+(\d+))?[.!]?\s*$", re.I)
 _SNOOZE_RE = re.compile(
     _SNOOZE_WORD + r"\S*\s+(\d+)(?:\s+" + _SNOOZE_SEP + r"\s+(\d+))?[.!]?\s*$", re.I)
 
 _ALL_WORDS = {"vsetko", "všetko", "vše", "vse", "všechno", "vsechno", "wszystko",
-              "alles", "mind", "minden", "all"}
+              "alles", "mind", "minden", "all", "everything"}
 
 DEFAULT_SNOOZE_DAYS = 3
 
