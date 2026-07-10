@@ -211,34 +211,113 @@ def _render(request: Request, template: str, **ctx) -> HTMLResponse:
 
 # -- registrácia a prihlásenie ------------------------------------------------
 
+# -- ochrana registrácie pred botmi -------------------------------------------------
+#
+# Kontroly bežia len za reverznou proxy (hlavička X-Forwarded-For — v produkcii
+# ju pridáva Caddy), takže testy a lokálny vývoj fungujú bez zmien.
+# 1. honeypot: skryté pole "website" vyplní len robot
+# 2. časová pečiatka: formulár musí byť odoslaný 3 s až 1 h po zobrazení
+# 3. rate limit: max 3 registrácie z jednej IP za hodinu
+# 4. voliteľne Cloudflare Turnstile (TURNSTILE_SITE_KEY/SECRET v .env.master)
+
+_REG_ATTEMPTS: dict = {}
+
+
+def _client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else ""
+
+
+def _reg_ts() -> str:
+    t = str(int(time.time()))
+    return f"{t}|{_sign('regts|' + t)}"
+
+
+def _register_bot_error(request: Request, website: str, ts: str,
+                        turnstile_token: str) -> str:
+    """Vráti text chyby, ak požiadavka vyzerá ako robot; '' ak je v poriadku."""
+    if "x-forwarded-for" not in request.headers:
+        return ""
+    if website.strip():
+        return "Registráciu sa nepodarilo overiť — skúste to znova."
+    try:
+        t, sig = ts.split("|", 1)
+        if not hmac.compare_digest(_sign("regts|" + t), sig):
+            raise ValueError
+        age = time.time() - int(t)
+        if age < 3 or age > 3600:
+            raise ValueError
+    except Exception:
+        return "Platnosť formulára vypršala — skúste to znova."
+    ip = _client_ip(request)
+    now = time.time()
+    _REG_ATTEMPTS[ip] = [a for a in _REG_ATTEMPTS.get(ip, []) if now - a < 3600]
+    if len(_REG_ATTEMPTS[ip]) >= 3:
+        return ("Priveľa registrácií z tejto adresy — skúste to o hodinu, "
+                "alebo nám napíšte na obchod@sorbxt.sk.")
+    secret = os.environ.get("TURNSTILE_SECRET", "")
+    if secret:
+        import urllib.parse
+        import urllib.request
+
+        try:
+            data = urllib.parse.urlencode({
+                "secret": secret, "response": turnstile_token,
+                "remoteip": ip}).encode()
+            with urllib.request.urlopen(urllib.request.Request(
+                "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+                data=data), timeout=10) as resp:
+                if not json.load(resp).get("success"):
+                    raise ValueError
+        except Exception:
+            return "Overenie, že nie ste robot, zlyhalo — skúste to znova."
+    return ""
+
+
+def _register_page(request: Request, lang: str = "sk", ref: str = "",
+                   error: str | None = None) -> HTMLResponse:
+    return _render(request, "register.html", ref=ref[:80], error=error,
+                   ts=_reg_ts(),
+                   turnstile_site_key=os.environ.get("TURNSTILE_SITE_KEY", ""),
+                   lang=lang if lang in ("sk", "cs", "pl", "de", "hu") else "sk")
+
+
 @app.get("/register", response_class=HTMLResponse)
 def register_form(request: Request, lang: str = "sk", ref: str = ""):
-    return _render(request, "register.html", ref=ref[:80],
-                   lang=lang if lang in ("sk", "cs", "pl", "de", "hu") else "sk")
+    return _register_page(request, lang, ref)
 
 
 @app.post("/register")
 def register(request: Request, email: str = Form(...), password: str = Form(...),
              account_type: str = Form("business"), lang: str = Form("sk"),
-             consent: str = Form(""), ref: str = Form("")):
+             consent: str = Form(""), ref: str = Form(""),
+             website: str = Form(""), ts: str = Form(""),
+             turnstile: str = Form("", alias="cf-turnstile-response")):
     email = email.strip().lower()
     if account_type not in ("business", "personal", "both"):
         account_type = "business"
     if lang not in ("sk", "cs", "pl", "de", "hu"):
         lang = "sk"
+    bot_error = _register_bot_error(request, website, ts, turnstile)
+    if bot_error:
+        return _register_page(request, lang, ref, error=bot_error)
     if not consent:
-        return _render(request, "register.html", lang=lang,
-                       error="Registrácia vyžaduje súhlas s obchodnými "
-                             "podmienkami a spracovaním údajov.")
+        return _register_page(request, lang, ref,
+                              error="Registrácia vyžaduje súhlas s obchodnými "
+                                    "podmienkami a spracovaním údajov.")
     if "@" not in email or len(password) < 8:
-        return _render(request, "register.html", lang=lang,
-                       error="Zadajte platný e-mail a heslo aspoň 8 znakov.")
+        return _register_page(request, lang, ref,
+                              error="Zadajte platný e-mail a heslo aspoň 8 znakov.")
     users = Users()
     try:
         if users.by_email(email):
-            return _render(request, "register.html", error="Účet už existuje — prihláste sa.")
+            return _register_page(request, lang, ref,
+                                  error="Účet už existuje — prihláste sa.")
         # bez SMTP sa overovací e-mail nedá poslať — účet je overený rovno
         user = users.create(email, password, verified=not mailer.smtp_configured())
+        _REG_ATTEMPTS.setdefault(_client_ip(request), []).append(time.time())
         # referral: obom predĺžime skúšobnú dobu (novému +14, odporúčajúcemu +30)
         referrer = users.by_client_dir(ref.strip()) if ref.strip() else None
         if referrer and referrer["id"] != user["id"]:

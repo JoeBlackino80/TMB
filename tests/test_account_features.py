@@ -231,3 +231,53 @@ def test_send_push(tmp_path, monkeypatch):
     # zaniknutý odber (410) sa zo súboru odstránil
     left = _json.loads((tmp_path / "push_subscriptions.json").read_text())
     assert [s["endpoint"] for s in left] == ["https://push.example/ok"]
+
+
+def test_register_bot_protection(client, monkeypatch):
+    """Anti-bot: honeypot, časová pečiatka a rate limit (aktívne len za proxy)."""
+    import time as _time
+
+    import webapp.app as app_module
+
+    def aged_ts(age=10):
+        t = str(int(_time.time()) - age)
+        return f"{t}|{app_module._sign('regts|' + t)}"
+
+    base = {"password": "tajneheslo", "consent": "1"}
+    xff = {"X-Forwarded-For": "203.0.113.7"}
+
+    # bez proxy hlavičky sa kontroly nevynucujú (testy, lokálny vývoj)
+    r = client.post("/register", data={"email": "lokal@x.sk", **base})
+    assert r.status_code == 303
+
+    # za proxy: chýbajúca/čerstvá pečiatka sa odmietne
+    r = client.post("/register", data={"email": "bot1@x.sk", **base}, headers=xff)
+    assert r.status_code == 200 and "vypršala" in r.text
+    r = client.post("/register", data={"email": "bot2@x.sk", "ts": aged_ts(0), **base},
+                    headers=xff)
+    assert "vypršala" in r.text
+
+    # honeypot pole vyplní len robot
+    r = client.post("/register", data={"email": "bot3@x.sk", "ts": aged_ts(),
+                                       "website": "http://spam", **base}, headers=xff)
+    assert "nepodarilo overiť" in r.text
+
+    # legitímna registrácia so starou pečiatkou prejde
+    r = client.post("/register", data={"email": "ok1@x.sk", "ts": aged_ts(), **base},
+                    headers=xff)
+    assert r.status_code == 303
+
+    # rate limit: max 3 registrácie z jednej IP za hodinu
+    app_module._REG_ATTEMPTS.clear()
+    for i in range(3):
+        r = client.post("/register", data={"email": f"ip{i}@x.sk",
+                                           "ts": aged_ts(), **base}, headers=xff)
+        assert r.status_code == 303
+    r = client.post("/register", data={"email": "ip4@x.sk", "ts": aged_ts(), **base},
+                    headers=xff)
+    assert r.status_code == 200 and "Priveľa registrácií" in r.text
+    # iná IP nie je blokovaná
+    r = client.post("/register", data={"email": "ip5@x.sk", "ts": aged_ts(), **base},
+                    headers={"X-Forwarded-For": "198.51.100.9"})
+    assert r.status_code == 303
+    app_module._REG_ATTEMPTS.clear()

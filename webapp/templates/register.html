@@ -8,6 +8,11 @@
   <form method="post" action="/register">
     <input type="hidden" name="lang" value="{{ lang or 'sk' }}">
     <input type="hidden" name="ref" value="{{ ref or '' }}">
+    <input type="hidden" name="ts" value="{{ ts or '' }}">
+    <div style="position:absolute;left:-9999px" aria-hidden="true">
+      <label>Website <input type="text" name="website" tabindex="-1"
+             autocomplete="off"></label>
+    </div>
     <label>Používam VORU ako</label>
     <div style="display:flex;gap:14px;margin:4px 0 6px;flex-wrap:wrap">
       <label style="display:flex;align-items:center;gap:7px;font-weight:500;margin:0">
@@ -37,6 +42,12 @@
         <a href="/gdpr" target="_blank">zásad ochrany údajov</a> (vrátane
         spracovania obsahu pripojenej pošty na účely služby).</span>
     </label>
+    {% if turnstile_site_key %}
+    <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}"
+         style="margin-top:10px"></div>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+            async defer></script>
+    {% endif %}
     <button type="submit">Registrovať sa</button>
   </form>
   <p class="muted" style="margin-top:18px">Máte účet?
