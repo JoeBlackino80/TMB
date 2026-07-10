@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>VORU — AI számlaőr: számlák, fizetések, határidők</title>
-<meta name="description" content="A VORU elolvassa az e-mail postafiókját, kigyűjti a számlákból, hogy mit, mikor és hova kell fizetni, figyeli a határidőket, és minden reggel elküldi a fizetnivalók áttekintését. A bankszámlakivonat magától kipipálja a kifizetetteket. 14 nap ingyen.">
+<meta name="description" content="A VORU elolvassa az e-mail postafiókját, kigyűjti a számlákból, hogy mit, mikor és hova kell fizetni, figyeli a határidőket, és minden reggel elküldi a fizetnivalók áttekintését QR-kóddal (MNB-szabvány). A bankszámlakivonat magától kipipálja a kifizetetteket. 14 nap ingyen.">
 <meta name="keywords" content="számlák, fizetések, fizetési emlékeztető, AI asszisztens, fizetési határidő, vállalkozó, KATA, kkv">
 <link rel="canonical" href="https://voru.hu/">
 <link rel="alternate" hreflang="sk" href="https://voru.sk/">
@@ -83,7 +83,8 @@
     <h1 class="rv in">Számlák kontroll alatt.<br><span class="acc">A posta olvasása nélkül.</span></h1>
     <p class="lead rv in d1">A VORU elolvassa a postafiókját, kigyűjti a számlákból
        az összeget, a számlaszámot és a határidőt — és minden reggel elküldi
-       az áttekintést az előkészített utalási adatokkal. A bankszámlakivonat
+       az áttekintést az előkészített utalási adatokkal és QR-kóddal
+       (MNB-szabvány), amelyet a banki alkalmazása beolvas. A bankszámlakivonat
        magától kipipálja a kifizetetteket.</p>
     <div class="ctarow rv in d1">
       <a class="btn lg" href="/register?lang=hu">14 nap ingyenes próba</a>
@@ -118,19 +119,19 @@
                 <span class="sup">MVM Next Zrt.</span>
                 <span class="chip red">lejárt</span>
                 <span class="amt">68 400 Ft</span>
-                <span class="mbtn">Utalási adatok</span>
+                <span class="mbtn">QR-fizetés</span>
               </div>
               <div class="lrow">
                 <span class="sup">Rackhost Zrt.</span>
                 <span class="chip amber">ma</span>
                 <span class="amt">5 990 Ft</span>
-                <span class="mbtn">Utalási adatok</span>
+                <span class="mbtn">QR-fizetés</span>
               </div>
               <div class="lrow">
                 <span class="sup">Építőanyag Kft.</span>
                 <span class="chip red">más számlaszám — ellenőrizze!</span>
                 <span class="amt">156 000 Ft</span>
-                <span class="mbtn">Utalási adatok</span>
+                <span class="mbtn">QR-fizetés</span>
               </div>
               <div class="lrow">
                 <span class="sup">Telekom HU</span>
@@ -160,14 +161,16 @@
        a postafiókjába, és egy kattintással elintézi őket.</p>
     <div class="bento">
       <div class="cell w3 rv">
-        <h3>Előkészített utalási adatok minden számlához</h3>
+        <h3>Utalási adatok és QR-kód minden számlához</h3>
         <p>Összeg, számlaszám, közlemény és határidő — a számlából kigyűjtve,
-           tálcán kínálva e-mailben és az alkalmazásban. Másolja, utalja, kész —
-           nincs több gépelés PDF-ekből.</p>
+           tálcán kínálva e-mailben és az alkalmazásban, előkészített utalási
+           adatokkal és QR-kóddal (MNB-szabvány), amelyet a banki alkalmazása
+           beolvas. Beolvassa, jóváhagyja, kész — nincs több gépelés
+           PDF-ekből.</p>
         <div class="demo">
           <b>VORU: fizetések és teendők — 2 sürgős</b><br>
           MVM Next — 68 400 Ft · határidő ma<br>
-          <span style="color:var(--accent);font-weight:600">✓ Megjelölés fizetettként</span> ·
+          <span style="color:var(--accent);font-weight:600">✓ Megjelölés kifizetettként</span> ·
           Halasztás 3 nappal
         </div>
       </div>
@@ -178,7 +181,7 @@
            eltérő számlaszámmal érkezik, figyelmezteti, mielőtt utalna.</p>
         <div class="demo">
           <span class="chip red" style="float:none">FIGYELEM: más számlaszám</span><br>
-          Az „Építőanyag Kft." beszállító az előző 12 számlától eltérő
+          Az „Építőanyag Kft.” beszállító az előző 12 számlától eltérő
           számlaszámot adott meg. Ellenőrizze telefonon.
         </div>
       </div>
@@ -205,8 +208,8 @@
       </div>
       <div class="cell rv d1">
         <h3>Rendszeres számlák őre</h3>
-        <p>Ha a havi számla nem érkezik meg, tudni fog róla — még a késedelmi
-           kamat előtt.</p>
+        <p>Ha a havi számla nem érkezik meg, tudni fog róla — még mielőtt
+           késedelmi díjat számítanának fel.</p>
       </div>
       <div class="cell rv d2">
         <h3>Több cég, több postafiók</h3>
@@ -224,7 +227,7 @@
     <div class="steps" style="margin-top: 40px">
       <div class="step rv">
         <h3>Csatlakoztatja az e-mail-címét</h3>
-        <p>Az e-mail címet, amelyre a számlái érkeznek — Gmail, Freemail vagy
+        <p>Az e-mail-címet, amelyre a számlái érkeznek — Gmail, Freemail vagy
            céges posta. Vagy csak továbbítja a számlákat, jelszó megadása nélkül.</p>
       </div>
       <div class="step rv d1">
@@ -235,7 +238,8 @@
       </div>
       <div class="step rv d2">
         <h3>Kész áttekintéseket kap</h3>
-        <p>Reggel a fizetnivalók az utalási adatokkal, este a nap összefoglalója.
+        <p>Reggel a fizetnivalók az utalási adatokkal és QR-kódokkal, este a
+           nap összefoglalója.
            A kifizetettek maguktól kipipálódnak — kattintással, válasszal vagy
            kivonattal.</p>
       </div>
@@ -247,7 +251,7 @@
   <div class="wrap">
     <div class="kick rv">Árak</div>
     <h2 class="sec rv">Kevesebb, mint egy kávé havonta</h2>
-    <p class="sub rv d1">Egyetlen késedelmi kamat többe kerül, mint egy év VORU.</p>
+    <p class="sub rv d1">Egyetlen késedelmi díj többe kerül, mint egy év VORU.</p>
     <div class="plans">
       <div class="plan rv">
         <h3>Havonta</h3>

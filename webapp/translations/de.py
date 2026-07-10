@@ -6,7 +6,7 @@ APP = {
     "m_overview": "Übersicht", "m_mailboxes": "Postfächer",
     "m_settings": "Einstellungen", "m_billing": "Abonnement",
     "m_logout": "Abmelden",
-    "f_terms": "Nutzungsbedingungen", "f_privacy": "Datenschutz",
+    "f_terms": "AGB", "f_privacy": "Datenschutz",
     # Übersicht
     "d_verify": "Bitte bestätigen Sie Ihre E-Mail-Adresse — wir haben Ihnen "
                 "einen Link geschickt. Nichts erhalten?",
@@ -28,7 +28,7 @@ APP = {
     "d_this_month": "fällig bis Monatsende", "d_next_month": "nächster Monat",
     "d_open_tasks": "offene Aufgaben",
     "d_missing_title": "Regelmäßige Rechnungen, die nicht eingegangen sind",
-    "d_missing_last": "letzte {d}", "d_missing_exp": "erwartet bis {d}",
+    "d_missing_last": "zuletzt {d}", "d_missing_exp": "erwartet bis {d}",
     "d_missing_note": "Prüfen Sie, ob die Rechnung im Spam gelandet ist oder "
                       "an eine andere Adresse geschickt wird.",
     "d_payments_title": "Unbezahlte Zahlungen",
@@ -38,17 +38,18 @@ APP = {
     "d_ignore_btn": "Ignorieren", "d_ignore_confirm": "Diese Zahlung ignorieren?",
     "d_qr_alt": "QR-Code für die Zahlung",
     "d_qr_note": "Scannen Sie den Code in Ihrer Banking-App — Betrag, IBAN "
-                 "und Referenz sind vorausgefüllt.",
+                 "und Zahlungsreferenz sind vorausgefüllt.",
     "d_pay_note": "QR-Codes zum Bezahlen finden Sie in den E-Mail-"
-                  "Übersichten. Als bezahlt abgehakt wird auch per "
-                  "Kontoauszug oder per Antwort „zaplatené č.“ auf die "
-                  "E-Mail.",
+                  "Übersichten. Zahlungen werden auch per Kontoauszug "
+                  "abgehakt — oder per Antwort „bezahlt 3“ (Nummer der "
+                  "Zahlung) auf die E-Mail.",
     "d_sepa_btn": "Sammelüberweisung (SEPA XML)",
     "d_sepa_note": "Die Datei laden Sie in Ihr Online-Banking hoch und "
                    "bestätigen alle Überweisungen auf einmal.",
     "d_no_payments": "Keine erfassten unbezahlten Zahlungen.",
     "d_renewals_title": "Läuft ab", "d_done_btn": "Erledigt",
-    "d_renewals_note": "Versicherungen, TÜV/§57a, Domains und Abonnements, "
+    "d_renewals_note": "Versicherungen, §57a-Begutachtung („Pickerl“), "
+                       "Domains und Abonnements, "
                        "die VORU in Ihrer Post gefunden hat. Haken Sie "
                        "Erledigtes ab, damit wir Sie nicht mehr daran "
                        "erinnern.",
@@ -118,7 +119,7 @@ APP = {
                    "Anmeldung und Sicherheit → App-Passwörter.",
     "hint_simple": "Verwenden Sie die vollständige Adresse und das Passwort, "
                    "mit dem Sie sich anmelden.",
-    "hint_other": "Der Server heißt meist <b>mail.vasadomena.sk</b> oder Sie "
+    "hint_other": "Der Server heißt meist <b>mail.ihredomain.at</b> oder Sie "
                   "finden ihn in der Dokumentation Ihres Hostings unter "
                   "„IMAP“. Wenn Sie nicht weiterwissen, schreiben Sie uns an "
                   "<a href='mailto:obchod@sorbxt.sk'>"
@@ -132,7 +133,7 @@ APP = {
                      "gesendet werden",
     "s_pdf": "Passwörter für geschützte PDF (Kontoauszüge) — mehrere durch "
              "Komma trennen",
-    "s_pdf_ph": "z. B. persönliche Kennziffer oder das Passwort von der Bank",
+    "s_pdf_ph": "z. B. Geburtsdatum oder das von der Bank vergebene Passwort",
     "s_pdf_note": "Das Passwort wird nur lokal zum Entsperren der "
                   "PDF-Auszüge verwendet, damit VORU bezahlte Zahlungen "
                   "selbst abhaken kann.",
@@ -150,7 +151,8 @@ APP = {
     "s_report": "Monatlicher Ausgabenbericht (am 1. des Monats)",
     "s_tax": "Steuerkalender — was Sie betrifft",
     "s_tax_note": "VORU erinnert in den morgendlichen Übersichten an "
-                  "gesetzliche Termine (USt., Abgaben, Vorauszahlungen).",
+                  "gesetzliche Termine (USt., SVS-Beiträge, "
+                  "Vorauszahlungen).",
     "s_save": "Speichern",
     "s_pw_title": "Passwort ändern",
     "s_pw_ok": "Das Passwort wurde geändert.",
@@ -209,10 +211,10 @@ APP = {
     "s_app_lead": "Installieren Sie VORU auf dem Startbildschirm Ihres "
                   "Telefons — es funktioniert wie eine normale App, ohne "
                   "App Store.",
-    "s_app_ios": "<b>iPhone:</b> öffnen Sie voru.sk in Safari → Taste "
+    "s_app_ios": "<b>iPhone:</b> öffnen Sie voru.at in Safari → Taste "
                  "„Teilen“ <span class='muted'>(Quadrat mit Pfeil)</span> → "
                  "<b>Zum Home-Bildschirm</b>.",
-    "s_app_android": "<b>Android:</b> öffnen Sie voru.sk in Chrome → Menü ⋮ → "
+    "s_app_android": "<b>Android:</b> öffnen Sie voru.at in Chrome → Menü ⋮ → "
                      "<b>Zum Startbildschirm hinzufügen / App "
                      "installieren</b>.",
     # Abonnement
@@ -235,9 +237,8 @@ APP = {
                 "<a href='mailto:obchod@sorbxt.sk'>obchod@sorbxt.sk</a>.",
     "b_ref_title": "Empfehlen Sie VORU — ein Monat gratis",
     "b_ref_lead": "Für jede Person, die sich über Ihren Link registriert, "
-                  "erhalten Sie <b>+30 Tage</b> Dienst gratis — und die neue "
-                  "Nutzerin bzw. der neue Nutzer <b>+14 Tage</b> Testphase "
-                  "zusätzlich.",
+                  "erhalten Sie <b>30 Tage</b> gratis dazu — und der neue "
+                  "Nutzer <b>14 Tage</b> Testzeitraum extra.",
     "b_ref_count": "Über Ihren Link haben sich bereits registriert:",
     # Passwort vergessen / zurücksetzen
     "fp_title": "Passwort vergessen",
@@ -303,8 +304,8 @@ APP = {
                         "wahrscheinlich haben Sie ihn bereits abgehakt, oder "
                         "der Kontoauszug hat ihn zugeordnet.",
     "a_confirm_q": "Wirklich {label}?",
-    "a_bulk_q": "Wirklich {label}? Entfernen Sie den Haken bei allem, was "
-                "noch nicht bezahlt ist.",
+    "a_bulk_q": "Wirklich {label}? Entfernen Sie das Häkchen bei Zahlungen, "
+                "die noch nicht bezahlt sind.",
     "a_bulk_empty": "Sie haben derzeit keine unbezahlten Zahlungen.",
     "a_bulk_btn": "Ausgewählte als bezahlt markieren",
     "a_no_due": "ohne Fälligkeit",

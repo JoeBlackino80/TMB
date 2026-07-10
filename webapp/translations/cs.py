@@ -25,20 +25,20 @@ APP = {
     "d_this_month": "odejde do konce měsíce", "d_next_month": "příští měsíc",
     "d_open_tasks": "otevřené úkoly",
     "d_missing_title": "Pravidelné faktury, které nepřišly",
-    "d_missing_last": "poslední {d}", "d_missing_exp": "čekala se do {d}",
-    "d_missing_note": "Zkontrolujte, jestli faktura nezapadla ve spamu, nebo "
+    "d_missing_last": "poslední {d}", "d_missing_exp": "očekávaná do {d}",
+    "d_missing_note": "Zkontrolujte, jestli faktura neskončila ve spamu, nebo "
                       "jestli nechodí na jinou adresu.",
     "d_payments_title": "Nezaplacené platby",
     "th_supplier": "Dodavatel", "th_amount": "Částka", "th_due": "Splatnost",
-    "d_other_iban": "jiný IBAN — ověřit!", "d_today": "dnes",
-    "d_qr_btn": "QR platba", "d_paid_btn": "Zaplaceno",
+    "d_other_iban": "jiné číslo účtu — ověřit!", "d_today": "dnes",
+    "d_qr_btn": "QR Platba", "d_paid_btn": "Zaplaceno",
     "d_ignore_btn": "Ignorovat", "d_ignore_confirm": "Ignorovat tuto platbu?",
     "d_qr_alt": "QR kód k platbě",
     "d_qr_note": "Naskenujte v bankovní aplikaci — částka, IBAN i VS jsou "
                  "předvyplněné.",
     "d_pay_note": "QR kódy k zaplacení najdete v e-mailových přehledech. "
-                  "Zaplacené odškrtne i výpis z banky nebo odpověď "
-                  "„zaplaceno č.“ na e-mail.",
+                  "Zaplacené odškrtne i výpis z banky nebo odpověď na e-mail "
+                  "ve tvaru „zaplaceno 3“ (číslo platby).",
     "d_sepa_btn": "Hromadný příkaz k úhradě (SEPA XML)",
     "d_sepa_note": "Soubor nahrajete do internetového bankovnictví a všechny "
                    "úhrady potvrdíte najednou.",
@@ -104,7 +104,7 @@ APP = {
                    "rel='noopener'>account.apple.com</a> → Přihlášení a "
                    "zabezpečení → Hesla aplikací.",
     "hint_simple": "Použijte celou adresu a heslo, kterým se přihlašujete.",
-    "hint_other": "Server bývá <b>mail.vasadomena.sk</b> nebo ho najdete v "
+    "hint_other": "Server bývá <b>mail.vasedomena.cz</b> nebo ho najdete v "
                   "dokumentaci vašeho hostingu pod „IMAP“. Pokud si nevíte "
                   "rady, napište nám na <a href='mailto:obchod@sorbxt.sk'>"
                   "obchod@sorbxt.sk</a> — poradíme.",
@@ -114,7 +114,8 @@ APP = {
     "s_type_personal": "soukromá osoba",
     "s_type_both": "obojí — firma i soukromé",
     "s_reminder_to": "Kam posílat přehledy a upozornění",
-    "s_pdf": "Hesla k chráněným PDF (výpisy z banky) — více oddělte čárkou",
+    "s_pdf": "Hesla k chráněným PDF (výpisy z banky) — více hesel oddělte "
+             "čárkou",
     "s_pdf_ph": "např. rodné číslo nebo heslo z banky",
     "s_pdf_note": "Heslo se použije jen lokálně k odemknutí PDF výpisů, "
                   "aby VORU umělo samo odškrtnout zaplacené platby.",
@@ -123,7 +124,7 @@ APP = {
     "s_name_ph": "Moje firma s.r.o.",
     "s_remind": "Ranní přehled plateb (s QR kódy)",
     "s_workdays": "pracovní dny", "s_daily": "každý den",
-    "s_weekly": "jen v pátek (za týden)", "s_off": "neposílat",
+    "s_weekly": "jen v pátek (souhrn za celý týden)", "s_off": "neposílat",
     "s_at": "v {h}:00",
     "s_digest": "Shrnutí přijaté pošty",
     "s_digest_note": "V pátek přijde vždy shrnutí celého týdne. E-mail se "
@@ -134,7 +135,7 @@ APP = {
                   "v ranních přehledech.",
     "s_save": "Uložit",
     "s_pw_title": "Změna hesla",
-    "s_pw_ok": "Heslo je změněno.",
+    "s_pw_ok": "Heslo bylo změněno.",
     "s_pw_old": "Současné heslo",
     "s_pw_new": "Nové heslo (min. 8 znaků)",
     "s_pw_btn": "Změnit heslo",
@@ -236,7 +237,7 @@ APP = {
                   "a nechte si poslat nový.",
     "v_gate_title": "Nejprve potvrďte e-mail",
     "v_gate_body": "Připojení schránky se odemkne po potvrzení vaší "
-                   "e-mailové adresy — klik na odkaz v uvítacím e-mailu. "
+                   "e-mailové adresy — klikněte na odkaz v uvítacím e-mailu. "
                    "Nový odkaz si pošlete tlačítkem na přehledu.",
     "v_gate_cta": "Zpět na přehled",
     "login_cta": "Přihlásit se",
@@ -258,7 +259,8 @@ APP = {
     "a_already_single": "Položka mezitím změnila stav — pravděpodobně jste "
                         "ji už odškrtli, nebo ji spároval výpis z banky.",
     "a_confirm_q": "Opravdu {label}?",
-    "a_bulk_q": "Opravdu {label}? Odškrtněte, co ještě zaplacené není.",
+    "a_bulk_q": "Opravdu {label}? Zrušte zaškrtnutí u plateb, které ještě "
+                "nejsou zaplacené.",
     "a_bulk_empty": "Momentálně nemáte žádné nezaplacené platby.",
     "a_bulk_btn": "Označit vybrané jako zaplacené",
     "a_no_due": "bez splatnosti",

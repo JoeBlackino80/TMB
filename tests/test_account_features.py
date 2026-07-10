@@ -77,7 +77,7 @@ def test_totp_enable_and_login(client):
     assert r.status_code == 200 and "Dvojfaktorové overenie" in r.text
     token = r.text.split('name="t" value="')[1].split('"')[0]
     r = client.post("/login/totp", data={"t": token, "code": "999999"})
-    assert "Nesprávny kód" in r.text
+    assert "Kód nesedí" in r.text
     r = client.post("/login/totp", data={"t": token, "code": totp_mod.code(secret)})
     assert r.status_code == 303 and "session" in r.cookies
 
@@ -260,7 +260,7 @@ def test_register_bot_protection(client, monkeypatch):
     # honeypot pole vyplní len robot
     r = client.post("/register", data={"email": "bot3@x.sk", "ts": aged_ts(),
                                        "website": "http://spam", **base}, headers=xff)
-    assert "nepodarilo overiť" in r.text
+    assert "nie ste robot" in r.text
 
     # legitímna registrácia so starou pečiatkou prejde
     r = client.post("/register", data={"email": "ok1@x.sk", "ts": aged_ts(), **base},

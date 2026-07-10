@@ -87,8 +87,10 @@ def build_digest(cfg: Config, store: Store, days: int) -> tuple[str, str, str] |
         html.append(paragraphs)
 
     # stav financií a úloh
+    lang = getattr(cfg, "lang", "sk") or "sk"
     stat = (tr["digest_stat"].format(n=n_pending)
-            + (tr["digest_stat_urgent"].format(n=n_urgent) if n_urgent else "")
+            + (i18n.plural(lang, n_urgent, tr["digest_stat_urgent"])
+               if n_urgent else "")
             + tr["digest_stat_tasks"].format(n=len(tasks)))
     text_lines += [stat, ""]
     html.append(ly.note_box(

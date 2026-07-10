@@ -22,31 +22,31 @@ APP = {
               "will look like. It disappears automatically once you add a "
               "mailbox.",
     "d_demo_btn": "Remove sample data",
-    "d_overdue": "overdue", "d_unpaid": "unpaid",
+    "d_overdue": "overdue", "d_unpaid": "outstanding",
     "d_this_month": "due by the end of the month", "d_next_month": "next month",
     "d_open_tasks": "open tasks",
     "d_missing_title": "Recurring invoices that haven't arrived",
-    "d_missing_last": "last one {d}", "d_missing_exp": "expected by {d}",
+    "d_missing_last": "last received {d}", "d_missing_exp": "expected by {d}",
     "d_missing_note": "Check whether the invoice landed in spam or is being "
                       "sent to a different address.",
-    "d_payments_title": "Unpaid payments",
+    "d_payments_title": "Outstanding payments",
     "th_supplier": "Supplier", "th_amount": "Amount", "th_due": "Due date",
     "d_other_iban": "different IBAN — verify!", "d_today": "today",
     "d_qr_btn": "QR payment", "d_paid_btn": "Paid",
     "d_ignore_btn": "Ignore", "d_ignore_confirm": "Ignore this payment?",
     "d_qr_alt": "Payment QR code",
-    "d_qr_note": "Scan it in your banking app — the amount, IBAN and Ref are "
-                 "pre-filled.",
+    "d_qr_note": "Scan it in your banking app — the amount, IBAN and payment "
+                 "reference are pre-filled.",
     "d_pay_note": "You'll find payment QR codes in your email digests. "
-                  "Payments are also checked off by your bank statement or "
-                  "by replying “paid no.” to the email.",
+                  "Payments are also ticked off by your bank statement or "
+                  "by replying “paid 3” (the payment number) to the email.",
     "d_sepa_btn": "Bulk payment order (SEPA XML)",
     "d_sepa_note": "Upload the file to your online banking and confirm all "
                    "payments at once.",
     "d_no_payments": "No unpaid payments on record.",
     "d_renewals_title": "Expiring soon", "d_done_btn": "Done",
     "d_renewals_note": "Insurance policies, vehicle inspections, domains and "
-                       "subscriptions VORU found in your mail. Check off "
+                       "subscriptions VORU found in your mail. Tick off "
                        "what's handled so we stop reminding you.",
     "d_tax_title": "Tax deadlines (next 30 days)",
     "d_bundle_title": "Documents for your accountant",
@@ -120,9 +120,10 @@ APP = {
     "s_reminder_to": "Where to send digests and alerts",
     "s_pdf": "Passwords for protected PDFs (bank statements) — separate "
              "multiple with commas",
-    "s_pdf_ph": "e.g. birth number or the password from your bank",
+    "s_pdf_ph": "e.g. your personal ID number (rodné číslo) or the password "
+                "from your bank",
     "s_pdf_note": "The password is only used locally to unlock PDF "
-                  "statements, so VORU can check off paid payments "
+                  "statements, so VORU can tick off paid payments "
                   "automatically.",
     "s_iban": "Your account IBAN (for the bulk payment order)",
     "s_name": "Company name / your name (appears on the order)",
@@ -136,15 +137,16 @@ APP = {
                      "The email is only sent when there's something to say.",
     "s_report": "Monthly expense report (1st of the month)",
     "s_tax": "Tax calendar — what applies to you",
-    "s_tax_note": "VORU reminds you of statutory deadlines (VAT, levies, "
-                  "advance payments) in your morning digests.",
+    "s_tax_note": "VORU reminds you of statutory deadlines (VAT, social and "
+                  "health contributions, advance tax payments) in your "
+                  "morning digests.",
     "s_save": "Save",
     "s_pw_title": "Change password",
     "s_pw_ok": "Your password has been changed.",
     "s_pw_old": "Current password",
     "s_pw_new": "New password (min. 8 characters)",
     "s_pw_btn": "Change password",
-    "err_pw_old": "The current password doesn't match.",
+    "err_pw_old": "The current password is incorrect.",
     "err_pw_short": "The new password must be at least 8 characters long.",
     "s_totp_title": "Two-factor authentication (2FA)",
     "s_totp_on": "<b>Enabled.</b> <span class='muted'>Signing in requires a "
@@ -161,8 +163,8 @@ APP = {
     "s_totp_lead": "A second layer of account protection: signing in requires "
                    "a code from the app on your phone in addition to your "
                    "password. We recommend turning it on.",
-    "err_totp_code": "The code doesn't match — try again.",
-    "err_totp_pw": "The password doesn't match.",
+    "err_totp_code": "That code is incorrect — try again.",
+    "err_totp_pw": "Incorrect password.",
     "s_push_title": "Push notifications",
     "s_push_lead": "A morning alert about pending payments straight to your "
                    "phone — works once you install VORU to your home screen "
@@ -183,7 +185,7 @@ APP = {
     "s_del_pw": "Password (to confirm)",
     "s_del_btn": "Delete account and all data",
     "s_del_confirm": "Really delete your account and all data permanently?",
-    "err_del_pw": "The password doesn't match.",
+    "err_del_pw": "Incorrect password.",
     "s_app_title": "Mobile app",
     "s_app_lead": "Install VORU to your phone's home screen — it works like a "
                   "regular app, no App Store needed.",
@@ -209,12 +211,12 @@ APP = {
                 "the link in your Stripe confirmation, or write to us at "
                 "<a href='mailto:obchod@sorbxt.sk'>obchod@sorbxt.sk</a>.",
     "b_ref_title": "Recommend VORU — get a month free",
-    "b_ref_lead": "For everyone who signs up through your link, you get "
+    "b_ref_lead": "For each person who signs up through your link, you get "
                   "<b>+30 days</b> of service for free — and the new user "
                   "gets an extra <b>+14 days</b> of trial.",
     "b_ref_count": "Sign-ups through your link so far:",
     # forgotten password / reset
-    "fp_title": "Forgot your password",
+    "fp_title": "Forgot your password?",
     "fp_lead": "We'll email you a link to set a new password.",
     "fp_email": "Account email",
     "fp_btn": "Send link",
@@ -262,16 +264,17 @@ APP = {
     "a_done_count": ("We marked {n} payment as paid.",
                      "We marked {n} payments as paid.",
                      "We marked {n} payments as paid."),
-    "a_done_single": "Successfully {label}.",
+    "a_done_single": "Done — “{label}” completed successfully.",
     "a_already_title": "Already done",
     "a_already_bulk": "There was nothing to mark — either nothing was "
                       "selected, or the selected payments have been paid in "
                       "the meantime.",
     "a_already_single": "This item has changed state in the meantime — you "
-                        "probably checked it off already, or it was matched "
+                        "probably ticked it off already, or it was matched "
                         "by a bank statement.",
     "a_confirm_q": "Really {label}?",
-    "a_bulk_q": "Really {label}? Untick anything that isn't paid yet.",
+    "a_bulk_q": "Really {label}? Untick the payments that haven't been "
+                "paid yet.",
     "a_bulk_empty": "You have no unpaid payments right now.",
     "a_bulk_btn": "Mark selected as paid",
     "a_no_due": "no due date",

@@ -180,7 +180,7 @@ def test_renewals_on_dashboard(client, tmp_path):
     store.close()
 
     r = client.get("/", cookies={"session": session})
-    assert "Končí platnosť" in r.text and "PZP poistenie" in r.text
+    assert "Končí platnosť" in r.text and "PZP" in r.text
 
     r = client.post("/renewals/done", data={"renewal_id": rid},
                     cookies={"session": session})

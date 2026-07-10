@@ -27,7 +27,7 @@ def test_reminder_uses_layout(tmp_path):
     # ovládacie príkazy sú v pätičke
     assert "zaplatené všetko" in html
     # súhrnný podtitul
-    assert "1 platba čaká na úhradu, z toho 1 súrne" in html
+    assert "1 platba čaká na úhradu, z toho 1 súrna" in html
 
 
 def test_digest_uses_layout(monkeypatch, tmp_path):

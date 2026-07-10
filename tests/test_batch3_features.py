@@ -100,7 +100,7 @@ def test_demo_data_lifecycle(client, tmp_path):
     session = _login(client, "demo@x.sk")
     # po registrácii sú ukážkové dáta na prehľade
     r = client.get("/", cookies={"session": session})
-    assert "ukážkové dáta" in r.text.lower() and "Ukážka — Energie SK" in r.text
+    assert "ukážkové údaje" in r.text.lower() and "Ukážka — Energie SK" in r.text
     # pridanie schránky ich zmaže
     client.post("/mailboxes", data={
         "name": "f", "host": "mail.x.sk", "port": "993",

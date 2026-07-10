@@ -8,9 +8,9 @@ LANGS = ("sk", "cs", "pl", "de", "hu", "en")
 
 _SK = {
     "err_login": "Nesprávny e-mail alebo heslo.",
-    "err_lockout": "Príliš veľa neúspešných pokusov — skúste znova o 15 minút, alebo si obnovte heslo cez „Zabudli ste heslo?“.",
+    "err_lockout": "Príliš veľa neúspešných pokusov — skúste to znova o 15 minút alebo si obnovte heslo cez „Zabudli ste heslo?“.",
     "err_totp_expired": "Overenie vypršalo — prihláste sa znova.",
-    "err_totp_wrong": "Nesprávny kód — skúste znova.",
+    "err_totp_wrong": "Kód nesedí — skúste to znova.",
 
     "nav_login": "Prihlásiť sa",
     "nav_try": "Vyskúšať zadarmo",
@@ -40,14 +40,16 @@ _SK = {
     "trial_note": "— 14 dní zadarmo.",
     "forgot": "Zabudli ste heslo?",
     "totp_title": "Dvojfaktorové overenie",
-    "totp_lead": "Zadajte 6-miestny kód z autentifikačnej aplikácie.",
+    "totp_lead": "Zadajte 6-miestny kód z overovacej aplikácie v telefóne "
+                 "(napr. Google Authenticator).",
     "totp_code": "Kód",
     "totp_btn": "Overiť",
     "err_consent": "Registrácia vyžaduje súhlas s obchodnými podmienkami "
                    "a spracovaním údajov.",
-    "err_invalid": "Zadajte platný e-mail a heslo aspoň 8 znakov.",
+    "err_invalid": "Zadajte platný e-mail a heslo dlhé aspoň 8 znakov.",
     "err_exists": "Účet už existuje — prihláste sa.",
-    "err_bot": "Registráciu sa nepodarilo overiť — skúste to znova.",
+    "err_bot": "Nepodarilo sa overiť, že nie ste robot — obnovte stránku "
+               "a skúste to znova.",
     "err_expired": "Platnosť formulára vypršala — skúste to znova.",
     "err_ratelimit": "Priveľa registrácií z tejto adresy — skúste to o hodinu, "
                      "alebo nám napíšte na obchod@sorbxt.sk.",
@@ -77,7 +79,7 @@ _CS = {
                     "podmínkami</a> a se zpracováním osobních údajů podle "
                     "<a href='/gdpr' target='_blank'>zásad ochrany údajů</a> "
                     "(včetně zpracování obsahu připojené pošty pro účely služby).",
-    "reg_btn": "Registrovat se",
+    "reg_btn": "Zaregistrovat se",
     "have_account": "Máte účet?",
     "sign_in": "Přihlaste se",
     "login_title": "Přihlášení",
@@ -85,7 +87,7 @@ _CS = {
     "password": "Heslo",
     "login_btn": "Přihlásit se",
     "no_account": "Nemáte účet?",
-    "register_link": "Registrujte se",
+    "register_link": "Zaregistrujte se",
     "trial_note": "— 14 dní zdarma.",
     "forgot": "Zapomněli jste heslo?",
     "totp_title": "Dvoufaktorové ověření",
@@ -94,7 +96,7 @@ _CS = {
     "totp_btn": "Ověřit",
     "err_consent": "Registrace vyžaduje souhlas s obchodními podmínkami "
                    "a zpracováním údajů.",
-    "err_invalid": "Zadejte platný e-mail a heslo alespoň 8 znaků.",
+    "err_invalid": "Zadejte platný e-mail a heslo o délce alespoň 8 znaků.",
     "err_exists": "Účet už existuje — přihlaste se.",
     "err_bot": "Registraci se nepodařilo ověřit — zkuste to znovu.",
     "err_expired": "Platnost formuláře vypršela — zkuste to znovu.",
@@ -107,7 +109,7 @@ _CS = {
 
 _PL = {
     "err_login": "Nieprawidłowy e-mail lub hasło.",
-    "err_lockout": "Zbyt wiele nieudanych prób — spróbuj za 15 minut lub odzyskaj hasło przez „Zapomniałeś hasła?”.",
+    "err_lockout": "Zbyt wiele nieudanych prób — spróbuj za 15 minut lub odzyskaj hasło przez „Nie pamiętasz hasła?”.",
     "err_totp_expired": "Weryfikacja wygasła — zaloguj się ponownie.",
     "err_totp_wrong": "Nieprawidłowy kod — spróbuj ponownie.",
 
@@ -117,10 +119,10 @@ _PL = {
     "reg_lead": "VORU pilnuje Twoich faktur, płatności i terminów. 14 dni za "
                 "darmo — bez karty płatniczej, potem 4,99 €/mies. lub 49 €/rok.",
     "use_as": "Używam VORU jako",
-    "opt_business": "firma / działalność",
+    "opt_business": "firma / działalność gospodarcza",
     "opt_personal": "osoba prywatna",
     "opt_both": "jedno i drugie",
-    "email_label": "Twój e-mail (tu będą przychodzić przeglądy)",
+    "email_label": "Twój e-mail (tu będą przychodzić zestawienia)",
     "password_label": "Hasło (min. 8 znaków)",
     "consent_html": "Akceptuję <a href='/podmienky' target='_blank'>regulamin</a> "
                     "i zgadzam się na przetwarzanie danych osobowych zgodnie z "
@@ -137,8 +139,8 @@ _PL = {
     "no_account": "Nie masz konta?",
     "register_link": "Zarejestruj się",
     "trial_note": "— 14 dni za darmo.",
-    "forgot": "Zapomniałeś hasła?",
-    "totp_title": "Weryfikacja dwuetapowa",
+    "forgot": "Nie pamiętasz hasła?",
+    "totp_title": "Weryfikacja dwuskładnikowa",
     "totp_lead": "Wpisz 6-cyfrowy kod z aplikacji uwierzytelniającej.",
     "totp_code": "Kod",
     "totp_btn": "Zweryfikuj",
@@ -264,7 +266,7 @@ _HU = {
 }
 
 _EN = {
-    "err_login": "Wrong e-mail or password.",
+    "err_login": "Incorrect email or password.",
     "err_lockout": "Too many failed attempts — try again in 15 minutes or reset your password via “Forgot your password?”.",
     "err_totp_expired": "Verification expired — please sign in again.",
     "err_totp_wrong": "Wrong code — try again.",
@@ -272,13 +274,13 @@ _EN = {
     "nav_login": "Sign in",
     "nav_try": "Try for free",
     "reg_title": "Create your account",
-    "reg_lead": "VORU watches your invoices, payments and deadlines. 14 days "
+    "reg_lead": "VORU keeps track of your invoices, payments and deadlines. 14 days "
                 "free — no credit card, then €4.99/month or €49/year.",
     "use_as": "I'm using VORU as",
     "opt_business": "a business / freelancer",
-    "opt_personal": "a private person",
+    "opt_personal": "a private individual",
     "opt_both": "both",
-    "email_label": "Your e-mail (overviews will arrive here)",
+    "email_label": "Your email (your digests will be sent here)",
     "password_label": "Password (min. 8 characters)",
     "consent_html": "I agree to the <a href='/podmienky?lang=en' "
                     "target='_blank'>terms of service</a> and to the "
@@ -290,7 +292,7 @@ _EN = {
     "have_account": "Already have an account?",
     "sign_in": "Sign in",
     "login_title": "Sign in",
-    "email": "E-mail",
+    "email": "Email",
     "password": "Password",
     "login_btn": "Sign in",
     "no_account": "No account yet?",
@@ -303,14 +305,14 @@ _EN = {
     "totp_btn": "Verify",
     "err_consent": "Registration requires agreeing to the terms and data "
                    "processing.",
-    "err_invalid": "Enter a valid e-mail and a password of at least "
+    "err_invalid": "Enter a valid email and a password of at least "
                    "8 characters.",
     "err_exists": "The account already exists — sign in instead.",
     "err_bot": "The registration could not be verified — please try again.",
     "err_expired": "The form has expired — please try again.",
     "err_ratelimit": "Too many registrations from this address — try again in "
                      "an hour or write to us at obchod@sorbxt.sk.",
-    "err_turnstile": "The robot check failed — please try again.",
+    "err_turnstile": "We couldn't verify that you're human — please try again.",
     "err_paused": "Registrations are temporarily paused — try again later or "
                   "write to us at obchod@sorbxt.sk.",
 }
@@ -332,7 +334,7 @@ _SK_APP = {
     "m_overview": "Prehľad", "m_mailboxes": "Schránky",
     "m_settings": "Nastavenia", "m_billing": "Predplatné",
     "m_logout": "Odhlásiť sa",
-    "f_terms": "Podmienky", "f_privacy": "Osobné údaje",
+    "f_terms": "Podmienky", "f_privacy": "Ochrana osobných údajov",
     # prehľad
     "d_verify": "Potvrďte prosím svoju e-mailovú adresu — poslali sme vám "
                 "odkaz. Nič vám neprišlo?",
@@ -345,7 +347,7 @@ _SK_APP = {
     "d_start_title": "Začnite pridaním schránky",
     "d_start_body": "VORU potrebuje prístup k schránke, kam vám chodia faktúry.",
     "d_start_btn": "Pridať schránku",
-    "d_demo": "Toto sú <b>ukážkové dáta</b>, nech vidíte, ako bude prehľad "
+    "d_demo": "Toto sú <b>ukážkové údaje</b>, aby ste videli, ako bude prehľad "
               "vyzerať. Zmiznú automaticky po pridaní schránky.",
     "d_demo_btn": "Zmazať ukážku",
     "d_overdue": "po splatnosti", "d_unpaid": "nezaplatené",
@@ -361,23 +363,23 @@ _SK_APP = {
     "d_qr_btn": "QR platba", "d_paid_btn": "Zaplatené",
     "d_ignore_btn": "Ignorovať", "d_ignore_confirm": "Ignorovať túto platbu?",
     "d_qr_alt": "QR kód na platbu",
-    "d_qr_note": "Naskenujte v bankovej appke — suma, IBAN aj VS sú "
+    "d_qr_note": "Naskenujte v aplikácii banky — suma, IBAN aj VS sú "
                  "predvyplnené.",
     "d_pay_note": "QR kódy na zaplatenie nájdete v e-mailových prehľadoch. "
-                  "Zaplatené odškrtne aj výpis z banky alebo odpoveď "
-                  "„zaplatené č.“ na e-mail.",
+                  "Zaplatené odškrtne aj výpis z banky alebo odpoveď na e-mail "
+                  "v tvare „zaplatené 3“ (číslo platby).",
     "d_sepa_btn": "Hromadný príkaz na úhradu (SEPA XML)",
-    "d_sepa_note": "Súbor nahráte do internet bankingu a všetky úhrady "
+    "d_sepa_note": "Súbor nahráte do internetbankingu a všetky úhrady "
                    "potvrdíte naraz.",
     "d_no_payments": "Žiadne evidované nezaplatené platby.",
     "d_renewals_title": "Končí platnosť", "d_done_btn": "Vybavené",
     "d_renewals_note": "Poistky, STK, domény a predplatné, ktoré VORU našlo "
-                       "vo vašej pošte. Vybavené odškrtnite, nech vám ich "
-                       "nepripomíname.",
+                       "vo vašej pošte. Vybavené odškrtnite, aby sme vám ich "
+                       "nepripomínali.",
     "d_tax_title": "Daňové termíny (najbližších 30 dní)",
     "d_bundle_title": "Podklady pre účtovníctvo",
     "d_bundle_note": "ZIP s faktúrami (PDF) a prehľadom platieb za mesiac — "
-                     "pošlite účtovníčke jedným klikom.",
+                     "pošlite účtovníkovi či účtovníčke jedným klikom.",
     "d_tasks_title": "Úlohy", "d_task_due": "do {d}", "d_task_done": "Hotovo",
     "d_no_tasks": "Žiadne otvorené úlohy.",
     # schránky
@@ -398,7 +400,7 @@ _SK_APP = {
                      "viete kedykoľvek odobrať na myaccount.google.com.",
     "mb_gmail_btn": "Pripojiť Gmail cez Google",
     "mb_none": "Zatiaľ žiadna schránka — pridajte prvú nižšie.",
-    "th_name": "Názov", "th_server": "Server", "th_login": "Prihlásenie",
+    "th_name": "Názov", "th_server": "Server", "th_login": "Prihlasovací e-mail",
     "mb_remove": "Odobrať", "mb_remove_confirm": "Odobrať schránku?",
     "mb_add_title": "Pridať schránku",
     "mb_add_lead": "Vyberte poskytovateľa — nastavenia servera vyplníme za "
@@ -413,12 +415,12 @@ _SK_APP = {
     "mb_user_label": "Prihlasovací e-mail",
     "mb_pass_label": "Heslo schránky / heslo aplikácie",
     "mb_sec_label": "Zabezpečenie",
-    "mb_sec_ssl": "SSL (bežné, port 993)",
+    "mb_sec_ssl": "SSL — bezpečné pripojenie (predvolené)",
     "mb_sec_starttls": "STARTTLS (napr. Proton Bridge)",
-    "mb_sec_plain": "bez šifrovania",
+    "mb_sec_plain": "bez šifrovania (neodporúčame)",
     "mb_submit": "Overiť a pridať",
     "hint_gmail": "Gmail vyžaduje <b>heslo aplikácie</b> (nie bežné heslo): "
-                  "zapnite dvojkrokové overenie a vytvorte si ho na "
+                  "zapnite dvojstupňové overenie a vytvorte si ho na "
                   "<a href='https://myaccount.google.com/apppasswords' "
                   "target='_blank' rel='noopener'>myaccount.google.com/"
                   "apppasswords</a>.",
@@ -441,16 +443,18 @@ _SK_APP = {
     "s_type_personal": "súkromná osoba",
     "s_type_both": "obidvoje — firma aj súkromné",
     "s_reminder_to": "Kam posielať prehľady a upozornenia",
-    "s_pdf": "Heslá k chráneným PDF (výpisy z banky) — viac oddeľte čiarkou",
+    "s_pdf": "Heslá k chráneným PDF (výpisy z banky) — viacero hesiel "
+             "oddeľte čiarkou",
     "s_pdf_ph": "napr. rodné číslo alebo heslo z banky",
-    "s_pdf_note": "Heslo sa použije len lokálne na odomknutie PDF výpisov, "
-                  "aby VORU vedelo samo odškrtnúť zaplatené platby.",
+    "s_pdf_note": "Heslo použijeme výlučne na odomknutie PDF výpisov, aby "
+                  "VORU vedelo samo odškrtnúť zaplatené platby. Nikam inam "
+                  "sa neposiela.",
     "s_iban": "IBAN vášho účtu (pre hromadný príkaz na úhradu)",
     "s_name": "Názov firmy / meno (objaví sa v príkaze)",
     "s_name_ph": "Moja firma s.r.o.",
     "s_remind": "Ranný prehľad platieb (s QR kódmi)",
     "s_workdays": "pracovné dni", "s_daily": "každý deň",
-    "s_weekly": "len v piatok (za týždeň)", "s_off": "neposielať",
+    "s_weekly": "raz týždenne (v piatok, za celý týždeň)", "s_off": "neposielať",
     "s_at": "o {h}:00",
     "s_digest": "Zhrnutie prijatej pošty",
     "s_digest_note": "V piatok príde vždy zhrnutie celého týždňa. E-mail sa "
@@ -487,21 +491,23 @@ _SK_APP = {
                    "funguje po nainštalovaní VORU na plochu (pozri Mobilná "
                    "aplikácia nižšie).",
     "s_push_unsupported": "Tento prehliadač push notifikácie nepodporuje.",
-    "s_push_nokeys": "Server zatiaľ nemá nastavené notifikačné kľúče.",
+    "s_push_nokeys": "Notifikácie zatiaľ nie sú na tomto serveri dostupné — "
+                     "skúste to neskôr.",
     "s_push_on": "Zapnúť notifikácie", "s_push_off": "Vypnúť notifikácie",
     "s_push_active": "Notifikácie sú na tomto zariadení zapnuté.",
-    "s_push_denied": "Notifikácie sa nepodarilo zapnúť (povolenie zamietnuté?).",
-    "s_data_title": "Vaše dáta",
+    "s_push_denied": "Notifikácie sa nepodarilo zapnúť — povoľte ich pre "
+                     "voru.sk v nastaveniach prehliadača a skúste to znova.",
+    "s_data_title": "Vaše údaje",
     "s_data_lead": "Kompletný export evidencie (platby, úlohy, denník pošty, "
-                   "stráženia platnosti) ako CSV v ZIP archíve.",
+                   "strážené platnosti — poistky, STK…) ako CSV v ZIP archíve.",
     "s_data_btn": "Stiahnuť export dát",
     "s_del_title": "Zrušenie účtu",
-    "s_del_lead": "Nenávratne zmaže účet aj všetky dáta (schránky, platby, "
+    "s_del_lead": "Nenávratne zmaže účet aj všetky údaje (schránky, platby, "
                   "úlohy, súbory). Ak niečo potrebujete, najprv si stiahnite "
                   "export.",
     "s_del_pw": "Heslo (na potvrdenie)",
-    "s_del_btn": "Zmazať účet aj všetky dáta",
-    "s_del_confirm": "Naozaj nenávratne zmazať účet aj všetky dáta?",
+    "s_del_btn": "Zmazať účet aj všetky údaje",
+    "s_del_confirm": "Naozaj nenávratne zmazať účet aj všetky údaje?",
     "err_del_pw": "Heslo nesedí.",
     "s_app_title": "Mobilná aplikácia",
     "s_app_lead": "VORU si nainštalujete na plochu telefónu — funguje ako "
@@ -516,7 +522,7 @@ _SK_APP = {
     "b_active": "aktívne predplatné",
     "b_trial": "skúšobná doba do {date}",
     "b_inactive": "neaktívne",
-    "b_pick": "Vyberte si plán — platba prebieha bezpečne cez Stripe:",
+    "b_pick": "Vyberte si predplatné — platba prebieha bezpečne cez Stripe:",
     "b_monthly": "4,99 € / mesiac",
     "b_yearly": "49 € / rok — 2 mesiace zadarmo",
     "b_auto": "Po zaplatení sa účet aktivuje automaticky do minúty.",
@@ -538,8 +544,8 @@ _SK_APP = {
     "fp_btn": "Poslať odkaz",
     "fp_back": "Späť na prihlásenie",
     "fp_sent_title": "E-mail odoslaný",
-    "fp_sent_body": "Ak účet existuje, poslali sme naň odkaz na obnovu hesla. "
-                    "Skontrolujte si schránku (aj spam).",
+    "fp_sent_body": "Ak účet existuje, poslali sme vám e-mail s odkazom na "
+                    "obnovu hesla. Skontrolujte si schránku (aj spam).",
     "rp_title": "Nastavte si nové heslo",
     "rp_pw": "Nové heslo (min. 8 znakov)",
     "rp_btn": "Uložiť heslo",
@@ -563,8 +569,8 @@ _SK_APP = {
                   "a nechajte si poslať nový.",
     "v_gate_title": "Najprv potvrďte e-mail",
     "v_gate_body": "Pripojenie schránky sa odomkne po potvrdení vašej "
-                   "e-mailovej adresy — klik na odkaz v uvítacom e-maile. "
-                   "Nový odkaz si pošlete tlačidlom na prehľade.",
+                   "e-mailovej adresy — kliknite na odkaz v uvítacom e-maile. "
+                   "Nový odkaz si pošlete tlačidlom v prehľade.",
     "v_gate_cta": "Späť na prehľad",
     "login_cta": "Prihlásiť sa",
     "home_cta": "Prejsť na prehľad",
@@ -585,7 +591,8 @@ _SK_APP = {
     "a_already_single": "Položka medzičasom zmenila stav — pravdepodobne ste "
                         "ju už odškrtli, alebo ju spároval výpis z banky.",
     "a_confirm_q": "Naozaj {label}?",
-    "a_bulk_q": "Naozaj {label}? Odškrtnite, čo ešte zaplatené nie je.",
+    "a_bulk_q": "Naozaj {label}? Zrušte zaškrtnutie pri platbách, ktoré "
+                "ešte nie sú zaplatené.",
     "a_bulk_empty": "Momentálne nemáte žiadne nezaplatené platby.",
     "a_bulk_btn": "Označiť vybrané ako zaplatené",
     "a_no_due": "bez splatnosti",
@@ -605,15 +612,17 @@ _SK_APP = {
     "sepa_empty_body": "Žiadna nezaplatená platba s IBANom v EUR.",
     # Gmail OAuth a ďalšie systémové hlášky
     "g_fail_title": "Pripojenie Gmailu sa nepodarilo",
-    "g_fail_auth": "Google prihlásenie bolo prerušené alebo vypršalo. "
+    "g_fail_auth": "Prihlásenie cez Google bolo prerušené alebo vypršalo. "
                    "Skúste to znova.",
     "g_fail_token": "Google nevrátil prístupové údaje. Skúste to znova.",
     "mb_back": "Späť na schránky",
-    "mb_conn_fail": "Pripojenie zlyhalo: {err}",
+    "mb_conn_fail": "Pripojenie zlyhalo: {err}. Skontrolujte heslo a adresu "
+                    "servera, alebo nám napíšte na obchod@sorbxt.sk.",
     "rp_new_btn": "Vyžiadať nový",
-    "rp_err": "Odkaz vypršal alebo je heslo kratšie než 8 znakov.",
+    "rp_err": "Skontrolujte, či má nové heslo aspoň 8 znakov. Ak áno, odkaz "
+              "už vypršal — vyžiadajte si nový.",
     "s_del_done_title": "Účet zrušený",
-    "s_del_done_body": "Váš účet aj všetky dáta sme zmazali. Ďakujeme, "
+    "s_del_done_body": "Váš účet aj všetky údaje sme zmazali. Ďakujeme, "
                        "že ste VORU vyskúšali.",
     "back_btn": "Späť",
 }

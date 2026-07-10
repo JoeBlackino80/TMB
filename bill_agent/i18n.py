@@ -28,11 +28,14 @@ def plural(lang: str, n: int, forms: tuple[str, str, str]) -> str:
 _SK = {
     # pripomienka
     "subject_reminder": "VORU: platby a úlohy",
-    "subject_urgent": "VORU: platby a úlohy — {n} súrne",
+    "subject_urgent": ("VORU: platby a úlohy — {n} súrna",
+                       "VORU: platby a úlohy — {n} súrne",
+                       "VORU: platby a úlohy — {n} súrnych"),
     "title": "Prehľad platieb a úloh",
     "summary_payments": ("{n} platba čaká na úhradu", "{n} platby čakajú na úhradu",
                          "{n} platieb čaká na úhradu"),
-    "summary_urgent": ", z toho {n} súrne",
+    "summary_urgent": (", z toho {n} súrna", ", z toho {n} súrne",
+                       ", z toho {n} súrnych"),
     "summary_tasks": ("{n} aktívna úloha", "{n} aktívne úlohy", "{n} aktívnych úloh"),
     "sec_overdue": "Po splatnosti",
     "sec_today": "Splatné dnes",
@@ -43,30 +46,30 @@ _SK = {
     "item_no": "č.",
     "due": "Splatnosť",
     "vs": "VS",
-    "qr_hint": "Naskenujte v bankovej appke a platbu potvrďte.",
+    "qr_hint": "Naskenujte v aplikácii banky a platbu potvrďte.",
     "btn_paid": "Označiť ako zaplatené",
     "btn_snooze": "Odložiť o 3 dni",
     "btn_done": "Hotovo",
     "btn_all_paid": "Označiť všetko ako zaplatené",
-    "bulk_hint": "Otvorí sa potvrdenie so zoznamom platieb — odškrtnete, "
-                 "čo ešte zaplatené nie je.",
+    "bulk_hint": "Otvorí sa potvrdenie so zoznamom platieb — zrušíte "
+                 "zaškrtnutie pri tom, čo ešte zaplatené nie je.",
     "bulk_text": "Označiť všetko ako zaplatené",
     "reply_hint": "alebo odpovedzte na tento e-mail: <b>zaplatené {id}</b>",
     "cmd_paid": "zaplatené",
     "cmd_done": "hotovo",
     "tasks": "Úlohy",
     "task_due": "(do {d})",
-    "task_hint": "hotovo? odpovedzte: <b>hotovo {id}</b>",
+    "task_hint": "Hotovo? Odpovedzte: <b>hotovo {id}</b>",
     "renewals": "Končí platnosť",
     "tax": "Daňové termíny",
     "footer_commands": "Ovládanie odpoveďou na tento e-mail: <b>zaplatené 3</b> "
                        "(číslo platby), <b>zaplatené všetko</b>, <b>ignoruj 5</b>, "
                        "<b>hotovo 2</b> (číslo úlohy), <b>odlož 4 o 5</b> "
-                       "(pripomenie o 5 dní), <b>odlož úlohu 2</b> — agent si to "
-                       "pri ďalšej kontrole pošty vybaví sám.",
+                       "(pripomenie o 5 dní), <b>odlož úlohu 2</b> — VORU to "
+                       "pri ďalšej kontrole pošty vybaví samo.",
     "footer_commands_text": "Ovládanie odpoveďou: 'zaplatené 3', 'zaplatené všetko', "
                             "'ignoruj 5', 'hotovo 2', 'odlož 4 o 5', 'odlož úlohu 2'.",
-    "renewal_labels": {"pzp": "PZP poistenie", "havarijne": "Havarijné poistenie",
+    "renewal_labels": {"pzp": "PZP", "havarijne": "Havarijné poistenie",
                        "stk": "STK", "ek": "Emisná kontrola", "poistka": "Poistka",
                        "domena": "Doména", "predplatne": "Predplatné",
                        "zmluva": "Zmluva", "ine": "Koniec platnosti"},
@@ -76,14 +79,16 @@ _SK = {
     "digest_title_day": "Zhrnutie dňa",
     "digest_title_week": "Zhrnutie týždňa",
     "digest_stat": "Nezaplatených platieb: {n}",
-    "digest_stat_urgent": " (z toho {n} súrnych!)",
+    "digest_stat_urgent": (" (z toho {n} súrna!)", " (z toho {n} súrne!)",
+                           " (z toho {n} súrnych!)"),
     "digest_stat_tasks": " · aktívnych úloh: {n}",
     "digest_stat_note": "Podrobnosti a QR kódy sú v poslednom e-maile "
                         "„VORU: platby a úlohy“.",
     "digest_missing": "Pravidelné faktúry, ktoré neprišli",
     "digest_missing_text": "Pravidelné faktúry, ktoré tento cyklus neprišli:",
     "digest_missing_line": "{s} — posledná {last}, ďalšia sa čakala do {exp}",
-    "digest_missing_note": "Skontrolujte, či faktúra nezapadla, alebo či nechodí inam.",
+    "digest_missing_note": "Skontrolujte, či faktúra neskončila v spame, "
+                           "alebo či nechodí na inú adresu.",
     "cat_faktura": "Faktúry a platby", "cat_banka": "Banka",
     "cat_objednavka": "Objednávky a zásielky", "cat_uloha": "Úlohy a termíny",
     "cat_marketing": "Marketing / newslettre", "cat_ine": "Ostatné",
@@ -98,17 +103,20 @@ _SK = {
     "report_more": "viac", "report_less": "menej",
     "report_compare": "o {diff} ({pct} %) {dir} než v predchádzajúcom mesiaci ({prev})",
     "report_by_supplier": "Podľa dodávateľov",
-    "report_footer": "Kompletné podklady (faktúry + CSV) si stiahnete na prehľade "
+    "report_footer": "Kompletné podklady (faktúry + CSV) si stiahnete v prehľade "
                      "v aplikácii — Podklady pre účtovníctvo.",
 }
 
 _CS = {
     "subject_reminder": "VORU: platby a úkoly",
-    "subject_urgent": "VORU: platby a úkoly — {n} urgentní",
+    "subject_urgent": ("VORU: platby a úkoly — {n} urgentní",
+                       "VORU: platby a úkoly — {n} urgentní",
+                       "VORU: platby a úkoly — {n} urgentních"),
     "title": "Přehled plateb a úkolů",
     "summary_payments": ("{n} platba čeká na úhradu", "{n} platby čekají na úhradu",
                          "{n} plateb čeká na úhradu"),
-    "summary_urgent": ", z toho {n} urgentní",
+    "summary_urgent": (", z toho {n} urgentní", ", z toho {n} urgentní",
+                       ", z toho {n} urgentních"),
     "summary_tasks": ("{n} aktivní úkol", "{n} aktivní úkoly", "{n} aktivních úkolů"),
     "sec_overdue": "Po splatnosti",
     "sec_today": "Splatné dnes",
@@ -124,22 +132,22 @@ _CS = {
     "btn_snooze": "Odložit o 3 dny",
     "btn_done": "Hotovo",
     "btn_all_paid": "Označit vše jako zaplacené",
-    "bulk_hint": "Otevře se potvrzení se seznamem plateb — odškrtnete, "
-                 "co ještě zaplacené není.",
+    "bulk_hint": "Otevře se potvrzení se seznamem plateb — zrušíte "
+                 "zaškrtnutí u toho, co ještě není zaplacené.",
     "bulk_text": "Označit vše jako zaplacené",
     "reply_hint": "nebo odpovězte na tento e-mail: <b>zaplaceno {id}</b>",
     "cmd_paid": "zaplaceno",
     "cmd_done": "hotovo",
     "tasks": "Úkoly",
     "task_due": "(do {d})",
-    "task_hint": "hotovo? odpovězte: <b>hotovo {id}</b>",
+    "task_hint": "Hotovo? Odpovězte: <b>hotovo {id}</b>",
     "renewals": "Končí platnost",
     "tax": "Daňové termíny",
     "footer_commands": "Ovládání odpovědí na tento e-mail: <b>zaplaceno 3</b> "
                        "(číslo platby), <b>zaplaceno vše</b>, <b>ignoruj 5</b>, "
                        "<b>hotovo 2</b> (číslo úkolu), <b>odlož 4 o 5</b> "
-                       "(připomene za 5 dní), <b>odlož úkol 2</b> — agent to "
-                       "při další kontrole pošty vyřídí sám.",
+                       "(připomene za 5 dní), <b>odlož úkol 2</b> — VORU to "
+                       "při další kontrole pošty vyřídí samo.",
     "footer_commands_text": "Ovládání odpovědí: 'zaplaceno 3', 'zaplaceno vše', "
                             "'ignoruj 5', 'hotovo 2', 'odlož 4 o 5', 'odlož úkol 2'.",
     "renewal_labels": {"pzp": "Povinné ručení", "havarijne": "Havarijní pojištění",
@@ -151,14 +159,16 @@ _CS = {
     "digest_title_day": "Shrnutí dne",
     "digest_title_week": "Shrnutí týdne",
     "digest_stat": "Nezaplacených plateb: {n}",
-    "digest_stat_urgent": " (z toho {n} urgentních!)",
+    "digest_stat_urgent": (" (z toho {n} urgentní!)", " (z toho {n} urgentní!)",
+                           " (z toho {n} urgentních!)"),
     "digest_stat_tasks": " · aktivních úkolů: {n}",
     "digest_stat_note": "Podrobnosti a QR kódy jsou v posledním e-mailu "
                         "„VORU: platby a úkoly“.",
     "digest_missing": "Pravidelné faktury, které nepřišly",
     "digest_missing_text": "Pravidelné faktury, které tento cyklus nepřišly:",
-    "digest_missing_line": "{s} — poslední {last}, další se čekala do {exp}",
-    "digest_missing_note": "Zkontrolujte, zda faktura nezapadla, nebo nechodí jinam.",
+    "digest_missing_line": "{s} — poslední {last}, další jsme čekali do {exp}",
+    "digest_missing_note": "Zkontrolujte, zda faktura neskončila ve spamu, "
+                           "nebo nechodí na jinou adresu.",
     "cat_faktura": "Faktury a platby", "cat_banka": "Banka",
     "cat_objednavka": "Objednávky a zásilky", "cat_uloha": "Úkoly a termíny",
     "cat_marketing": "Marketing / newslettery", "cat_ine": "Ostatní",
@@ -172,29 +182,32 @@ _CS = {
     "report_more": "více", "report_less": "méně",
     "report_compare": "o {diff} ({pct} %) {dir} než v předchozím měsíci ({prev})",
     "report_by_supplier": "Podle dodavatelů",
-    "report_footer": "Kompletní podklady (faktury + CSV) si stáhnete na přehledu "
+    "report_footer": "Kompletní podklady (faktury + CSV) si stáhnete v přehledu "
                      "v aplikaci — Podklady pro účetnictví.",
 }
 
 _PL = {
     "subject_reminder": "VORU: płatności i zadania",
-    "subject_urgent": "VORU: płatności i zadania — {n} pilne",
+    "subject_urgent": ("VORU: płatności i zadania — {n} pilna",
+                       "VORU: płatności i zadania — {n} pilne",
+                       "VORU: płatności i zadania — {n} pilnych"),
     "title": "Przegląd płatności i zadań",
     "summary_payments": ("{n} płatność czeka na opłacenie",
                          "{n} płatności czekają na opłacenie",
                          "{n} płatności czeka na opłacenie"),
-    "summary_urgent": ", w tym {n} pilne",
+    "summary_urgent": (", w tym {n} pilna", ", w tym {n} pilne",
+                       ", w tym {n} pilnych"),
     "summary_tasks": ("{n} aktywne zadanie", "{n} aktywne zadania",
                       "{n} aktywnych zadań"),
     "sec_overdue": "Po terminie",
-    "sec_today": "Płatne dzisiaj",
-    "sec_upcoming": "Płatne w najbliższych dniach",
+    "sec_today": "Do zapłaty dzisiaj",
+    "sec_upcoming": "Do zapłaty w najbliższych dniach",
     "sec_no_date": "Bez podanego terminu",
     "unknown_supplier": "(nieznany dostawca)",
     "unknown_supplier_short": "(nieznany)",
     "item_no": "nr",
     "due": "Termin",
-    "vs": "Symbol",
+    "vs": "Tytuł przelewu",
     "qr_hint": "Zeskanuj w aplikacji bankowej i potwierdź płatność.",
     "btn_paid": "Oznacz jako zapłacone",
     "btn_snooze": "Odłóż o 3 dni",
@@ -203,21 +216,21 @@ _PL = {
     "bulk_hint": "Otworzy się potwierdzenie z listą płatności — odznaczysz to, "
                  "co jeszcze nie jest zapłacone.",
     "bulk_text": "Oznacz wszystko jako zapłacone",
-    "reply_hint": "albo odpowiedz na tego e-maila: <b>zapłacone {id}</b>",
+    "reply_hint": "albo odpowiedz na ten e-mail: <b>zapłacone {id}</b>",
     "cmd_paid": "zapłacone",
     "cmd_done": "gotowe",
     "tasks": "Zadania",
     "task_due": "(do {d})",
-    "task_hint": "gotowe? odpowiedz: <b>gotowe {id}</b>",
+    "task_hint": "Gotowe? Odpowiedz: <b>gotowe {id}</b>",
     "renewals": "Kończy się ważność",
     "tax": "Terminy podatkowe",
-    "footer_commands": "Sterowanie odpowiedzią na tego e-maila: <b>zapłacone 3</b> "
+    "footer_commands": "Możesz sterować VORU, odpowiadając na ten e-mail: <b>zapłacone 3</b> "
                        "(numer płatności), <b>zapłacone wszystko</b>, "
                        "<b>ignoruj 5</b>, <b>gotowe 2</b> (numer zadania), "
                        "<b>odłóż 4 o 5</b> (przypomni za 5 dni), "
-                       "<b>odłóż zadanie 2</b> — agent załatwi to sam przy "
+                       "<b>odłóż zadanie 2</b> — VORU załatwi to samo przy "
                        "następnym sprawdzeniu poczty.",
-    "footer_commands_text": "Sterowanie odpowiedzią: 'zapłacone 3', 'zapłacone "
+    "footer_commands_text": "Sterowanie odpowiedzią na ten e-mail: 'zapłacone 3', 'zapłacone "
                             "wszystko', 'ignoruj 5', 'gotowe 2', 'odłóż 4 o 5', "
                             "'odłóż zadanie 2'.",
     "renewal_labels": {"pzp": "OC pojazdu", "havarijne": "Ubezpieczenie AC",
@@ -230,7 +243,8 @@ _PL = {
     "digest_title_day": "Podsumowanie dnia",
     "digest_title_week": "Podsumowanie tygodnia",
     "digest_stat": "Niezapłaconych płatności: {n}",
-    "digest_stat_urgent": " (w tym {n} pilnych!)",
+    "digest_stat_urgent": (" (w tym {n} pilna!)", " (w tym {n} pilne!)",
+                           " (w tym {n} pilnych!)"),
     "digest_stat_tasks": " · aktywnych zadań: {n}",
     "digest_stat_note": "Szczegóły i kody QR znajdziesz w ostatnim e-mailu "
                         "„VORU: płatności i zadania”.",
@@ -258,12 +272,12 @@ _PL = {
 
 _DE = {
     "subject_reminder": "VORU: Zahlungen und Aufgaben",
-    "subject_urgent": "VORU: Zahlungen und Aufgaben — {n} dringend",
+    "subject_urgent": ("VORU: Zahlungen und Aufgaben — {n} dringend",) * 3,
     "title": "Übersicht der Zahlungen und Aufgaben",
     "summary_payments": ("{n} Zahlung wartet auf Begleichung",
                          "{n} Zahlungen warten auf Begleichung",
                          "{n} Zahlungen warten auf Begleichung"),
-    "summary_urgent": ", davon {n} dringend",
+    "summary_urgent": (", davon {n} dringend",) * 3,
     "summary_tasks": ("{n} offene Aufgabe", "{n} offene Aufgaben",
                       "{n} offene Aufgaben"),
     "sec_overdue": "Überfällig",
@@ -292,15 +306,15 @@ _DE = {
     "renewals": "Läuft bald ab",
     "tax": "Steuertermine",
     "footer_commands": "Steuerung per Antwort auf diese E-Mail: <b>bezahlt 3</b> "
-                       "(Zahlungsnummer), <b>bezahlt alles</b>, <b>ignor 5</b>, "
+                       "(Zahlungsnummer), <b>bezahlt alles</b>, <b>ignoriere 5</b>, "
                        "<b>erledigt 2</b> (Aufgabennummer), <b>verschieb 4 um 5</b> "
-                       "(erinnert in 5 Tagen), <b>verschieb aufgabe 2</b> — der "
-                       "Agent erledigt es beim nächsten Abruf selbst.",
+                       "(erinnert in 5 Tagen), <b>verschieb Aufgabe 2</b> — "
+                       "VORU erledigt es beim nächsten Abruf selbst.",
     "footer_commands_text": "Steuerung per Antwort: 'bezahlt 3', 'bezahlt alles', "
-                            "'ignor 5', 'erledigt 2', 'verschieb 4 um 5', "
-                            "'verschieb aufgabe 2'.",
+                            "'ignoriere 5', 'erledigt 2', 'verschieb 4 um 5', "
+                            "'verschieb Aufgabe 2'.",
     "renewal_labels": {"pzp": "Kfz-Haftpflicht", "havarijne": "Kaskoversicherung",
-                       "stk": "TÜV / §57a-Begutachtung", "ek": "Abgasuntersuchung",
+                       "stk": "§57a-Begutachtung („Pickerl“)", "ek": "Abgasuntersuchung",
                        "poistka": "Versicherung", "domena": "Domain",
                        "predplatne": "Abonnement", "zmluva": "Vertrag",
                        "ine": "Ablaufdatum"},
@@ -309,14 +323,14 @@ _DE = {
     "digest_title_day": "Tageszusammenfassung",
     "digest_title_week": "Wochenzusammenfassung",
     "digest_stat": "Unbezahlte Zahlungen: {n}",
-    "digest_stat_urgent": " (davon {n} dringend!)",
+    "digest_stat_urgent": (" (davon {n} dringend!)",) * 3,
     "digest_stat_tasks": " · offene Aufgaben: {n}",
     "digest_stat_note": "Details und QR-Codes finden Sie in der letzten E-Mail "
                         "„VORU: Zahlungen und Aufgaben“.",
     "digest_missing": "Regelmäßige Rechnungen, die nicht eingetroffen sind",
     "digest_missing_text": "Regelmäßige Rechnungen, die in diesem Zyklus nicht "
                            "eingetroffen sind:",
-    "digest_missing_line": "{s} — letzte {last}, nächste erwartet bis {exp}",
+    "digest_missing_line": "{s} — zuletzt {last}, nächste erwartet bis {exp}",
     "digest_missing_note": "Prüfen Sie, ob die Rechnung untergegangen ist oder "
                            "woanders eingeht.",
     "cat_faktura": "Rechnungen und Zahlungen", "cat_banka": "Bank",
@@ -325,7 +339,7 @@ _DE = {
     "cat_marketing": "Marketing / Newsletter", "cat_ine": "Sonstiges",
     "no_subject": "(ohne Betreff)",
     "ai_language": "auf Deutsch",
-    "months": ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli",
+    "months": ["Jänner", "Februar", "März", "April", "Mai", "Juni", "Juli",
                "August", "September", "Oktober", "November", "Dezember"],
     "report_title": "Monatsreport — {month} {year}",
     "report_payments": ("{n} Zahlung", "{n} Zahlungen", "{n} Zahlungen"),
@@ -339,11 +353,11 @@ _DE = {
 
 _HU = {
     "subject_reminder": "VORU: fizetések és teendők",
-    "subject_urgent": "VORU: fizetések és teendők — {n} sürgős",
+    "subject_urgent": ("VORU: fizetések és teendők — {n} sürgős",) * 3,
     "title": "Fizetések és teendők áttekintése",
     "summary_payments": ("{n} fizetés vár rendezésre", "{n} fizetés vár rendezésre",
                          "{n} fizetés vár rendezésre"),
-    "summary_urgent": ", ebből {n} sürgős",
+    "summary_urgent": (", ebből {n} sürgős",) * 3,
     "summary_tasks": ("{n} aktív teendő", "{n} aktív teendő", "{n} aktív teendő"),
     "sec_overdue": "Lejárt határidejű",
     "sec_today": "Ma esedékes",
@@ -371,12 +385,12 @@ _HU = {
     "renewals": "Hamarosan lejár",
     "tax": "Adóhatáridők",
     "footer_commands": "Vezérlés az e-mailre adott válasszal: <b>fizetve 3</b> "
-                       "(fizetés száma), <b>fizetve mind</b>, <b>ignor 5</b>, "
-                       "<b>kész 2</b> (teendő száma), <b>halaszd 4 o 5</b> "
-                       "(5 nap múlva emlékeztet), <b>halaszd teendő 2</b> — az "
-                       "ügynök a következő levélellenőrzéskor elintézi.",
+                       "(fizetés száma), <b>fizetve mind</b>, <b>ignoráld 5</b>, "
+                       "<b>kész 2</b> (teendő száma), <b>halaszd 4 5 nappal</b> "
+                       "(5 nap múlva emlékeztet), <b>halaszd teendő 2</b> — "
+                       "a VORU a következő levélellenőrzéskor elintézi.",
     "footer_commands_text": "Vezérlés válasszal: 'fizetve 3', 'fizetve mind', "
-                            "'ignor 5', 'kész 2', 'halaszd 4 o 5', "
+                            "'ignoráld 5', 'kész 2', 'halaszd 4 5 nappal', "
                             "'halaszd teendő 2'.",
     "renewal_labels": {"pzp": "Kötelező biztosítás", "havarijne": "Casco",
                        "stk": "Műszaki vizsga", "ek": "Környezetvédelmi vizsga",
@@ -388,7 +402,7 @@ _HU = {
     "digest_title_day": "Napi összefoglaló",
     "digest_title_week": "Heti összefoglaló",
     "digest_stat": "Kifizetetlen fizetések: {n}",
-    "digest_stat_urgent": " (ebből {n} sürgős!)",
+    "digest_stat_urgent": (" (ebből {n} sürgős!)",) * 3,
     "digest_stat_tasks": " · aktív teendők: {n}",
     "digest_stat_note": "A részleteket és QR-kódokat a legutóbbi „VORU: fizetések "
                         "és teendők” e-mailben találja.",
@@ -406,11 +420,11 @@ _HU = {
     "months": ["január", "február", "március", "április", "május", "június",
                "július", "augusztus", "szeptember", "október", "november",
                "december"],
-    "report_title": "Havi riport — {month} {year}",
+    "report_title": "Havi jelentés — {month} {year}",
     "report_payments": ("{n} fizetés", "{n} fizetés", "{n} fizetés"),
     "report_total_text": "Összesen kifizetve",
     "report_more": "több", "report_less": "kevesebb",
-    "report_compare": "{diff}-val/-vel ({pct} %) {dir}, mint az előző hónapban "
+    "report_compare": "{diff}-val ({pct} %) {dir}, mint az előző hónapban "
                       "({prev})",
     "report_by_supplier": "Szállítók szerint",
     "report_footer": "A teljes dokumentációt (számlák + CSV) az alkalmazásban "
@@ -419,22 +433,22 @@ _HU = {
 
 _EN = {
     "subject_reminder": "VORU: payments and tasks",
-    "subject_urgent": "VORU: payments and tasks — {n} urgent",
+    "subject_urgent": ("VORU: payments and tasks — {n} urgent",) * 3,
     "title": "Payments and tasks overview",
-    "summary_payments": ("{n} payment waiting to be paid",
-                         "{n} payments waiting to be paid",
-                         "{n} payments waiting to be paid"),
-    "summary_urgent": ", {n} of them urgent",
+    "summary_payments": ("{n} outstanding payment",
+                         "{n} outstanding payments",
+                         "{n} outstanding payments"),
+    "summary_urgent": (", {n} of them urgent",) * 3,
     "summary_tasks": ("{n} open task", "{n} open tasks", "{n} open tasks"),
     "sec_overdue": "Overdue",
     "sec_today": "Due today",
-    "sec_upcoming": "Due in the next days",
+    "sec_upcoming": "Due in the coming days",
     "sec_no_date": "No due date",
     "unknown_supplier": "(unknown supplier)",
     "unknown_supplier_short": "(unknown)",
     "item_no": "no.",
     "due": "Due",
-    "vs": "Ref",
+    "vs": "Payment ref",
     "qr_hint": "Scan in your banking app and confirm the payment.",
     "btn_paid": "Mark as paid",
     "btn_snooze": "Snooze 3 days",
@@ -443,23 +457,24 @@ _EN = {
     "bulk_hint": "Opens a confirmation page listing all payments — untick "
                  "whatever is not paid yet.",
     "bulk_text": "Mark everything as paid",
-    "reply_hint": "or reply to this e-mail: <b>paid {id}</b>",
+    "reply_hint": "or reply to this email: <b>paid {id}</b>",
     "cmd_paid": "paid",
     "cmd_done": "done",
     "tasks": "Tasks",
     "task_due": "(by {d})",
-    "task_hint": "done? reply: <b>done {id}</b>",
+    "task_hint": "Done? Reply: <b>done {id}</b>",
     "renewals": "Expiring soon",
     "tax": "Tax deadlines",
-    "footer_commands": "Control by replying to this e-mail: <b>paid 3</b> "
-                       "(payment number), <b>paid all</b>, <b>ignore 5</b>, "
-                       "<b>done 2</b> (task number), <b>snooze 4 by 5</b> "
-                       "(reminds in 5 days), <b>snooze task 2</b> — the agent "
-                       "handles it on the next mail check.",
+    "footer_commands": "You can control VORU by replying to this email: "
+                       "<b>paid 3</b> (payment number), <b>paid all</b>, "
+                       "<b>ignore 5</b>, <b>done 2</b> (task number), "
+                       "<b>snooze 4 by 5</b> (we'll remind you again in "
+                       "5 days), <b>snooze task 2</b> — VORU takes care of it "
+                       "on the next mail check.",
     "footer_commands_text": "Control by reply: 'paid 3', 'paid all', 'ignore 5', "
                             "'done 2', 'snooze 4 by 5', 'snooze task 2'.",
     "renewal_labels": {"pzp": "Motor liability insurance",
-                       "havarijne": "Collision insurance",
+                       "havarijne": "Comprehensive insurance",
                        "stk": "Vehicle inspection (MOT)",
                        "ek": "Emissions test", "poistka": "Insurance policy",
                        "domena": "Domain", "predplatne": "Subscription",
@@ -468,16 +483,16 @@ _EN = {
     "digest_subject_week": "VORU: Weekly digest {range}",
     "digest_title_day": "Daily digest",
     "digest_title_week": "Weekly digest",
-    "digest_stat": "Unpaid payments: {n}",
-    "digest_stat_urgent": " ({n} of them urgent!)",
+    "digest_stat": "Outstanding payments: {n}",
+    "digest_stat_urgent": (" ({n} of them urgent!)",) * 3,
     "digest_stat_tasks": " · open tasks: {n}",
     "digest_stat_note": "Details and QR codes are in the latest "
-                        "“VORU: payments and tasks” e-mail.",
+                        "“VORU: payments and tasks” email.",
     "digest_missing": "Recurring invoices that did not arrive",
     "digest_missing_text": "Recurring invoices that did not arrive this cycle:",
-    "digest_missing_line": "{s} — last one {last}, next expected by {exp}",
-    "digest_missing_note": "Check whether the invoice slipped through or goes "
-                           "somewhere else.",
+    "digest_missing_line": "{s} — last received {last}, next expected by {exp}",
+    "digest_missing_note": "Check whether the invoice landed in spam or is "
+                           "being sent to a different address.",
     "cat_faktura": "Invoices and payments", "cat_banka": "Bank",
     "cat_objednavka": "Orders and deliveries", "cat_uloha": "Tasks and deadlines",
     "cat_marketing": "Marketing / newsletters", "cat_ine": "Other",

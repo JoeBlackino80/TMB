@@ -102,9 +102,10 @@ _WELCOME = {
         "how": "Ako začať",
         "steps": [
             "Prihláste sa a v sekcii Schránky pridajte e-mail, kam vám chodia "
-            "faktúry. Pre Gmail použite App Password (heslo aplikácie).",
-            "V Nastaveniach môžete doplniť heslo k PDF výpisom z banky — "
-            "VORU potom samo odškrtáva zaplatené platby.",
+            "faktúry. Pre Gmail použite heslo aplikácie (App Password).",
+            "V Nastaveniach môžete doplniť heslo k PDF výpisom z banky "
+            "(býva to napr. rodné číslo) — VORU potom samo odškrtáva "
+            "zaplatené platby.",
             "Prehľady s QR kódmi vám budú chodiť e-mailom každé ráno.",
         ],
         "guide": "Podrobný návod na pripojenie schránky",
@@ -130,17 +131,17 @@ _WELCOME = {
         "subject": "Witamy w VORU — potwierdź swój adres",
         "title": "Witamy w VORU!",
         "confirm": "Potwierdź adres e-mail",
-        "confirm_line": "Potwierdź proszę swój adres, klikając",
+        "confirm_line": "Kliknij, aby potwierdzić swój adres",
         "how": "Jak zacząć",
         "steps": [
             "Zaloguj się i w sekcji Skrzynki dodaj e-mail, na który przychodzą "
             "faktury. Dla Gmaila użyj App Password (hasła aplikacji).",
             "W Ustawieniach możesz dodać hasło do wyciągów PDF z banku — "
             "VORU samo odhaczy zapłacone.",
-            "Przeglądy płatności będą przychodzić e-mailem każdego ranka.",
+            "Zestawienia płatności będą przychodzić e-mailem każdego ranka.",
         ],
         "guide": "Szczegółowa instrukcja podłączenia skrzynki",
-        "questions": "Pytania? Odpowiedz na tego e-maila.",
+        "questions": "Pytania? Odpowiedz na ten e-mail.",
     },
     "de": {
         "subject": "Willkommen bei VORU — bestätigen Sie Ihre Adresse",
@@ -150,8 +151,8 @@ _WELCOME = {
         "how": "So starten Sie",
         "steps": [
             "Melden Sie sich an und fügen Sie unter Postfächer die E-Mail-Adresse "
-            "hinzu, an die Ihre Rechnungen kommen. Für Gmail ein App-Passwort "
-            "verwenden.",
+            "hinzu, an die Ihre Rechnungen kommen. Verwenden Sie für Gmail "
+            "ein App-Passwort.",
             "In den Einstellungen können Sie das Passwort für PDF-Kontoauszüge "
             "hinterlegen — VORU hakt Bezahltes dann selbst ab.",
             "Übersichten mit QR-Codes kommen jeden Morgen per E-Mail.",
@@ -176,20 +177,20 @@ _WELCOME = {
         "questions": "Kérdése van? Válaszoljon erre az e-mailre.",
     },
     "en": {
-        "subject": "Welcome to VORU — confirm your address",
+        "subject": "Welcome to VORU — confirm your email address",
         "title": "Welcome to VORU!",
-        "confirm": "Confirm e-mail address",
+        "confirm": "Confirm email address",
         "confirm_line": "Please confirm your address by clicking",
         "how": "Getting started",
         "steps": [
-            "Sign in and add the mailbox where your invoices arrive in the "
-            "Mailboxes section. For Gmail use an App Password.",
+            "Sign in and, in the Mailboxes section, add the mailbox where "
+            "your invoices arrive. For Gmail, use an app password.",
             "In Settings you can add the password for PDF bank statements — "
             "VORU will then tick off paid payments automatically.",
-            "Overviews with QR codes will arrive by e-mail every morning.",
+            "Digests with QR codes will arrive by email every morning.",
         ],
         "guide": "Step-by-step guide to connecting your mailbox",
-        "questions": "Questions? Just reply to this e-mail.",
+        "questions": "Questions? Just reply to this email.",
     },
 }
 

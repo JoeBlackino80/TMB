@@ -144,7 +144,8 @@ def build_reminder(
     n_urgent = len(groups["overdue"]) + len(groups["today"])
     summary_bits = []
     if total_payments:
-        urgent_part = tr["summary_urgent"].format(n=n_urgent) if n_urgent else ""
+        urgent_part = (i18n.plural(lang, n_urgent, tr["summary_urgent"])
+                       if n_urgent else "")
         summary_bits.append(
             i18n.plural(lang, total_payments, tr["summary_payments"]) + urgent_part)
     if tasks:
@@ -152,7 +153,7 @@ def build_reminder(
     preheader = " · ".join(summary_bits)
     subtitle = preheader
     if n_urgent:
-        urgent_plain = tr["summary_urgent"].format(n=n_urgent).lstrip(", ")
+        urgent_plain = i18n.plural(lang, n_urgent, tr["summary_urgent"]).lstrip(", ")
         subtitle = preheader.replace(
             urgent_plain, f"<b style='color:{ly.RED}'>{urgent_plain}</b>")
 
@@ -332,12 +333,13 @@ def send_reminder(cfg: Config, store: Store) -> bool:
 
     # predmet musí obsahovať niektorý z i18n.SUBJECT_MARKERS, aby fungovali
     # odpovede typu "zaplatené 3" (commands.py)
-    tr = i18n.t(_lang(cfg))
+    lang = _lang(cfg)
+    tr = i18n.t(lang)
     groups = store.payments_due(cfg.reminder_days_ahead)
     n_urgent = len(groups["overdue"]) + len(groups["today"])
     subject = tr["subject_reminder"]
     if n_urgent:
-        subject = tr["subject_urgent"].format(n=n_urgent)
+        subject = i18n.plural(lang, n_urgent, tr["subject_urgent"])
 
     send_email(cfg, subject, text, html, images)
 
@@ -346,8 +348,8 @@ def send_reminder(cfg: Config, store: Store) -> bool:
     if total:
         from . import push_notify
 
-        body = i18n.plural(_lang(cfg), total, tr["summary_payments"])
+        body = i18n.plural(lang, total, tr["summary_payments"])
         if n_urgent:
-            body += tr["summary_urgent"].format(n=n_urgent)
+            body += i18n.plural(lang, n_urgent, tr["summary_urgent"])
         push_notify.send_push(subject, body)
     return True

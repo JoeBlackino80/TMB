@@ -83,3 +83,14 @@ def test_snooze_commands():
     # odložená úloha zmizne z aktívnych, ale ostáva nezhotovená
     assert store.active_tasks() == []
     assert len(store.pending_tasks()) == 1
+
+
+def test_snooze_hungarian_nappal():
+    """Maďarský tvar „halaszd 4 5 nappal" (počet dní za číslom platby)."""
+    store = Store(":memory:")
+    from datetime import date
+    pid = store.add_payment(supplier="A", amount=10, variable_symbol="1",
+                            due_date=str(date.today()))
+    mail = make_mail("Re: VORU: fizetések és teendők", f"halaszd {pid} 5 nappal")
+    actions = commands.apply(store, mail)
+    assert actions == [f"platba [{pid}] → odložená o 5 dní"]

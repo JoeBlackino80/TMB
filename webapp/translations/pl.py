@@ -7,7 +7,7 @@ APP = {
     "m_logout": "Wyloguj się",
     "f_terms": "Regulamin", "f_privacy": "Dane osobowe",
     # przegląd
-    "d_verify": "Potwierdź proszę swój adres e-mail — wysłaliśmy Ci "
+    "d_verify": "Prosimy, potwierdź swój adres e-mail — wysłaliśmy Ci "
                 "link. Nic nie przyszło?",
     "d_verify_btn": "Wyślij ponownie",
     "d_paused": "Usługa jest wstrzymana — okres próbny wygasł albo "
@@ -33,15 +33,15 @@ APP = {
     "d_payments_title": "Niezapłacone płatności",
     "th_supplier": "Dostawca", "th_amount": "Kwota",
     "th_due": "Termin płatności",
-    "d_other_iban": "inny IBAN — sprawdź!", "d_today": "dzisiaj",
+    "d_other_iban": "inny numer konta — sprawdź!", "d_today": "dzisiaj",
     "d_qr_btn": "Płatność QR", "d_paid_btn": "Zapłacone",
     "d_ignore_btn": "Ignoruj", "d_ignore_confirm": "Zignorować tę płatność?",
     "d_qr_alt": "Kod QR do płatności",
-    "d_qr_note": "Zeskanuj w aplikacji bankowej — kwota, IBAN i symbol są "
-                 "wstępnie wypełnione.",
-    "d_pay_note": "Kody QR do zapłaty znajdziesz w przeglądach e-mailowych. "
-                  "Zapłacone odhaczy też wyciąg z banku albo odpowiedź "
-                  "„zapłacone nr” na e-mail.",
+    "d_qr_note": "Zeskanuj w aplikacji bankowej — kwota, numer konta i tytuł "
+                 "przelewu są wstępnie wypełnione.",
+    "d_pay_note": "Kody QR do zapłaty znajdziesz w zestawieniach e-mailowych. "
+                  "Zapłacone odhaczy też wyciąg z banku lub odpowiedź na "
+                  "e-mail w formie „zapłacone 3” (numer płatności).",
     "d_sepa_btn": "Zbiorcze polecenie przelewu (SEPA XML)",
     "d_sepa_note": "Plik wgrywasz do bankowości internetowej i wszystkie "
                    "przelewy zatwierdzasz naraz.",
@@ -88,7 +88,7 @@ APP = {
     "mb_name_label": "Nazwa (np. „mojafirma”)",
     "mb_host_label": "Serwer IMAP",
     "mb_port_label": "Port",
-    "mb_user_label": "E-mail logowania",
+    "mb_user_label": "E-mail do logowania",
     "mb_pass_label": "Hasło skrzynki / hasło aplikacji",
     "mb_sec_label": "Zabezpieczenie",
     "mb_sec_ssl": "SSL (typowe, port 993)",
@@ -110,7 +110,7 @@ APP = {
                    "rel='noopener'>account.apple.com</a> → Logowanie i "
                    "zabezpieczenia → Hasła aplikacji.",
     "hint_simple": "Użyj pełnego adresu i hasła, którym się logujesz.",
-    "hint_other": "Serwer to zwykle <b>mail.vasadomena.sk</b> albo znajdziesz "
+    "hint_other": "Serwer to zwykle <b>mail.twojadomena.pl</b> albo znajdziesz "
                   "go w dokumentacji swojego hostingu pod hasłem „IMAP”. "
                   "Jeśli nie wiesz, jak dalej, napisz do nas na "
                   "<a href='mailto:obchod@sorbxt.sk'>"
@@ -120,7 +120,7 @@ APP = {
     "s_type_business": "firma / działalność gospodarcza",
     "s_type_personal": "osoba prywatna",
     "s_type_both": "jedno i drugie — firma i prywatnie",
-    "s_reminder_to": "Dokąd wysyłać przeglądy i powiadomienia",
+    "s_reminder_to": "Dokąd wysyłać zestawienia i powiadomienia",
     "s_pdf": "Hasła do chronionych PDF (wyciągi z banku) — kilka oddziel "
              "przecinkiem",
     "s_pdf_ph": "np. PESEL albo hasło z banku",
@@ -129,9 +129,9 @@ APP = {
     "s_iban": "IBAN Twojego konta (do zbiorczego polecenia przelewu)",
     "s_name": "Nazwa firmy / imię i nazwisko (pojawi się w poleceniu)",
     "s_name_ph": "Moja firma sp. z o.o.",
-    "s_remind": "Poranny przegląd płatności (z kodami QR)",
+    "s_remind": "Poranne zestawienie płatności (z danymi do przelewu)",
     "s_workdays": "dni robocze", "s_daily": "codziennie",
-    "s_weekly": "tylko w piątek (za tydzień)", "s_off": "nie wysyłaj",
+    "s_weekly": "tylko w piątek (podsumowanie tygodnia)", "s_off": "nie wysyłaj",
     "s_at": "o {h}:00",
     "s_digest": "Podsumowanie odebranej poczty",
     "s_digest_note": "W piątek zawsze przychodzi podsumowanie całego "
@@ -140,7 +140,7 @@ APP = {
     "s_report": "Miesięczny raport wydatków (1. dzień miesiąca)",
     "s_tax": "Kalendarz podatkowy — co Cię dotyczy",
     "s_tax_note": "VORU przypomni o ustawowych terminach (VAT, składki, "
-                  "zaliczki) w porannych przeglądach.",
+                  "zaliczki) w porannych zestawieniach.",
     "s_save": "Zapisz",
     "s_pw_title": "Zmiana hasła",
     "s_pw_ok": "Hasło zostało zmienione.",
@@ -200,7 +200,7 @@ APP = {
     "b_status": "Stan konta:",
     "b_active": "aktywna subskrypcja",
     "b_trial": "okres próbny do {date}",
-    "b_inactive": "nieaktywne",
+    "b_inactive": "brak aktywnej subskrypcji",
     "b_pick": "Wybierz plan — płatność przebiega bezpiecznie przez Stripe:",
     "b_monthly": "4,99 € / miesiąc",
     "b_yearly": "49 € / rok — 2 miesiące gratis",
@@ -274,7 +274,8 @@ APP = {
                         "prawdopodobnie została już odhaczona albo sparował "
                         "ją wyciąg z banku.",
     "a_confirm_q": "Na pewno {label}?",
-    "a_bulk_q": "Na pewno {label}? Odznacz to, co jeszcze nie jest zapłacone.",
+    "a_bulk_q": "Na pewno {label}? Odznacz płatności, które nie są jeszcze "
+                "zapłacone.",
     "a_bulk_empty": "Obecnie nie masz żadnych niezapłaconych płatności.",
     "a_bulk_btn": "Oznacz wybrane jako zapłacone",
     "a_no_due": "bez terminu płatności",

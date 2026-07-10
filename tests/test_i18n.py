@@ -101,7 +101,7 @@ def test_reminder_localized_en(tmp_path):
     text, html, _ = reminder.build_reminder(store, 7, cfg)
     store.close()
     assert "Overdue" in html and "Mark as paid" not in html  # tlačidlá len s action_base_url
-    assert "payment waiting to be paid" in html
+    assert "outstanding payment" in html
     assert "paid 3" in html or "paid all" in html  # ovládanie v pätičke
 
 

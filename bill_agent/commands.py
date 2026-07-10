@@ -34,13 +34,15 @@ _TASK_RE = re.compile(
     r"^(?:hotovo?|splnen|gotowe|zrobion|erledigt|k[eé]sz|done)\S*\s+(\d+)[.!]?\s*$", re.I)
 _SNOOZE_WORD = (r"(?:odlo[zž]|od[łl][oó][żz]|prze[łl][oó][żz]|verschieb"
                 r"|halaszd?|halaszt|snooze|postpone)")
-# "odlož úlohu 2 o 5" pred všeobecným "odlož 4 o 5" (platba)
+# "odlož úlohu 2 o 5" pred všeobecným "odlož 4 o 5" (platba); maďarčina
+# dáva počet dní za číslo ("halaszd 4 5 nappal")
 _SNOOZE_SEP = r"(?:o|um|na|by)"
+_SNOOZE_TAIL = (r"(?:\s+" + _SNOOZE_SEP + r"\s+(\d+)|\s+(\d+)\s+nappal)?[.!]?\s*$")
 _SNOOZE_TASK_RE = re.compile(
     _SNOOZE_WORD + r"\S*\s+(?:[uú]loh|[uú]kol|zadani|aufgabe|teend[oő]|task)\S*\s+"
-    r"(\d+)(?:\s+" + _SNOOZE_SEP + r"\s+(\d+))?[.!]?\s*$", re.I)
+    r"(\d+)" + _SNOOZE_TAIL, re.I)
 _SNOOZE_RE = re.compile(
-    _SNOOZE_WORD + r"\S*\s+(\d+)(?:\s+" + _SNOOZE_SEP + r"\s+(\d+))?[.!]?\s*$", re.I)
+    _SNOOZE_WORD + r"\S*\s+(\d+)" + _SNOOZE_TAIL, re.I)
 
 _ALL_WORDS = {"vsetko", "všetko", "vše", "vse", "všechno", "vsechno", "wszystko",
               "alles", "mind", "minden", "all", "everything"}
@@ -103,7 +105,7 @@ def apply(store: Store, mail: Email) -> list[str]:
         m = _SNOOZE_TASK_RE.match(line)
         if m:
             tid = int(m.group(1))
-            days = int(m.group(2)) if m.group(2) else DEFAULT_SNOOZE_DAYS
+            days = int(m.group(2) or m.group(3) or DEFAULT_SNOOZE_DAYS)
             if store.snooze_task(tid, days):
                 actions.append(f"úloha [{tid}] → odložená o {days} dní")
             else:
@@ -113,7 +115,7 @@ def apply(store: Store, mail: Email) -> list[str]:
         m = _SNOOZE_RE.match(line)
         if m:
             pid = int(m.group(1))
-            days = int(m.group(2)) if m.group(2) else DEFAULT_SNOOZE_DAYS
+            days = int(m.group(2) or m.group(3) or DEFAULT_SNOOZE_DAYS)
             if store.snooze_payment(pid, days):
                 actions.append(f"platba [{pid}] → odložená o {days} dní")
             else:

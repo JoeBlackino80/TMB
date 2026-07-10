@@ -14,7 +14,7 @@ APP = {
     "d_paused": "A szolgáltatás szünetel — a próbaidőszak lejárt vagy az "
                 "előfizetés véget ért. <a href='/billing'>Aktiváljon "
                 "előfizetést</a>.",
-    "d_trial": "Próbaidőszak eddig: <b>{date}</b>. <a href='/billing'>Váltás "
+    "d_trial": "Próbaidőszak vége: <b>{date}</b>. <a href='/billing'>Váltás "
                "előfizetésre</a> — 4,99 €/hó vagy 49 €/év.",
     "d_start_title": "Kezdje egy postafiók hozzáadásával",
     "d_start_body": "A VORU-nak hozzáférésre van szüksége ahhoz a "
@@ -36,14 +36,14 @@ APP = {
     "th_due": "Fizetési határidő",
     "d_other_iban": "eltérő IBAN — ellenőrizze!", "d_today": "ma",
     "d_qr_btn": "QR-fizetés", "d_paid_btn": "Kifizetve",
-    "d_ignore_btn": "Mellőzés", "d_ignore_confirm": "Mellőzi ezt a fizetést?",
+    "d_ignore_btn": "Mellőzés", "d_ignore_confirm": "Mellőzi ezt a tételt?",
     "d_qr_alt": "QR-kód a fizetéshez",
     "d_qr_note": "Olvassa be a banki alkalmazásában — az összeg, az IBAN és "
                  "a közlemény előre ki van töltve.",
     "d_pay_note": "A fizetéshez szükséges QR-kódokat az e-mail-"
                   "összefoglalókban találja. A kifizetett tételeket a "
                   "bankszámlakivonat vagy az e-mailre küldött "
-                  "„zaplatené č.“ válasz is kipipálja.",
+                  "„fizetve 3” (a tétel száma) válasz is kipipálja.",
     "d_sepa_btn": "Csoportos átutalási megbízás (SEPA XML)",
     "d_sepa_note": "A fájlt feltölti az internetbankba, és az összes "
                    "átutalást egyszerre hagyja jóvá.",
@@ -58,7 +58,7 @@ APP = {
     "d_bundle_note": "ZIP a számlákkal (PDF) és a havi fizetési "
                      "áttekintéssel — egy kattintással elküldheti a "
                      "könyvelőjének.",
-    "d_tasks_title": "Feladatok", "d_task_due": "eddig: {d}",
+    "d_tasks_title": "Feladatok", "d_task_due": "határidő: {d}",
     "d_task_done": "Kész",
     "d_no_tasks": "Nincs nyitott feladat.",
     # postafiókok
@@ -122,7 +122,7 @@ APP = {
                    "Bejelentkezés és biztonság → Alkalmazásjelszavak.",
     "hint_simple": "Használja a teljes címet és a bejelentkezéshez használt "
                    "jelszót.",
-    "hint_other": "A szerver általában <b>mail.vasadomena.sk</b>, vagy "
+    "hint_other": "A szerver általában <b>mail.sajatdomain.hu</b>, vagy "
                   "megtalálja a tárhelyszolgáltató dokumentációjában az "
                   "„IMAP” résznél. Ha elakadt, írjon nekünk: "
                   "<a href='mailto:obchod@sorbxt.sk'>"
@@ -192,7 +192,7 @@ APP = {
     "s_push_off": "Értesítések kikapcsolása",
     "s_push_active": "Az értesítések ezen az eszközön be vannak kapcsolva.",
     "s_push_denied": "Az értesítéseket nem sikerült bekapcsolni "
-                     "(elutasított engedély?).",
+                     "(megtagadta az engedélyt?).",
     "s_data_title": "Az Ön adatai",
     "s_data_lead": "A nyilvántartás teljes exportja (fizetések, feladatok, "
                    "levelezési napló, érvényességfigyelések) CSV "
@@ -211,16 +211,16 @@ APP = {
     "s_app_lead": "A VORU-t telepítheti a telefonja kezdőképernyőjére — úgy "
                   "működik, mint egy megszokott alkalmazás, App Store "
                   "nélkül.",
-    "s_app_ios": "<b>iPhone:</b> nyissa meg a voru.sk oldalt Safariban → "
+    "s_app_ios": "<b>iPhone:</b> nyissa meg a voru.hu oldalt Safariban → "
                  "Megosztás gomb <span class='muted'>(négyzet "
                  "nyíllal)</span> → <b>Hozzáadás a kezdőképernyőhöz</b>.",
-    "s_app_android": "<b>Android:</b> nyissa meg a voru.sk oldalt "
+    "s_app_android": "<b>Android:</b> nyissa meg a voru.hu oldalt "
                      "Chrome-ban → ⋮ menü → <b>Hozzáadás a "
                      "kezdőképernyőhöz / Alkalmazás telepítése</b>.",
     # előfizetés
     "b_status": "Fiók állapota:",
     "b_active": "aktív előfizetés",
-    "b_trial": "próbaidőszak eddig: {date}",
+    "b_trial": "próbaidőszak vége: {date}",
     "b_inactive": "inaktív",
     "b_pick": "Válasszon csomagot — a fizetés biztonságosan, a Stripe-on "
               "keresztül történik:",
@@ -228,7 +228,8 @@ APP = {
     "b_yearly": "49 € / év — 2 hónap ingyen",
     "b_auto": "Fizetés után a fiók egy percen belül automatikusan "
               "aktiválódik.",
-    "b_manual": "A fizetési kapu előkészítés alatt áll — írjon nekünk: "
+    "b_manual": "Az online bankkártyás fizetés előkészítés alatt áll — "
+                "írjon nekünk: "
                 "<a href='mailto:obchod@sorbxt.sk'>obchod@sorbxt.sk</a>, "
                 "és kézzel aktiváljuk.",
     "b_thanks": "Köszönjük, hogy a VORU-t használja. Az előfizetés "
@@ -301,8 +302,8 @@ APP = {
                         "valószínűleg már kipipálta, vagy a "
                         "bankszámlakivonat párosította.",
     "a_confirm_q": "Valóban: {label}?",
-    "a_bulk_q": "Valóban: {label}? Vegye ki a pipát abból, ami még nincs "
-                "kifizetve.",
+    "a_bulk_q": "Valóban: {label}? Vegye ki a pipát azoknál a tételeknél, "
+                "amelyek még nincsenek kifizetve.",
     "a_bulk_empty": "Jelenleg nincs kifizetetlen tétele.",
     "a_bulk_btn": "A kiválasztottak megjelölése kifizetettként",
     "a_no_due": "határidő nélkül",
