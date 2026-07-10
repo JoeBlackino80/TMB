@@ -342,7 +342,8 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
             return _register_page(request, lang, ref,
                                   error="Účet už existuje — prihláste sa.")
         # bez SMTP sa overovací e-mail nedá poslať — účet je overený rovno
-        user = users.create(email, password, verified=not mailer.smtp_configured())
+        user = users.create(email, password, verified=not mailer.smtp_configured(),
+                            reg_ip=_client_ip(request))
         _REG_ATTEMPTS.setdefault(_client_ip(request), []).append(time.time())
         _REG_GLOBAL.append(time.time())
         # referral: obom predĺžime skúšobnú dobu (novému +14, odporúčajúcemu +30)
@@ -1479,22 +1480,77 @@ async def stripe_webhook(request: Request):
 
 # -- admin ------------------------------------------------------------------------
 
+def _is_admin(user) -> bool:
+    return bool(user and ADMIN_EMAIL and user["email"] == ADMIN_EMAIL)
+
+
 @app.get("/admin", response_class=HTMLResponse)
 def admin(request: Request, user=Depends(current_user)):
-    if not user or user["email"] != ADMIN_EMAIL:
+    if not _is_admin(user):
         return _redirect("/")
     users = Users()
     try:
         rows = users.all()
         data = [{
             "id": u["id"], "email": u["email"], "status": u["status"],
-            "trial_until": u["trial_until"],
+            "plan": u["plan"], "trial_until": u["trial_until"],
+            "created_at": (u["created_at"] or "").replace("T", " ")[:16],
+            "reg_ip": u["reg_ip"], "verified": bool(u["verified"]),
+            "totp": bool(u["totp_secret"]), "referred_by": u["referred_by"],
             "enabled": clientfs.is_enabled(u["client_dir"]),
             "mailboxes": len(clientfs.list_mailboxes(u["client_dir"])),
         } for u in rows]
     finally:
         users.close()
     return _render(request, "admin.html", user=user, clients=data)
+
+
+@app.post("/admin/update")
+def admin_update(request: Request, user=Depends(current_user),
+                 user_id: int = Form(...), email: str = Form(""),
+                 trial_until: str = Form(""), new_password: str = Form("")):
+    """Úprava účtu adminom: e-mail, koniec trialu, nové heslo (vyplnené polia)."""
+    if not _is_admin(user):
+        return _redirect("/")
+    users = Users()
+    try:
+        target = users.by_id(user_id)
+        if not target:
+            return _redirect("/admin")
+        if email.strip() and email.strip().lower() != target["email"]:
+            users.set_email(user_id, email)
+        if trial_until.strip():
+            users.set_trial_until(user_id, trial_until.strip())
+        if new_password:
+            if len(new_password) < 8:
+                return _render(request, "message.html", user=user,
+                               title="Heslo je prikrátke",
+                               body="Nové heslo musí mať aspoň 8 znakov.",
+                               cta="/admin", cta_label="Späť na admin")
+            users.set_password(user_id, new_password)
+    finally:
+        users.close()
+    return _redirect("/admin")
+
+
+@app.post("/admin/delete")
+def admin_delete(request: Request, user=Depends(current_user),
+                 user_id: int = Form(...)):
+    """Zmaže účet aj dáta klienta (admin). Vlastný admin účet zmazať nejde."""
+    import shutil
+
+    if not _is_admin(user):
+        return _redirect("/")
+    users = Users()
+    try:
+        target = users.by_id(user_id)
+        if target and target["email"] != ADMIN_EMAIL:
+            shutil.rmtree(clientfs.client_path(target["client_dir"]),
+                          ignore_errors=True)
+            users.delete(user_id)
+    finally:
+        users.close()
+    return _redirect("/admin")
 
 
 @app.post("/admin/set-status")

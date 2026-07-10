@@ -308,3 +308,75 @@ def test_register_daily_cap(client, monkeypatch):
                     headers={"X-Forwarded-For": "203.0.113.99"})
     assert r.status_code == 200 and "pozastavené" in r.text
     app_module._REG_GLOBAL.clear()
+
+
+def test_admin_panel_edit(client, tmp_path, monkeypatch):
+    """Admin: prehľad s IP, úprava e-mailu/trialu/hesla, zmazanie účtu."""
+    import time as _time
+
+    import webapp.app as app_module
+
+    # admin + bežný klient (klient s IP cez proxy hlavičku)
+    client.post("/register", data={"email": "admin@test.sk",
+                                   "password": "tajneheslo", "consent": "1"})
+    t = str(int(_time.time()) - 10)
+    ts = f"{t}|{app_module._sign('regts|' + t)}"
+    app_module._REG_ATTEMPTS.clear()
+    app_module._REG_GLOBAL.clear()
+    client.post("/register", data={"email": "klient@x.sk", "password": "tajneheslo",
+                                   "consent": "1", "ts": ts},
+                headers={"X-Forwarded-For": "203.0.113.55"})
+    s = client.post("/login", data={"email": "admin@test.sk",
+                                    "password": "tajneheslo"}).cookies["session"]
+
+    # prehľad obsahuje IP registrácie
+    r = client.get("/admin", cookies={"session": s})
+    assert r.status_code == 200 and "203.0.113.55" in r.text
+
+    from webapp.auth import Users
+    users = Users()
+    uid = users.by_email("klient@x.sk")["id"]
+    users.close()
+
+    # úprava e-mailu, trialu a hesla naraz
+    r = client.post("/admin/update", data={"user_id": uid, "email": "novy@x.sk",
+                                           "trial_until": "2027-01-31",
+                                           "new_password": "adminoveheslo"},
+                    cookies={"session": s})
+    assert r.status_code == 303
+    users = Users()
+    changed = users.by_id(uid)
+    users.close()
+    assert changed["email"] == "novy@x.sk"
+    assert changed["trial_until"] == "2027-01-31"
+    assert client.post("/login", data={"email": "novy@x.sk",
+                                       "password": "adminoveheslo"}).status_code == 303
+
+    # zmazanie účtu klienta
+    r = client.post("/admin/delete", data={"user_id": uid}, cookies={"session": s})
+    assert r.status_code == 303
+    users = Users()
+    assert users.by_id(uid) is None
+    users.close()
+    assert not (tmp_path / "clients" / "klient-x-sk").exists()
+
+    # admin sám seba zmazať nevie
+    users = Users()
+    admin_id = users.by_email("admin@test.sk")["id"]
+    users.close()
+    client.post("/admin/delete", data={"user_id": admin_id}, cookies={"session": s})
+    users = Users()
+    assert users.by_email("admin@test.sk") is not None
+    users.close()
+
+    # ne-admin sa k ničomu nedostane
+    client.post("/register", data={"email": "cudzi@x.sk", "password": "tajneheslo",
+                                   "consent": "1"})
+    s2 = client.post("/login", data={"email": "cudzi@x.sk",
+                                     "password": "tajneheslo"}).cookies["session"]
+    assert client.get("/admin", cookies={"session": s2}).status_code == 303
+    assert client.post("/admin/update", data={"user_id": admin_id,
+                                              "new_password": "hacknute1"},
+                       cookies={"session": s2}).status_code == 303
+    assert client.post("/login", data={"email": "admin@test.sk",
+                                       "password": "tajneheslo"}).status_code == 303

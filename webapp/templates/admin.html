@@ -1,21 +1,32 @@
 {% extends "base.html" %}
 {% block title %}Admin — VORU{% endblock %}
 {% block content %}
-<h1>Admin — klienti</h1>
+<h1>Admin — klienti ({{ clients|length }})</h1>
 <div class="card">
 <div style="overflow-x:auto">
 <table>
-  <tr><th>ID</th><th>E-mail</th><th>Stav</th><th>Trial do</th><th>Schránky</th><th>Beží</th><th>Akcia</th></tr>
+  <tr><th>ID</th><th>E-mail</th><th>Stav</th><th>Trial do</th>
+      <th>Registrácia</th><th>IP</th><th>Schránky</th><th>Info</th><th></th></tr>
   {% for c in clients %}
   <tr>
-    <td>{{ c.id }}</td><td>{{ c.email }}</td>
+    <td>{{ c.id }}</td>
+    <td>{{ c.email }}{% if c.referred_by %}<br>
+        <span class="muted" style="font-size:11px">odporučil: {{ c.referred_by }}</span>{% endif %}</td>
     <td>
-      {% if c.status == 'active' %}<span class="badge b-green">active</span>
+      {% if c.status == 'active' %}<span class="badge b-green">active{% if c.plan %} · {{ c.plan }}{% endif %}</span>
       {% elif c.status == 'trial' %}<span class="badge b-amber">trial</span>
       {% else %}<span class="badge b-red">{{ c.status }}</span>{% endif %}
+      {% if not c.enabled %}<span class="badge b-red">vypnutý</span>{% endif %}
     </td>
-    <td>{{ c.trial_until }}</td><td>{{ c.mailboxes }}</td>
-    <td>{% if c.enabled %}<span class="badge b-green">áno</span>{% else %}<span class="badge b-red">nie</span>{% endif %}</td>
+    <td>{{ c.trial_until }}</td>
+    <td style="white-space:nowrap">{{ c.created_at }}</td>
+    <td>{{ c.reg_ip or '—' }}</td>
+    <td>{{ c.mailboxes }}</td>
+    <td style="white-space:nowrap">
+      {% if c.verified %}<span class="badge b-green">overený</span>
+      {% else %}<span class="badge b-gray">neoverený</span>{% endif %}
+      {% if c.totp %}<span class="badge b-green">2FA</span>{% endif %}
+    </td>
     <td class="actions" style="white-space:nowrap">
       <form method="post" action="/admin/set-status" style="display:inline">
         <input type="hidden" name="user_id" value="{{ c.id }}">
@@ -29,8 +40,37 @@
       </form>
     </td>
   </tr>
+  <tr>
+    <td></td>
+    <td colspan="8" style="padding-top:0">
+      <details>
+        <summary class="muted" style="cursor:pointer;font-size:12px">upraviť účet</summary>
+        <form method="post" action="/admin/update"
+              style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin:8px 0">
+          <input type="hidden" name="user_id" value="{{ c.id }}">
+          <div><label style="margin:0 0 3px">E-mail</label>
+            <input name="email" value="{{ c.email }}" style="max-width:230px"></div>
+          <div><label style="margin:0 0 3px">Trial do</label>
+            <input name="trial_until" type="date" value="{{ c.trial_until }}"
+                   style="max-width:160px"></div>
+          <div><label style="margin:0 0 3px">Nové heslo (nepovinné)</label>
+            <input name="new_password" type="text" placeholder="min. 8 znakov"
+                   autocomplete="off" style="max-width:180px"></div>
+          <button class="small" style="margin-bottom:1px">Uložiť</button>
+        </form>
+        <form method="post" action="/admin/delete" style="margin:4px 0 10px"
+              onsubmit="return confirm('Nenávratne zmazať účet {{ c.email }} aj všetky jeho dáta?')">
+          <input type="hidden" name="user_id" value="{{ c.id }}">
+          <button class="small danger">Zmazať účet aj dáta</button>
+        </form>
+      </details>
+    </td>
+  </tr>
   {% endfor %}
 </table>
 </div>
+<p class="muted" style="margin-top:14px">Heslá sa ukladajú len ako
+   kryptografické odtlačky — nedajú sa zobraziť, iba nastaviť nové.
+   Zmena e-mailu presunie prihlásenie aj notifikácie na novú adresu.</p>
 </div>
 {% endblock %}

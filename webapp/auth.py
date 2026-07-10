@@ -63,12 +63,17 @@ class Users:
         if "referred_by" not in cols:
             self.conn.execute(
                 "ALTER TABLE users ADD COLUMN referred_by TEXT NOT NULL DEFAULT ''")
+        # migrácia: IP adresa pri registrácii (pre admin prehľad a anti-spam)
+        if "reg_ip" not in cols:
+            self.conn.execute(
+                "ALTER TABLE users ADD COLUMN reg_ip TEXT NOT NULL DEFAULT ''")
         self.conn.commit()
 
     def close(self) -> None:
         self.conn.close()
 
-    def create(self, email: str, password: str, verified: bool = True) -> sqlite3.Row:
+    def create(self, email: str, password: str, verified: bool = True,
+               reg_ip: str = "") -> sqlite3.Row:
         email = email.strip().lower()
         slug = slugify(email)
         n = 1
@@ -80,10 +85,10 @@ class Users:
             client_dir = f"{slug}-{n}"
         trial_until = (date.today() + timedelta(days=TRIAL_DAYS)).isoformat()
         self.conn.execute(
-            "INSERT INTO users (email, pw_hash, client_dir, trial_until, created_at, verified) "
-            "VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO users (email, pw_hash, client_dir, trial_until, created_at, "
+            "verified, reg_ip) VALUES (?, ?, ?, ?, ?, ?, ?)",
             (email, hash_password(password), client_dir, trial_until,
-             datetime.now().isoformat(timespec="seconds"), int(verified)),
+             datetime.now().isoformat(timespec="seconds"), int(verified), reg_ip),
         )
         self.conn.commit()
         return self.by_email(email)
@@ -103,6 +108,26 @@ class Users:
         return self.conn.execute(
             "SELECT * FROM users WHERE client_dir = ?", (client_dir,)
         ).fetchone()
+
+    def set_email(self, user_id: int, email: str) -> bool:
+        """Zmení e-mail účtu; False pri kolízii s existujúcim účtom."""
+        email = email.strip().lower()
+        if not email or "@" not in email or self.by_email(email):
+            return False
+        self.conn.execute("UPDATE users SET email = ? WHERE id = ?",
+                          (email, user_id))
+        self.conn.commit()
+        return True
+
+    def set_trial_until(self, user_id: int, day: str) -> bool:
+        try:
+            date.fromisoformat(day)
+        except ValueError:
+            return False
+        self.conn.execute("UPDATE users SET trial_until = ? WHERE id = ?",
+                          (day, user_id))
+        self.conn.commit()
+        return True
 
     def set_referred_by(self, user_id: int, referrer_client_dir: str) -> None:
         self.conn.execute("UPDATE users SET referred_by = ? WHERE id = ?",
