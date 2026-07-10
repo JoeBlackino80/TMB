@@ -33,7 +33,19 @@
   {% endif %}
 </div>
 
-{% if google_oauth %}
+{% if not verified %}
+<div class="card">
+  <h2>Najprv potvrďte e-mail</h2>
+  <p class="muted">Pripojenie schránky sa odomkne po potvrdení vašej
+     e-mailovej adresy — kliknite na odkaz v uvítacom e-maile
+     (skontrolujte aj spam).</p>
+  <form method="post" action="/verify/resend">
+    <button class="small">Poslať overovací e-mail znova</button>
+  </form>
+</div>
+{% endif %}
+
+{% if verified and google_oauth %}
 <div class="card">
   <h2>Gmail jedným klikom</h2>
   <p class="muted">Gmail pripojíte bez hesla aplikácie — prihlásite sa
@@ -43,6 +55,7 @@
 </div>
 {% endif %}
 
+{% if verified %}
 <div class="card">
   <h2>Pridať schránku</h2>
   <p class="muted">Vyberte poskytovateľa — nastavenia servera vyplníme za vás.
@@ -125,4 +138,5 @@ function fillProvider() {
   hint.style.display = "block";
 }
 </script>
+{% endif %}
 {% endblock %}

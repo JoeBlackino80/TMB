@@ -367,6 +367,9 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
         users.close()
     clientfs.ensure_client(user["client_dir"], reminder_to=email,
                            account_type=account_type, lang=lang)
+    if not user["verified"]:
+        # kým klient nepotvrdí adresu, cron mu nič neposiela
+        clientfs.set_verified(user["client_dir"], False)
     # ukážkové dáta, nech nový účet nie je prázdny (zmiznú po pridaní schránky)
     store = Store(os.path.join(clientfs.client_path(user["client_dir"]), "bill_agent.db"))
     try:
@@ -475,8 +478,11 @@ def verify_email(request: Request, t: str = "", user=Depends(current_user)):
     users = Users()
     try:
         users.mark_verified(uid)
+        verified_user = users.by_id(uid)
     finally:
         users.close()
+    if verified_user:
+        clientfs.set_verified(verified_user["client_dir"], True)
     return _render(request, "message.html", user=user, title="E-mail overený",
                    body="Ďakujeme, vaša adresa je potvrdená.", cta="/", cta_label="Prejsť na prehľad")
 
@@ -1024,18 +1030,29 @@ def _test_imap(host: str, port: int, user: str, password: str, security: str) ->
         return f"Pripojenie zlyhalo: {exc}"
 
 
+def _unverified_page(request: Request, user) -> HTMLResponse:
+    return _render(request, "message.html", user=user,
+                   title="Najprv potvrďte e-mail",
+                   body="Pripojenie schránky sa odomkne po potvrdení vašej "
+                        "e-mailovej adresy — klik na odkaz v uvítacom e-maile. "
+                        "Nový odkaz si pošlete tlačidlom na prehľade.",
+                   cta="/", cta_label="Späť na prehľad")
+
+
 @app.get("/mailboxes", response_class=HTMLResponse)
 def mailboxes(request: Request, user=Depends(current_user)):
     if not user:
         return _redirect("/login")
     # preposielacia adresa — keď je na serveri nastavená zdieľaná schránka
+    # (nepotvrdeným účtom sa nastavenia neukazujú)
     forward_addr = ""
     template = os.environ.get("FORWARD_ADDRESS", "")
-    if template and "{token}" in template:
+    if user["verified"] and template and "{token}" in template:
         token = clientfs.get_or_create_forward_token(user["client_dir"])
         if token:
             forward_addr = template.replace("{token}", token)
     return _render(request, "mailboxes.html", user=user,
+                   verified=bool(user["verified"]),
                    forward_addr=forward_addr,
                    google_oauth=bool(os.environ.get("GOOGLE_CLIENT_ID", "")),
                    mailboxes=clientfs.list_mailboxes(user["client_dir"]))
@@ -1051,6 +1068,8 @@ _GOOGLE_SCOPE = "https://mail.google.com/ openid email"
 def google_oauth_start(request: Request, user=Depends(current_user)):
     if not user:
         return _redirect("/login")
+    if not user["verified"]:
+        return _unverified_page(request, user)
     if not os.environ.get("GOOGLE_CLIENT_ID"):
         return _redirect("/mailboxes")
     params = {
@@ -1120,6 +1139,8 @@ def add_mailbox(request: Request, user=Depends(current_user),
                 password: str = Form(...), security: str = Form("ssl")):
     if not user:
         return _redirect("/login")
+    if not user["verified"]:
+        return _unverified_page(request, user)
     if security not in ("ssl", "starttls", "plain"):
         security = "ssl"
     error = _test_imap(host.strip(), port, imap_user.strip(), password, security)

@@ -380,3 +380,73 @@ def test_admin_panel_edit(client, tmp_path, monkeypatch):
                        cookies={"session": s2}).status_code == 303
     assert client.post("/login", data={"email": "admin@test.sk",
                                        "password": "tajneheslo"}).status_code == 303
+
+
+def test_verification_gates_mailboxes(client, tmp_path, monkeypatch):
+    """Bez potvrdeného e-mailu: cron preskakuje, schránky sa nedajú pridať."""
+    import webapp.app as app_module
+    from webapp.auth import Users
+
+    # so "zapnutým" SMTP je nový účet neoverený
+    for k in ("SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD"):
+        monkeypatch.setenv(k, "x")
+    client.post("/register", data={"email": "never@x.sk",
+                                   "password": "tajneheslo", "consent": "1"})
+    s = client.post("/login", data={"email": "never@x.sk",
+                                    "password": "tajneheslo"}).cookies["session"]
+
+    # marker pre cron existuje
+    marker = tmp_path / "clients" / "never-x-sk" / "UNVERIFIED"
+    assert marker.exists()
+
+    # stránka schránok ukazuje výzvu, formulár na pridanie tam nie je
+    r = client.get("/mailboxes", cookies={"session": s})
+    assert "Najprv potvrďte e-mail" in r.text
+    assert "Pridať schránku" not in r.text
+
+    # POST aj OAuth štart sú blokované
+    r = client.post("/mailboxes", data={"name": "f", "host": "h", "port": "993",
+                                        "imap_user": "u", "password": "p",
+                                        "security": "ssl"},
+                    cookies={"session": s})
+    assert "Najprv potvrďte e-mail" in r.text
+    monkeypatch.setenv("GOOGLE_CLIENT_ID", "cid")
+    r = client.get("/oauth/google/start", cookies={"session": s})
+    assert "Najprv potvrďte e-mail" in r.text
+
+    # overenie cez token odomkne všetko a marker zmizne
+    users = Users()
+    uid = users.by_email("never@x.sk")["id"]
+    users.close()
+    token = app_module._make_token("verify", uid)
+    r = client.get(f"/verify?t={token}", cookies={"session": s})
+    assert r.status_code == 200
+    assert not marker.exists()
+    r = client.get("/mailboxes", cookies={"session": s})
+    assert "Pridať schránku" in r.text
+
+
+def test_expire_disables_stale_unverified(client, tmp_path, monkeypatch):
+    from webapp import expire
+    from webapp.auth import Users
+
+    for k in ("SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD"):
+        monkeypatch.setenv(k, "x")
+    client.post("/register", data={"email": "stary@x.sk",
+                                   "password": "tajneheslo", "consent": "1"})
+    users = Users()
+    uid = users.by_email("stary@x.sk")["id"]
+    # zostarneme registráciu o 8 dní
+    users.conn.execute("UPDATE users SET created_at = datetime('now', '-8 days') "
+                       "WHERE id = ?", (uid,))
+    users.conn.commit()
+    users.close()
+
+    expire.main()
+    assert (tmp_path / "clients" / "stary-x-sk" / "DISABLED").exists()
+
+    # čerstvý neoverený účet sa nevypína
+    client.post("/register", data={"email": "novy2@x.sk",
+                                   "password": "tajneheslo", "consent": "1"})
+    expire.main()
+    assert not (tmp_path / "clients" / "novy2-x-sk" / "DISABLED").exists()

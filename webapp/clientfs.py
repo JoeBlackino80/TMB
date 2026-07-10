@@ -146,6 +146,17 @@ def remove_mailbox(client_dir: str, name: str) -> bool:
     return True
 
 
+def set_verified(client_dir: str, verified: bool) -> None:
+    """Súbor UNVERIFIED: kým klient nepotvrdí e-mail, cron ho preskakuje."""
+    marker = os.path.join(client_path(client_dir), "UNVERIFIED")
+    if verified:
+        if os.path.exists(marker):
+            os.remove(marker)
+    else:
+        os.makedirs(client_path(client_dir), exist_ok=True)
+        open(marker, "w").close()
+
+
 def set_enabled(client_dir: str, enabled: bool) -> None:
     marker = os.path.join(client_path(client_dir), "DISABLED")
     if enabled:
