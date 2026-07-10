@@ -309,3 +309,4 @@ APP.update({
     "s_del_done_body": "Usunęliśmy Twoje konto i wszystkie dane. "
                        "Dziękujemy za wypróbowanie VORU.",
 })
+APP["back_btn"] = "Wstecz"

@@ -337,3 +337,4 @@ APP = {
     "s_del_done_body": "Wir haben Ihr Konto und alle Daten gelöscht. Danke, "
                        "dass Sie VORU ausprobiert haben.",
 }
+APP["back_btn"] = "Zurück"

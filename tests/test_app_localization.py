@@ -83,6 +83,30 @@ def test_help_and_legal_pages_localized(client):
     assert r.status_code == 200
 
 
+def test_logout_keeps_language(client):
+    session = _register(client, "hans2@firma.at", "de")
+    r = client.get("/logout", cookies={"session": session})
+    assert r.status_code == 303
+    assert r.headers["location"] == "/login?lang=de"
+    # prihlasovacia stránka je po odhlásení v jazyku účtu
+    r = client.get(r.headers["location"])
+    assert "Anmelden" in r.text
+
+
+def test_back_button_where_it_makes_sense(client):
+    # na podstránkach áno (verejné aj po prihlásení), na hlavných nie
+    assert "history.back" in client.get("/navod").text
+    assert "history.back" in client.get("/podmienky").text
+    assert "history.back" in client.get("/login").text
+    assert "history.back" not in client.get("/").text          # landing
+    session = _register(client, "peter@firma.sk", "sk")
+    for path in ("/", "/mailboxes", "/settings", "/billing"):   # hlavné menu
+        assert "history.back" not in client.get(
+            path, cookies={"session": session}).text
+    assert "history.back" in client.get(
+        "/navod", cookies={"session": session}).text
+
+
 def test_reset_flow_in_english(client, monkeypatch):
     import webapp.app as app_module
 

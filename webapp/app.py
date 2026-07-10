@@ -476,8 +476,9 @@ def login_totp(request: Request, t: str = Form(...), code: str = Form(...),
 
 
 @app.get("/logout")
-def logout():
-    response = _redirect("/login")
+def logout(user=Depends(current_user)):
+    # prihlásenie sa otvorí v jazyku účtu, z ktorého sa klient odhlásil
+    response = _redirect(f"/login?lang={_user_lang(user)}")
     response.delete_cookie("session")
     return response
 

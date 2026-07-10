@@ -615,6 +615,7 @@ _SK_APP = {
     "s_del_done_title": "Účet zrušený",
     "s_del_done_body": "Váš účet aj všetky dáta sme zmazali. Ďakujeme, "
                        "že ste VORU vyskúšali.",
+    "back_btn": "Späť",
 }
 
 

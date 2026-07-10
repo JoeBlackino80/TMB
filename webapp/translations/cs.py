@@ -292,3 +292,4 @@ APP.update({
     "s_del_done_body": "Váš účet i všechna data jsme smazali. Děkujeme, "
                        "že jste VORU vyzkoušeli.",
 })
+APP["back_btn"] = "Zpět"

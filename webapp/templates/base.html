@@ -181,6 +181,11 @@
   </aside>
   <div class="content">
     <div class="content-inner">
+      {% if request.url.path not in ('/', '/mailboxes', '/settings', '/billing') %}
+      <p style="margin:0 0 14px"><a href="/" class="backlink"
+         onclick="if(history.length>1){history.back();return false}"
+         style="color:var(--muted);text-decoration:none;font-weight:600;font-size:13.5px">‹ {{ t.back_btn }}</a></p>
+      {% endif %}
       {% if error %}<div class="error">{{ error }}</div>{% endif %}
       {% block content %}{% endblock %}
       <footer class="app">© SORB XT s.r.o. · VORU ·
@@ -206,6 +211,11 @@
   </div>
 </header>
 <main class="public-main">
+  {% if request.url.path not in ('/', '/cs', '/pl', '/de', '/hu', '/en') %}
+  <p style="margin:16px 0 0"><a href="/" class="backlink"
+     onclick="if(history.length>1){history.back();return false}"
+     style="color:var(--muted);text-decoration:none;font-weight:600;font-size:13.5px">‹ {{ t.back_btn }}</a></p>
+  {% endif %}
   {% if error %}<div class="error" style="margin-top:20px">{{ error }}</div>{% endif %}
   {% block content_public %}{{ self.content() }}{% endblock %}
 </main>

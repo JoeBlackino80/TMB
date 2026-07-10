@@ -307,3 +307,4 @@ APP.update({
     "s_del_done_body": "We have deleted your account and all data. "
                        "Thank you for trying VORU.",
 })
+APP["back_btn"] = "Back"

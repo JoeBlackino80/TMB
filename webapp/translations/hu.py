@@ -335,3 +335,4 @@ APP = {
     "s_del_done_body": "A fiókját és minden adatát töröltük. Köszönjük, "
                        "hogy kipróbálta a VORU-t.",
 }
+APP["back_btn"] = "Vissza"
