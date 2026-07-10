@@ -212,6 +212,25 @@ pravidelných odosielateľov vyžaduje).
   Hetzner Storage Box: `rsync -a /root/backups/ u123456@u123456.your-storagebox.de:voru/`
   (pridajte do crontabu). Záloha na tom istom disku nie je záloha.
 
+## 6j. Ochrana registrácie pred botmi
+
+Formulár registrácie má zabudovaný honeypot, časovú pečiatku a limity
+(3 registrácie/IP/hod., globálne 30/deň — `REGISTER_DAILY_LIMIT`;
+pri prekročení denného limitu príde adminovi e-mail). Najsilnejší stupeň
+je Cloudflare Turnstile (bezplatná, nenápadná CAPTCHA):
+
+1. Účet na [dash.cloudflare.com](https://dash.cloudflare.com) (netreba
+   presúvať DNS) → v ľavom menu **Turnstile** → **Add widget**
+2. Widget name „VORU", Hostnames: voru.sk, voru.cz, voru.pl, voru.at,
+   voru.hu → Mode **Managed** → Create
+3. Zobrazí sa **Site Key** a **Secret Key** → do `.env.master`:
+   ```
+   TURNSTILE_SITE_KEY=0x4AAA...
+   TURNSTILE_SECRET=0x4AAA...
+   ```
+4. `systemctl restart platby-web` — vo formulári sa objaví overovací widget
+   a server každú registráciu overuje u Cloudflare.
+
 ## 7. Ekonomika a povinnosti
 
 - náklady: server ~4 €/mes. + Claude API ~1–3 €/klient/mes. → pri 4,99 €

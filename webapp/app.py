@@ -221,6 +221,27 @@ def _render(request: Request, template: str, **ctx) -> HTMLResponse:
 # 4. voliteľne Cloudflare Turnstile (TURNSTILE_SITE_KEY/SECRET v .env.master)
 
 _REG_ATTEMPTS: dict = {}
+_REG_GLOBAL: list = []       # časy všetkých registrácií za posledných 24 h
+_REG_ALERTED: list = [0.0]   # kedy naposledy odišiel alert adminovi
+
+
+def _register_daily_cap(request: Request) -> bool:
+    """Globálna poistka: pri prekročení denného limitu registrácie pozastaví
+    a raz denne upozorní admina. Limit sa dá zmeniť cez REGISTER_DAILY_LIMIT."""
+    if "x-forwarded-for" not in request.headers:
+        return False
+    limit = int(os.environ.get("REGISTER_DAILY_LIMIT", "30") or 30)
+    now = time.time()
+    _REG_GLOBAL[:] = [t for t in _REG_GLOBAL if now - t < 86400]
+    if len(_REG_GLOBAL) < limit:
+        return False
+    if ADMIN_EMAIL and now - _REG_ALERTED[0] > 86400:
+        _REG_ALERTED[0] = now
+        mailer.send(ADMIN_EMAIL, "VORU: pozastavené registrácie (denný limit)",
+                    f"Za 24 hodín prišlo {len(_REG_GLOBAL)} registrácií — ďalšie "
+                    f"sú dočasne pozastavené (limit {limit}, REGISTER_DAILY_LIMIT "
+                    "v .env.master). Skontrolujte /admin, či nejde o boty.")
+    return True
 
 
 def _client_ip(request: Request) -> str:
@@ -303,6 +324,11 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
     bot_error = _register_bot_error(request, website, ts, turnstile)
     if bot_error:
         return _register_page(request, lang, ref, error=bot_error)
+    if _register_daily_cap(request):
+        return _register_page(request, lang, ref,
+                              error="Registrácie sú dočasne pozastavené — "
+                                    "skúste to neskôr, alebo nám napíšte na "
+                                    "obchod@sorbxt.sk.")
     if not consent:
         return _register_page(request, lang, ref,
                               error="Registrácia vyžaduje súhlas s obchodnými "
@@ -318,6 +344,7 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
         # bez SMTP sa overovací e-mail nedá poslať — účet je overený rovno
         user = users.create(email, password, verified=not mailer.smtp_configured())
         _REG_ATTEMPTS.setdefault(_client_ip(request), []).append(time.time())
+        _REG_GLOBAL.append(time.time())
         # referral: obom predĺžime skúšobnú dobu (novému +14, odporúčajúcemu +30)
         referrer = users.by_client_dir(ref.strip()) if ref.strip() else None
         if referrer and referrer["id"] != user["id"]:

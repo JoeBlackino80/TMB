@@ -281,3 +281,30 @@ def test_register_bot_protection(client, monkeypatch):
                     headers={"X-Forwarded-For": "198.51.100.9"})
     assert r.status_code == 303
     app_module._REG_ATTEMPTS.clear()
+
+
+def test_register_daily_cap(client, monkeypatch):
+    """Globálny denný limit registrácií pozastaví nábeh botov."""
+    import time as _time
+
+    import webapp.app as app_module
+
+    def aged_ts(age=10):
+        t = str(int(_time.time()) - age)
+        return f"{t}|{app_module._sign('regts|' + t)}"
+
+    monkeypatch.setenv("REGISTER_DAILY_LIMIT", "2")
+    app_module._REG_ATTEMPTS.clear()
+    app_module._REG_GLOBAL.clear()
+
+    base = {"password": "tajneheslo", "consent": "1"}
+    for i in range(2):
+        r = client.post("/register",
+                        data={"email": f"cap{i}@x.sk", "ts": aged_ts(), **base},
+                        headers={"X-Forwarded-For": f"203.0.113.{i}"})
+        assert r.status_code == 303
+    r = client.post("/register",
+                    data={"email": "cap3@x.sk", "ts": aged_ts(), **base},
+                    headers={"X-Forwarded-For": "203.0.113.99"})
+    assert r.status_code == 200 and "pozastavené" in r.text
+    app_module._REG_GLOBAL.clear()
