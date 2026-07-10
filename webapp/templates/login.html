@@ -1,29 +1,33 @@
 {% extends "base.html" %}
-{% block title %}Prihlásenie — VORU{% endblock %}
+{% set tt = t if t is defined and t else none %}
+{% block title %}{{ tt.login_title if tt else 'Prihlásenie' }} — VORU{% endblock %}
 {% block content %}
 <div class="card" style="max-width:440px;margin:48px auto">
   {% if totp_step %}
-    <h1 style="margin-top:0">Dvojfaktorové overenie</h1>
-    <p class="muted">Zadajte 6-miestny kód z autentifikačnej aplikácie.</p>
+    <h1 style="margin-top:0">{{ tt.totp_title }}</h1>
+    <p class="muted">{{ tt.totp_lead }}</p>
     <form method="post" action="/login/totp">
       <input type="hidden" name="t" value="{{ totp_t }}">
-      <label>Kód</label>
+      <input type="hidden" name="lang" value="{{ lang or 'sk' }}">
+      <label>{{ tt.totp_code }}</label>
       <input name="code" required autofocus inputmode="numeric"
              autocomplete="one-time-code" placeholder="123456">
-      <button type="submit">Overiť</button>
+      <button type="submit">{{ tt.totp_btn }}</button>
     </form>
   {% else %}
-    <h1 style="margin-top:0">Prihlásenie</h1>
+    <h1 style="margin-top:0">{{ tt.login_title }}</h1>
     <form method="post" action="/login">
-      <label>E-mail</label>
+      <input type="hidden" name="lang" value="{{ lang or 'sk' }}">
+      <label>{{ tt.email }}</label>
       <input type="email" name="email" required autocomplete="email">
-      <label>Heslo</label>
+      <label>{{ tt.password }}</label>
       <input type="password" name="password" required autocomplete="current-password">
-      <button type="submit">Prihlásiť sa</button>
+      <button type="submit">{{ tt.login_btn }}</button>
     </form>
-    <p class="muted" style="margin-top:18px">Nemáte účet?
-       <a href="/register">Registrujte sa</a> — 14 dní zadarmo.<br>
-       <a href="/forgot">Zabudli ste heslo?</a></p>
+    <p class="muted" style="margin-top:18px">{{ tt.no_account }}
+       <a href="/register?lang={{ lang or 'sk' }}">{{ tt.register_link }}</a>
+       {{ tt.trial_note }}<br>
+       <a href="/forgot">{{ tt.forgot }}</a></p>
   {% endif %}
 </div>
 {% endblock %}

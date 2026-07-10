@@ -26,7 +26,7 @@ from bill_agent import email_layout as ly
 from bill_agent.reminder import action_sig
 from bill_agent.store import Store
 
-from . import clientfs, mailer, totp
+from . import clientfs, mailer, totp, webi18n
 from .auth import Users, verify_password
 
 SECRET = os.environ.get("WEBAPP_SECRET", "")
@@ -278,7 +278,7 @@ def _register_bot_error(request: Request, website: str, ts: str,
     if "x-forwarded-for" not in request.headers:
         return ""
     if website.strip():
-        return "Registráciu sa nepodarilo overiť — skúste to znova."
+        return "err_bot"
     try:
         t, sig = ts.split("|", 1)
         if not hmac.compare_digest(_sign("regts|" + t), sig):
@@ -287,13 +287,12 @@ def _register_bot_error(request: Request, website: str, ts: str,
         if age < 3 or age > 3600:
             raise ValueError
     except Exception:
-        return "Platnosť formulára vypršala — skúste to znova."
+        return "err_expired"
     ip = _client_ip(request)
     now = time.time()
     _REG_ATTEMPTS[ip] = [a for a in _REG_ATTEMPTS.get(ip, []) if now - a < 3600]
     if len(_REG_ATTEMPTS[ip]) >= 3:
-        return ("Priveľa registrácií z tejto adresy — skúste to o hodinu, "
-                "alebo nám napíšte na obchod@sorbxt.sk.")
+        return "err_ratelimit"
     secret = os.environ.get("TURNSTILE_SECRET", "")
     if secret:
         import urllib.parse
@@ -309,16 +308,18 @@ def _register_bot_error(request: Request, website: str, ts: str,
                 if not json.load(resp).get("success"):
                     raise ValueError
         except Exception:
-            return "Overenie, že nie ste robot, zlyhalo — skúste to znova."
+            return "err_turnstile"
     return ""
 
 
 def _register_page(request: Request, lang: str = "sk", ref: str = "",
                    error: str | None = None) -> HTMLResponse:
-    return _render(request, "register.html", ref=ref[:80], error=error,
-                   ts=_reg_ts(),
-                   turnstile_site_key=os.environ.get("TURNSTILE_SITE_KEY", ""),
-                   lang=lang if lang in ("sk", "cs", "pl", "de", "hu", "en") else "sk")
+    lang = lang if lang in webi18n.LANGS else "sk"
+    t = webi18n.t(lang)
+    return _render(request, "register.html", ref=ref[:80],
+                   error=t.get(error, error) if error else None,
+                   ts=_reg_ts(), t=t, lang=lang,
+                   turnstile_site_key=os.environ.get("TURNSTILE_SITE_KEY", ""))
 
 
 @app.get("/register", response_class=HTMLResponse)
@@ -341,22 +342,15 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
     if bot_error:
         return _register_page(request, lang, ref, error=bot_error)
     if _register_daily_cap(request):
-        return _register_page(request, lang, ref,
-                              error="Registrácie sú dočasne pozastavené — "
-                                    "skúste to neskôr, alebo nám napíšte na "
-                                    "obchod@sorbxt.sk.")
+        return _register_page(request, lang, ref, error="err_paused")
     if not consent:
-        return _register_page(request, lang, ref,
-                              error="Registrácia vyžaduje súhlas s obchodnými "
-                                    "podmienkami a spracovaním údajov.")
+        return _register_page(request, lang, ref, error="err_consent")
     if "@" not in email or len(password) < 8:
-        return _register_page(request, lang, ref,
-                              error="Zadajte platný e-mail a heslo aspoň 8 znakov.")
+        return _register_page(request, lang, ref, error="err_invalid")
     users = Users()
     try:
         if users.by_email(email):
-            return _register_page(request, lang, ref,
-                                  error="Účet už existuje — prihláste sa.")
+            return _register_page(request, lang, ref, error="err_exists")
         # bez SMTP sa overovací e-mail nedá poslať — účet je overený rovno
         user = users.create(email, password, verified=not mailer.smtp_configured(),
                             reg_ip=_client_ip(request))
@@ -387,9 +381,17 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
     return response
 
 
+def _login_page(request: Request, lang: str = "sk", **ctx) -> HTMLResponse:
+    lang = lang if lang in webi18n.LANGS else "sk"
+    t = webi18n.t(lang)
+    if "error" in ctx and ctx["error"]:
+        ctx["error"] = t.get(ctx["error"], ctx["error"])
+    return _render(request, "login.html", t=t, lang=lang, **ctx)
+
+
 @app.get("/login", response_class=HTMLResponse)
-def login_form(request: Request):
-    return _render(request, "login.html")
+def login_form(request: Request, lang: str = "sk"):
+    return _login_page(request, lang)
 
 
 # ochrana pred hádaním hesiel: po 5 neúspechoch 15 minút blokovania
@@ -406,12 +408,11 @@ def _login_blocked(key: str) -> bool:
 
 
 @app.post("/login")
-def login(request: Request, email: str = Form(...), password: str = Form(...)):
+def login(request: Request, email: str = Form(...), password: str = Form(...),
+          lang: str = Form("sk")):
     key = email.strip().lower()
     if _login_blocked(key):
-        return _render(request, "login.html",
-                       error="Príliš veľa neúspešných pokusov — skúste znova o 15 minút, "
-                             "alebo si obnovte heslo cez „Zabudli ste heslo?“.")
+        return _login_page(request, lang, error="err_lockout")
     users = Users()
     try:
         user = users.by_email(email)
@@ -419,12 +420,12 @@ def login(request: Request, email: str = Form(...), password: str = Form(...)):
         users.close()
     if not user or not verify_password(password, user["pw_hash"]):
         _LOGIN_FAILS.setdefault(key, []).append(time.time())
-        return _render(request, "login.html", error="Nesprávny e-mail alebo heslo.")
+        return _login_page(request, lang, error="err_login")
     _LOGIN_FAILS.pop(key, None)
     if user["totp_secret"]:
         # druhý krok: kód z autentifikačnej appky (token platí krátko)
-        return _render(request, "login.html", totp_step=True,
-                       totp_t=_make_token("totp", user["id"], hours=1))
+        return _login_page(request, lang, totp_step=True,
+                           totp_t=_make_token("totp", user["id"], hours=1))
     response = _redirect("/")
     response.set_cookie("session", _session_cookie(user["id"]),
                         httponly=True, max_age=30 * 86400, samesite="lax")
@@ -432,14 +433,13 @@ def login(request: Request, email: str = Form(...), password: str = Form(...)):
 
 
 @app.post("/login/totp")
-def login_totp(request: Request, t: str = Form(...), code: str = Form(...)):
+def login_totp(request: Request, t: str = Form(...), code: str = Form(...),
+               lang: str = Form("sk")):
     uid = _check_token("totp", t)
     if uid is None:
-        return _render(request, "login.html",
-                       error="Overenie vypršalo — prihláste sa znova.")
+        return _login_page(request, lang, error="err_totp_expired")
     if _login_blocked(f"totp:{uid}"):
-        return _render(request, "login.html",
-                       error="Príliš veľa neúspešných pokusov — skúste o 15 minút.")
+        return _login_page(request, lang, error="err_lockout")
     users = Users()
     try:
         user = users.by_id(uid)
@@ -447,8 +447,8 @@ def login_totp(request: Request, t: str = Form(...), code: str = Form(...)):
         users.close()
     if not user or not totp.verify(user["totp_secret"], code):
         _LOGIN_FAILS.setdefault(f"totp:{uid}", []).append(time.time())
-        return _render(request, "login.html", totp_step=True, totp_t=t,
-                       error="Nesprávny kód — skúste znova.")
+        return _login_page(request, lang, totp_step=True, totp_t=t,
+                           error="err_totp_wrong")
     _LOGIN_FAILS.pop(f"totp:{uid}", None)
     response = _redirect("/")
     response.set_cookie("session", _session_cookie(user["id"]),

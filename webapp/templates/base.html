@@ -195,8 +195,13 @@
     {% include "_logo.html" %}
   </a>
   <div class="push">
+    {% if t is defined and t %}
+    <a class="plain" href="/login?lang={{ lang or 'sk' }}">{{ t.nav_login }}</a>
+    <a class="btn" href="/register?lang={{ lang or 'sk' }}">{{ t.nav_try }}</a>
+    {% else %}
     <a class="plain" href="/login">Prihlásiť sa</a>
     <a class="btn" href="/register">Vyskúšať zadarmo</a>
+    {% endif %}
   </div>
 </header>
 <main class="public-main">

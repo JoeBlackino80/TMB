@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Registrácia — VORU{% endblock %}
+{% set tt = t if t is defined and t else none %}
+{% block title %}{{ tt.reg_title if tt else 'Registrácia' }} — VORU{% endblock %}
 {% block content %}
 <div class="card" style="max-width:440px;margin:48px auto">
-  <h1 style="margin-top:0">Vytvorte si účet</h1>
-  <p class="muted">VORU stráži vaše faktúry, platby a termíny.
-     14 dní zadarmo — bez platobnej karty, potom 4,99 €/mesiac alebo 49 €/rok.</p>
+  <h1 style="margin-top:0">{{ tt.reg_title }}</h1>
+  <p class="muted">{{ tt.reg_lead }}</p>
   <form method="post" action="/register">
     <input type="hidden" name="lang" value="{{ lang or 'sk' }}">
     <input type="hidden" name="ref" value="{{ ref or '' }}">
@@ -13,34 +13,31 @@
       <label>Website <input type="text" name="website" tabindex="-1"
              autocomplete="off"></label>
     </div>
-    <label>Používam VORU ako</label>
+    <label>{{ tt.use_as }}</label>
     <div style="display:flex;gap:14px;margin:4px 0 6px;flex-wrap:wrap">
       <label style="display:flex;align-items:center;gap:7px;font-weight:500;margin:0">
         <input type="radio" name="account_type" value="business" checked
-               style="width:auto"> firma / živnostník
+               style="width:auto"> {{ tt.opt_business }}
       </label>
       <label style="display:flex;align-items:center;gap:7px;font-weight:500;margin:0">
         <input type="radio" name="account_type" value="personal"
-               style="width:auto"> súkromná osoba
+               style="width:auto"> {{ tt.opt_personal }}
       </label>
       <label style="display:flex;align-items:center;gap:7px;font-weight:500;margin:0">
         <input type="radio" name="account_type" value="both"
-               style="width:auto"> obidvoje
+               style="width:auto"> {{ tt.opt_both }}
       </label>
     </div>
-    <label>Váš e-mail (sem budú chodiť prehľady)</label>
+    <label>{{ tt.email_label }}</label>
     <input type="email" name="email" required autocomplete="email">
-    <label>Heslo (min. 8 znakov)</label>
+    <label>{{ tt.password_label }}</label>
     <input type="password" name="password" minlength="8" required
            autocomplete="new-password">
     <label style="display:flex;align-items:flex-start;gap:8px;margin:14px 0 6px;
                   font-weight:500;font-size:13.5px;line-height:1.5">
       <input type="checkbox" name="consent" value="1" required
              style="width:auto;margin-top:3px">
-      <span>Súhlasím s <a href="/podmienky" target="_blank">obchodnými podmienkami</a>
-        a so spracovaním osobných údajov podľa
-        <a href="/gdpr" target="_blank">zásad ochrany údajov</a> (vrátane
-        spracovania obsahu pripojenej pošty na účely služby).</span>
+      <span>{{ tt.consent_html|safe }}</span>
     </label>
     {% if turnstile_site_key %}
     <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}"
@@ -48,9 +45,9 @@
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js"
             async defer></script>
     {% endif %}
-    <button type="submit">Registrovať sa</button>
+    <button type="submit">{{ tt.reg_btn }}</button>
   </form>
-  <p class="muted" style="margin-top:18px">Máte účet?
-     <a href="/login">Prihláste sa</a></p>
+  <p class="muted" style="margin-top:18px">{{ tt.have_account }}
+     <a href="/login?lang={{ lang or 'sk' }}">{{ tt.sign_in }}</a></p>
 </div>
 {% endblock %}

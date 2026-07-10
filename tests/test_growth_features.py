@@ -127,3 +127,22 @@ def test_landing_en(client):
     # slovenská mutácia odkazuje na anglickú
     r = client.get("/")
     assert 'href="/en"' in r.text
+
+
+def test_register_login_localized(client):
+    # anglická registrácia
+    r = client.get("/register?lang=en")
+    assert "Create your account" in r.text and "privacy" in r.text
+    # nemecké prihlásenie vrátane chybovej hlášky
+    r = client.get("/login?lang=de")
+    assert "Anmeldung" in r.text and "Passwort vergessen?" in r.text
+    r = client.post("/login", data={"email": "neexistuje@x.sk",
+                                    "password": "zleheslo1", "lang": "de"})
+    assert "Falsche E-Mail" in r.text
+    # chyba registrácie v jazyku formulára
+    r = client.post("/register", data={"email": "bez@x.sk",
+                                       "password": "tajneheslo", "lang": "en"})
+    assert "Registration requires agreeing" in r.text
+    # slovenčina ostáva predvolená
+    r = client.get("/register")
+    assert "Vytvorte si účet" in r.text
