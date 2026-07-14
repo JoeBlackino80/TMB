@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Adatvédelmi tájékoztató — VORU{% endblock %}
+{% block content %}
+<div class="card" style="max-width:760px;margin:30px auto">
+  <h1 style="margin-top:0">Adatvédelmi tájékoztató</h1>
+  <p class="muted">Ez egy magyar fordítás a könnyebb érthetőség kedvéért. Jogilag a <a href="/gdpr">szlovák változat</a> az irányadó.</p>
+  <p class="muted">Adatkezelő: SORB XT s.r.o. · kapcsolat: obchod@sorbxt.sk</p>
+
+  <h2>Milyen adatokat kezelünk</h2>
+  <p>A szolgáltatás nyújtása során a következőket kezeljük: (a) regisztrációs
+     adatok — a fiók e-mail-címe és jelszava (a jelszót csak kriptográfiai
+     lenyomatként tároljuk); (b) a csatlakoztatott postafiókok hozzáférési
+     adatai — titkosítva tárolva; (c) a csatlakoztatott postafiókokban lévő
+     e-mailek tartalma a mellékletekkel együtt, a számlák, fizetések és
+     határidők felismeréséhez szükséges mértékben; (d) számlázási adatok a
+     fizetéskor (a Stripe dolgozza fel).</p>
+
+  <h2>Miért és milyen jogalapon</h2>
+  <p>Az adatokat kizárólag a szolgáltatás nyújtása céljából kezeljük
+     (szerződés teljesítése a GDPR 6. cikk (1) bekezdés b) pontja alapján).
+     A levelek tartalmát nem használjuk reklámra, és nem adjuk el harmadik
+     feleknek.</p>
+
+  <h2>Adatfeldolgozók</h2>
+  <p>A tartalom felismeréséhez az Anthropic (Claude) API-ját használjuk; a
+     feldolgozott szöveget az API szolgáltatója nem használja tanításra, és
+     a kérés feldolgozásán túl nem őrzi meg, a szerződési feltételeinek
+     megfelelően. A fizetéseket a Stripe dolgozza fel. A szerverek az EU-ban
+     találhatók (Hetzner, Németország).</p>
+
+  <h2>Meddig őrizzük az adatokat</h2>
+  <p>A fizetési előzményeket, a levelek összefoglalóit és az elmentett
+     mellékleteket a fiók fennállása alatt őrizzük. A fiók megszüntetésekor
+     (Beállítások → Fiók megszüntetése) minden adat azonnal törlődik; a
+     biztonsági mentésekben lévő másolatok 14 napon belül lejárnak. A
+     postafiók hozzáférési adatait azonnal töröljük, amint a postafiókot
+     eltávolítják a fiókból.</p>
+
+  <h2>Az Ön jogai</h2>
+  <p>Önnek joga van az adatokhoz való hozzáféréshez, a helyesbítéshez, a
+     törléshez, az adatkezelés korlátozásához, az adathordozhatósághoz és a
+     tiltakozáshoz. Az összes adat exportja és a fiók teljes megszüntetése
+     (a törléshez való jog) önkiszolgáló módon elérhető a Beállításokban;
+     bármi mással kapcsolatban írjon az obchod@sorbxt.sk címre. Panasz a
+     szlovák adatvédelmi hatóságnál (Úrad na ochranu osobných údajov SR —
+     dataprotection.gov.sk) nyújtható be.</p>
+
+  <h2>Biztonság</h2>
+  <p>A szerverrel és a levelezőszerverekkel folytatott kommunikáció
+     titkosítva történik (HTTPS/TLS). A postafiókok jelszavai a lemezen
+     titkosítva vannak tárolva, a fiókjelszavak PBKDF2 lenyomatként. A
+     szerverhez való hozzáférés korlátozott.</p>
+
+  <h2>Céges ügyfelek (DPA)</h2>
+  <p>Ha a szolgáltatást cégként használja a vállalata leveleinek
+     feldolgozására, a SORB XT s.r.o. a GDPR 28. cikke értelmében
+     adatfeldolgozóként jár el. Az adatkezelés feltételeit az
+     <a href="/dpa?lang=hu">adatfeldolgozási megállapodás (DPA)</a>
+     szabályozza, amely az általános szerződési feltételek része. Írásbeli
+     példányt kérésre biztosítunk.</p>
+</div>
+{% endblock %}

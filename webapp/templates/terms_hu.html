@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Általános szerződési feltételek (ÁSZF) — VORU{% endblock %}
+{% block content %}
+<div class="card" style="max-width:760px;margin:30px auto">
+  <h1 style="margin-top:0">A VORU szolgáltatás általános szerződési feltételei (ÁSZF)</h1>
+  <p class="muted">Ez egy magyar fordítás a könnyebb érthetőség kedvéért. Jogilag a <a href="/podmienky">szlovák változat</a> az irányadó.</p>
+  <p class="muted">Hatályos 2026. július 4-től · Üzemeltető: SORB XT s.r.o.,
+     kapcsolat: obchod@sorbxt.sk</p>
+
+  <h2>1. A szolgáltatás</h2>
+  <p>A VORU online szolgáltatás, amely mesterséges intelligencia
+     segítségével olvassa a felhasználó által csatlakoztatott postafiókokba
+     érkező e-maileket, felismeri a számlákat, fizetéseket, határidőket és
+     feladatokat, és összefoglalókat és értesítéseket küld a felhasználónak,
+     beleértve a fizetési QR-kódokat is (PAY by square).</p>
+
+  <h2>2. Fiók és próbaidőszak</h2>
+  <p>A regisztrációval fiók jön létre 14 napos ingyenes próbaidőszakkal.
+     Ennek lejárta után a szolgáltatás csak aktív előfizetéssel folytatódik
+     (havi 4,99 € vagy évi 49 €, áfával). A fizetéseket a Stripe dolgozza
+     fel; az előfizetés bármikor lemondható, a szolgáltatás ezután a
+     kifizetett időszak végéig működik.</p>
+
+  <h2>3. A felhasználó kötelezettségei</h2>
+  <p>A felhasználó csak olyan postafiókokat csatlakoztat, amelyekhez
+     jogosultsága van, és felel a hozzáférési adatok helyességéért.
+     Alkalmazásjelszavak használatát javasoljuk. A szolgáltatás nem
+     használható jogellenes célokra.</p>
+
+  <h2>4. Felelősség</h2>
+  <p>A VORU segédeszköz — a számlák adatainak felismerése automatizáltan
+     történik, és hibákat tartalmazhat. Fizetés előtt mindig ellenőrizze az
+     összeget, az IBAN-t és a közleményt (szlovák „variabilný symbol”).
+     Az üzemeltető nem felel a hibásan felismert adatok alapján teljesített
+     fizetéssel okozott kárért, a szolgáltatás kieséséből eredő károkért,
+     sem harmadik felek (bankok, levelezőszerverek) tevékenységéért. Az
+     üzemeltető felelőssége az elmúlt 12 hónapban befizetett előfizetési
+     díjak összegéig korlátozott.</p>
+
+  <h2>5. Megszüntetés</h2>
+  <p>A felhasználó a fiókját bármikor megszüntetheti az obchod@sorbxt.sk
+     címre küldött e-maillel — adatai (postafiókok, előzmények, mellékletek)
+     30 napon belül törlésre kerülnek. Az üzemeltető megszüntetheti a fiókot
+     a feltételek megsértése vagy az előfizetés meg nem fizetése esetén.</p>
+
+  <h2>6. A feltételek módosítása</h2>
+  <p>A feltételek lényeges módosításairól legalább 14 nappal előre
+     e-mailben tájékoztatunk. A szolgáltatás további használatával a
+     felhasználó elfogadja a módosításokat.</p>
+
+  <p class="muted">A személyes adatok kezelését külön dokumentum, az
+     <a href="/gdpr?lang=hu">Adatvédelmi tájékoztató</a> szabályozza.</p>
+</div>
+{% endblock %}

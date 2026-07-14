@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Adatfeldolgozási megállapodás (DPA) — VORU{% endblock %}
+{% block content %}
+<div class="card" style="max-width:760px;margin:30px auto">
+  <h1 style="margin-top:0">Adatfeldolgozási megállapodás (DPA)</h1>
+  <p class="muted">Ez egy magyar fordítás a könnyebb érthetőség kedvéért. Jogilag a <a href="/dpa">szlovák változat</a> az irányadó.</p>
+  <p class="muted">az (EU) 2016/679 rendelet (GDPR) 28. cikke szerint ·
+     a VORU szolgáltatás általános szerződési feltételeinek
+     elválaszthatatlan része</p>
+
+  <h2>1. Felek</h2>
+  <p><b>Adatkezelő:</b> az ügyfél — a VORU szolgáltatás felhasználója (az a
+     cég vagy vállalkozó, aki csatlakoztatta a postafiókjait).<br>
+     <b>Adatfeldolgozó:</b> SORB XT s.r.o., kapcsolat: obchod@sorbxt.sk
+     (a továbbiakban „szolgáltató”).</p>
+
+  <h2>2. Az adatkezelés tárgya és jellege</h2>
+  <p>A szolgáltató az ügyfél számára automatizáltan dolgozza fel a
+     csatlakoztatott postafiókokban lévő e-mail-üzeneteket a mellékletekkel
+     együtt, mégpedig a számlák, fizetések, határidők és feladatok
+     felismerése, valamint emlékeztetők és összefoglalók küldése céljából.
+     Az adatkezelés az ügyfél fiókjának fennállása alatt tart.</p>
+
+  <h2>3. Az adatok és az érintettek kategóriái</h2>
+  <p>A beérkezett levelekben található adatok: a feladók azonosító és
+     kapcsolattartási adatai, számlázási és fizetési adatok (összegek,
+     IBAN-ok, közlemények), az üzenetek és mellékletek tartalma.
+     Érintettek: az ügyfél üzleti partnerei, beszállítói és levelezőpartnerei.</p>
+
+  <h2>4. Utasítások és titoktartás</h2>
+  <p>A szolgáltató az adatokat kizárólag a szolgáltatás nyújtása céljából
+     kezeli, e megállapodás és az ügyfél dokumentált utasításai (a fiók
+     beállításai) szerint. Az adatokhoz hozzáférő személyeket titoktartási
+     kötelezettség terheli. A levelek tartalmát nem használjuk reklámra,
+     sem a szolgáltatáson kívüli profilalkotásra, és nem adjuk el.</p>
+
+  <h2>5. További adatfeldolgozók</h2>
+  <p>Az ügyfél általános felhatalmazást ad a következő további
+     adatfeldolgozók bevonására: <b>Anthropic</b> (API a tartalom
+     felismerésére — a szöveget nem használják tanításra, és a kérés
+     feldolgozásán túl nem őrzik meg), <b>Hetzner</b> (szerverinfrastruktúra
+     az EU-ban), <b>Stripe</b> (előfizetési díjak fizetése). A lista
+     változásáról a szolgáltató előre, e-mailben értesít; az ügyfél a
+     szolgáltatás használatának megszüntetésével tiltakozhat.</p>
+
+  <h2>6. Biztonsági intézkedések</h2>
+  <p>Titkosított átvitel (HTTPS/TLS, IMAPS), a postafiókok hozzáférési
+     adatainak titkosított tárolása, fiókjelszavak PBKDF2 lenyomatként, a
+     szerverekhez való hozzáférés csak SSH-kulcsokkal, napi biztonsági
+     mentések, opcionális kétlépcsős azonosítás a fiókhoz.</p>
+
+  <h2>7. Az adatkezelő támogatása és törlés</h2>
+  <p>A szolgáltató segíti az ügyfelet az érintettek jogainak
+     teljesítésében és az incidensek bejelentésében (az észlelést követően
+     indokolatlan késedelem nélkül). Az adatok exportja és a fiók teljes
+     törlése önkiszolgáló módon elérhető az ügyfél számára a
+     Beállításokban; a fiók megszüntetése után az adatok azonnal törlődnek,
+     a biztonsági mentések 14 napon belül lejárnak.</p>
+
+  <h2>8. Audit</h2>
+  <p>A szolgáltató kérésre rendelkezésre bocsátja a GDPR 28. cikke szerinti
+     kötelezettségek teljesítésének igazolásához szükséges információkat,
+     és megegyezett módon lehetővé teszi az ésszerű auditot.</p>
+
+  <p class="muted" style="margin-top:22px">Ez a DPA az általános szerződési
+     feltételeknek a regisztrációkor történő elfogadásával jön létre.
+     Aláírt írásbeli példányt kérésre biztosítunk az obchod@sorbxt.sk
+     címen.</p>
+</div>
+{% endblock %}

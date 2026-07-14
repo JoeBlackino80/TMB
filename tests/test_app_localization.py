@@ -76,8 +76,8 @@ def test_help_and_legal_pages_localized(client):
     assert r.status_code == 200 and "Postfach" in r.text
     r = client.get("/podmienky?lang=en")
     assert r.status_code == 200 and "Terms" in r.text
-    # jazyk bez prekladu právnych stránok padá na slovenský originál
-    r = client.get("/podmienky?lang=pl")
+    # neznámy jazyk padá na slovenský originál
+    r = client.get("/podmienky?lang=xx")
     assert r.status_code == 200 and "Obchodné podmienky" in r.text
     r = client.get("/gdpr?lang=en")
     assert r.status_code == 200
@@ -85,11 +85,6 @@ def test_help_and_legal_pages_localized(client):
 
 def test_legal_pages_all_languages(client):
     """Podmienky/GDPR/DPA existujú vo všetkých jazykoch s doložkou o SK verzii."""
-    import os as _os
-    _tpl = _os.path.join(_os.path.dirname(__file__), "..", "webapp",
-                         "templates", "terms_cs.html")
-    if not _os.path.exists(_tpl):
-        pytest.skip("preklady právnych stránok sa ešte generujú")
     needles = {"cs": "závazná", "pl": "wiążąca", "de": "verbindlich",
                "hu": "irányadó", "en": "legally binding"}
     for lang, needle in needles.items():
