@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Ochrona danych osobowych — VORU{% endblock %}
+{% block content %}
+<div class="card" style="max-width:760px;margin:30px auto">
+  <h1 style="margin-top:0">Ochrona danych osobowych</h1>
+  <p class="muted">To jest polskie tłumaczenie dla wygody. Prawnie wiążąca jest <a href="/gdpr">wersja słowacka</a>.</p>
+  <p class="muted">Administrator: SORB XT s.r.o. · kontakt: obchod@sorbxt.sk</p>
+
+  <h2>Jakie dane przetwarzamy</h2>
+  <p>Przy świadczeniu usługi przetwarzamy: (a) dane rejestracyjne — e-mail i
+     hasło konta (hasło przechowujemy wyłącznie jako skrót kryptograficzny);
+     (b) dane dostępowe do podłączonych skrzynek — przechowywane w formie
+     zaszyfrowanej; (c) treść e-maili w podłączonych skrzynkach wraz z
+     załącznikami, w zakresie niezbędnym do rozpoznania faktur, płatności i
+     terminów; (d) dane rozliczeniowe przy płatności (przetwarza Stripe).</p>
+
+  <h2>Dlaczego i na jakiej podstawie</h2>
+  <p>Dane przetwarzamy wyłącznie w celu świadczenia usługi (wykonanie umowy
+     zgodnie z art. 6 ust. 1 lit. b RODO). Treści poczty nie wykorzystujemy
+     do reklamy ani nie sprzedajemy jej osobom trzecim.</p>
+
+  <h2>Podmioty przetwarzające</h2>
+  <p>Do rozpoznawania treści wykorzystujemy API firmy Anthropic (Claude);
+     przetwarzany tekst nie jest u dostawcy API wykorzystywany do trenowania
+     ani przechowywany poza zakresem obsługi żądania, zgodnie z jego
+     warunkami umownymi. Płatności przetwarza Stripe. Serwery znajdują się
+     w UE (Hetzner, Niemcy).</p>
+
+  <h2>Jak długo przechowujemy dane</h2>
+  <p>Historię płatności, podsumowania poczty i zachowane załączniki
+     przechowujemy przez czas trwania konta. Przy likwidacji konta
+     (Ustawienia → Usunięcie konta) wszystkie dane są usuwane natychmiast;
+     kopie w kopiach zapasowych wygasają w ciągu 14 dni. Dane dostępowe do
+     skrzynki usuwamy natychmiast po odłączeniu skrzynki od konta.</p>
+
+  <h2>Prawa użytkownika</h2>
+  <p>Użytkownikowi przysługuje prawo dostępu do danych, ich sprostowania,
+     usunięcia, ograniczenia przetwarzania, przenoszenia oraz sprzeciwu.
+     Eksport wszystkich danych i całkowita likwidacja konta (prawo do
+     usunięcia danych) są dostępne samoobsługowo w Ustawieniach; w każdej
+     innej sprawie prosimy pisać na obchod@sorbxt.sk. Skargę można wnieść do
+     Urzędu Ochrony Danych Osobowych Republiki Słowackiej
+     (dataprotection.gov.sk).</p>
+
+  <h2>Bezpieczeństwo</h2>
+  <p>Komunikacja z serwerem oraz z serwerami pocztowymi odbywa się w formie
+     zaszyfrowanej (HTTPS/TLS). Hasła skrzynek są na dysku przechowywane w
+     formie zaszyfrowanej, hasła kont jako skróty PBKDF2. Dostęp do serwera
+     jest ograniczony.</p>
+
+  <h2>Klienci firmowi (DPA)</h2>
+  <p>Jeżeli korzystają Państwo z usługi jako firma do przetwarzania poczty
+     swojej spółki, SORB XT s.r.o. występuje jako podmiot przetwarzający w
+     rozumieniu art. 28 RODO. Warunki przetwarzania reguluje
+     <a href="/dpa?lang=pl">umowa powierzenia przetwarzania danych osobowych
+     (DPA)</a>, która stanowi część regulaminu. Egzemplarz pisemny
+     udostępniamy na żądanie.</p>
+</div>
+{% endblock %}

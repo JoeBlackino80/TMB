@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Auftragsverarbeitungsvertrag (DPA) — VORU{% endblock %}
+{% block content %}
+<div class="card" style="max-width:760px;margin:30px auto">
+  <h1 style="margin-top:0">Auftragsverarbeitungsvertrag (DPA)</h1>
+  <p class="muted">Dies ist eine deutsche Übersetzung zur besseren Verständlichkeit. Rechtlich verbindlich ist die <a href="/dpa">slowakische Fassung</a>.</p>
+  <p class="muted">gemäß Art. 28 der Verordnung (EU) 2016/679 (DSGVO) ·
+     untrennbarer Bestandteil der Allgemeinen Geschäftsbedingungen des
+     Dienstes VORU</p>
+
+  <h2>1. Parteien</h2>
+  <p><b>Verantwortlicher:</b> der Kunde — Nutzer des Dienstes VORU (ein
+     Unternehmen oder Unternehmer, der seine Postfächer verbunden hat).<br>
+     <b>Auftragsverarbeiter:</b> SORB XT s.r.o., Kontakt obchod@sorbxt.sk
+     (im Folgenden „Anbieter“).</p>
+
+  <h2>2. Gegenstand und Art der Verarbeitung</h2>
+  <p>Der Anbieter verarbeitet für den Kunden automatisiert die
+     E-Mail-Nachrichten in den verbundenen Postfächern einschließlich
+     Anhängen, und zwar zum Zweck der Erkennung von Rechnungen, Zahlungen,
+     Terminen und Aufgaben sowie des Versands von Erinnerungen und
+     Übersichten. Die Verarbeitung dauert für die Dauer des Kontos des
+     Kunden an.</p>
+
+  <h2>3. Kategorien der Daten und der betroffenen Personen</h2>
+  <p>In der empfangenen Post enthaltene Daten: Identifikations- und
+     Kontaktdaten der Absender, Rechnungs- und Zahlungsdaten (Beträge,
+     IBAN, Zahlungsreferenzen), Inhalt der Nachrichten und Anhänge.
+     Betroffene Personen: Geschäftspartner, Lieferanten und Korrespondenten
+     des Kunden.</p>
+
+  <h2>4. Weisungen und Vertraulichkeit</h2>
+  <p>Der Anbieter verarbeitet die Daten ausschließlich zum Zweck der
+     Erbringung des Dienstes gemäß diesem Vertrag und den dokumentierten
+     Weisungen des Kunden (Kontoeinstellungen). Personen mit Zugriff auf die
+     Daten sind zur Verschwiegenheit verpflichtet. Der Inhalt der Post wird
+     nicht für Werbung oder für Profiling außerhalb des Dienstes verwendet
+     und wird nicht verkauft.</p>
+
+  <h2>5. Weitere Auftragsverarbeiter</h2>
+  <p>Der Kunde erteilt eine allgemeine Genehmigung zur Einbindung folgender
+     weiterer Auftragsverarbeiter: <b>Anthropic</b> (API zur
+     Inhaltserkennung — der Text wird weder trainiert noch über die
+     Bearbeitung der Anfrage hinaus gespeichert), <b>Hetzner</b>
+     (Serverinfrastruktur in der EU), <b>Stripe</b> (Zahlungen für das
+     Abonnement). Eine Änderung der Liste kündigt der Anbieter vorab per
+     E-Mail an; der Kunde kann durch Beendigung der Nutzung des Dienstes
+     widersprechen.</p>
+
+  <h2>6. Sicherheitsmaßnahmen</h2>
+  <p>Verschlüsselte Übertragung (HTTPS/TLS, IMAPS), verschlüsselte
+     Speicherung der Zugangsdaten zu den Postfächern, Kontopasswörter als
+     PBKDF2-Hashes, Zugriff auf die Server nur über SSH-Schlüssel, tägliche
+     Sicherungen, optionale Zwei-Faktor-Authentifizierung des Kontos.</p>
+
+  <h2>7. Unterstützung des Verantwortlichen und Löschung</h2>
+  <p>Der Anbieter unterstützt den Kunden bei der Erfüllung der Rechte der
+     betroffenen Personen und bei der Meldung von Vorfällen (ohne
+     unnötige Verzögerung nach deren Feststellung). Der Datenexport sowie
+     die vollständige Löschung des Kontos stehen dem Kunden als
+     Selbstbedienung in den Einstellungen zur Verfügung; nach der Löschung
+     des Kontos werden die Daten sofort gelöscht, Sicherungen laufen
+     innerhalb von 14 Tagen ab.</p>
+
+  <h2>8. Audit</h2>
+  <p>Der Anbieter stellt auf Anfrage die Informationen zur Verfügung, die
+     zum Nachweis der Erfüllung der Pflichten gemäß Art. 28 DSGVO
+     erforderlich sind, und ermöglicht ein angemessenes Audit in
+     vereinbarter Weise.</p>
+
+  <p class="muted" style="margin-top:22px">Dieser DPA wird durch die Annahme
+     der Allgemeinen Geschäftsbedingungen bei der Registrierung geschlossen.
+     Eine schriftliche Ausfertigung mit Unterschrift stellen wir auf Anfrage
+     an obchod@sorbxt.sk zur Verfügung.</p>
+</div>
+{% endblock %}

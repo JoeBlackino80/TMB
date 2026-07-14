@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Umowa powierzenia przetwarzania danych osobowych (DPA) — VORU{% endblock %}
+{% block content %}
+<div class="card" style="max-width:760px;margin:30px auto">
+  <h1 style="margin-top:0">Umowa powierzenia przetwarzania danych osobowych (DPA)</h1>
+  <p class="muted">To jest polskie tłumaczenie dla wygody. Prawnie wiążąca jest <a href="/dpa">wersja słowacka</a>.</p>
+  <p class="muted">zgodnie z art. 28 rozporządzenia (UE) 2016/679 (RODO) ·
+     integralna część regulaminu usługi VORU</p>
+
+  <h2>1. Strony</h2>
+  <p><b>Administrator:</b> klient — użytkownik usługi VORU (firma albo
+     przedsiębiorca, który podłączył swoje skrzynki).<br>
+     <b>Podmiot przetwarzający:</b> SORB XT s.r.o., kontakt obchod@sorbxt.sk
+     (dalej „usługodawca”).</p>
+
+  <h2>2. Przedmiot i charakter przetwarzania</h2>
+  <p>Usługodawca w sposób zautomatyzowany przetwarza dla klienta wiadomości
+     e-mail w podłączonych skrzynkach wraz z załącznikami, w celu rozpoznania
+     faktur, płatności, terminów i zadań oraz wysyłania przypomnień
+     i zestawień. Przetwarzanie trwa przez czas trwania konta klienta.</p>
+
+  <h2>3. Kategorie danych i osób, których dane dotyczą</h2>
+  <p>Dane zawarte w odebranej poczcie: dane identyfikacyjne i kontaktowe
+     nadawców, dane rozliczeniowe i płatnicze (kwoty, IBAN, symbole),
+     treść wiadomości i załączników. Osoby, których dane dotyczą: partnerzy
+     handlowi, dostawcy i korespondenci klienta.</p>
+
+  <h2>4. Polecenia i poufność</h2>
+  <p>Usługodawca przetwarza dane wyłącznie w celu świadczenia usługi zgodnie
+     z niniejszą umową i udokumentowanymi poleceniami klienta (ustawienia
+     konta). Osoby mające dostęp do danych są zobowiązane do zachowania
+     poufności. Treść poczty nie jest wykorzystywana do reklamy ani
+     profilowania poza usługą, ani nie jest sprzedawana.</p>
+
+  <h2>5. Dalsze podmioty przetwarzające</h2>
+  <p>Klient udziela ogólnej zgody na zaangażowanie następujących dalszych
+     podmiotów przetwarzających: <b>Anthropic</b> (API do rozpoznawania
+     treści — tekst nie jest wykorzystywany do trenowania ani przechowywany
+     poza zakresem obsługi żądania), <b>Hetzner</b> (infrastruktura
+     serwerowa w UE), <b>Stripe</b> (płatności za subskrypcję). O zmianie
+     listy usługodawca poinformuje z wyprzedzeniem e-mailem; klient może
+     wyrazić sprzeciw, kończąc korzystanie z usługi.</p>
+
+  <h2>6. Środki bezpieczeństwa</h2>
+  <p>Szyfrowana transmisja (HTTPS/TLS, IMAPS), szyfrowane przechowywanie
+     danych dostępowych do skrzynek, hasła kont jako skróty PBKDF2, dostęp do
+     serwerów wyłącznie przez klucze SSH, codzienne kopie zapasowe,
+     opcjonalna dwuskładnikowa weryfikacja konta.</p>
+
+  <h2>7. Pomoc administratorowi i usuwanie danych</h2>
+  <p>Usługodawca pomoże klientowi w realizacji praw osób, których dane
+     dotyczą, oraz w zgłaszaniu incydentów (bez zbędnej zwłoki po ich
+     wykryciu). Eksport danych oraz całkowite usunięcie konta są dostępne
+     dla klienta samoobsługowo w Ustawieniach; po likwidacji konta dane są
+     usuwane natychmiast, a kopie zapasowe wygasają w ciągu 14 dni.</p>
+
+  <h2>8. Audyt</h2>
+  <p>Usługodawca na żądanie udostępni informacje niezbędne do wykazania
+     spełnienia obowiązków określonych w art. 28 RODO i umożliwi
+     przeprowadzenie odpowiedniego audytu w uzgodniony sposób.</p>
+
+  <p class="muted" style="margin-top:22px">Niniejsza DPA zostaje zawarta
+     poprzez akceptację regulaminu przy rejestracji. Egzemplarz pisemny z
+     podpisem udostępnimy na żądanie pod adresem obchod@sorbxt.sk.</p>
+</div>
+{% endblock %}

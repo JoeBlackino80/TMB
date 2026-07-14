@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Regulamin — VORU{% endblock %}
+{% block content %}
+<div class="card" style="max-width:760px;margin:30px auto">
+  <h1 style="margin-top:0">Regulamin usługi VORU</h1>
+  <p class="muted">To jest polskie tłumaczenie dla wygody. Prawnie wiążąca jest <a href="/podmienky">wersja słowacka</a>.</p>
+  <p class="muted">Obowiązuje od 4.07.2026 · Operator: SORB XT s.r.o.,
+     kontakt: obchod@sorbxt.sk</p>
+
+  <h2>1. Usługa</h2>
+  <p>VORU to usługa online, która z pomocą sztucznej inteligencji czyta
+     pocztę e-mail w skrzynkach podłączonych przez użytkownika, rozpoznaje
+     faktury, płatności, terminy i zadania oraz wysyła użytkownikowi
+     zestawienia i powiadomienia, w tym kody QR do płatności
+     (PAY by square).</p>
+
+  <h2>2. Konto i okres próbny</h2>
+  <p>Rejestracja tworzy konto z bezpłatnym 14-dniowym okresem próbnym. Po jego
+     upływie usługa działa dalej wyłącznie z aktywną subskrypcją (4,99 €
+     miesięcznie albo 49 € rocznie, z VAT). Płatności obsługuje Stripe;
+     subskrypcję można w każdej chwili anulować, usługa działa wówczas do
+     końca opłaconego okresu.</p>
+
+  <h2>3. Obowiązki użytkownika</h2>
+  <p>Użytkownik podłącza wyłącznie skrzynki, do których jest uprawniony, i
+     odpowiada za poprawność danych dostępowych. Zalecamy korzystanie z haseł
+     aplikacji. Usługi nie wolno wykorzystywać do celów niezgodnych z
+     prawem.</p>
+
+  <h2>4. Odpowiedzialność</h2>
+  <p>VORU jest narzędziem pomocniczym — rozpoznawanie danych z faktur odbywa
+     się automatycznie i może zawierać błędy. Przed dokonaniem płatności
+     należy zawsze sprawdzić kwotę, IBAN i symbol identyfikacyjny płatności
+     („variabilný symbol”). Operator nie odpowiada za szkodę
+     spowodowaną płatnością dokonaną na podstawie błędnie rozpoznanych
+     danych, za szkody spowodowane przerwą w działaniu usługi ani za
+     działania osób trzecich (banki, serwery pocztowe). Odpowiedzialność
+     operatora jest ograniczona do wysokości opłat subskrypcyjnych
+     zapłaconych za ostatnie 12 miesięcy.</p>
+
+  <h2>5. Zakończenie</h2>
+  <p>Użytkownik może w każdej chwili zlikwidować konto e-mailem na
+     obchod@sorbxt.sk — jego dane (skrzynki, historia, załączniki) zostaną
+     usunięte w ciągu 30 dni. Operator może zlikwidować konto w przypadku
+     naruszenia regulaminu albo nieopłacenia subskrypcji.</p>
+
+  <h2>6. Zmiany regulaminu</h2>
+  <p>O istotnych zmianach regulaminu informujemy e-mailem z co najmniej
+     14-dniowym wyprzedzeniem. Kontynuując korzystanie z usługi, użytkownik
+     akceptuje zmiany.</p>
+
+  <p class="muted">Przetwarzanie danych osobowych reguluje odrębny dokument
+     <a href="/gdpr?lang=pl">Ochrona danych osobowych</a>.</p>
+</div>
+{% endblock %}

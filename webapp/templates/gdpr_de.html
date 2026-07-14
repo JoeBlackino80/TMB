@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Datenschutzerklärung — VORU{% endblock %}
+{% block content %}
+<div class="card" style="max-width:760px;margin:30px auto">
+  <h1 style="margin-top:0">Datenschutzerklärung</h1>
+  <p class="muted">Dies ist eine deutsche Übersetzung zur besseren Verständlichkeit. Rechtlich verbindlich ist die <a href="/gdpr">slowakische Fassung</a>.</p>
+  <p class="muted">Verantwortlicher: SORB XT s.r.o. · Kontakt: obchod@sorbxt.sk</p>
+
+  <h2>Welche Daten wir verarbeiten</h2>
+  <p>Bei der Erbringung des Dienstes verarbeiten wir: (a) Registrierungsdaten
+     — E-Mail-Adresse und Passwort des Kontos (das Passwort speichern wir nur
+     als kryptografischen Hash); (b) Zugangsdaten zu den verbundenen
+     Postfächern — verschlüsselt gespeichert; (c) den Inhalt der E-Mails in
+     den verbundenen Postfächern einschließlich Anhängen, soweit dies zur
+     Erkennung von Rechnungen, Zahlungen und Terminen erforderlich ist;
+     (d) Rechnungsdaten bei der Zahlung (verarbeitet durch Stripe).</p>
+
+  <h2>Warum und auf welcher Grundlage</h2>
+  <p>Wir verarbeiten die Daten ausschließlich zur Erbringung des Dienstes
+     (Erfüllung des Vertrags gemäß Art. 6 Abs. 1 lit. b DSGVO). Den Inhalt
+     der Post verwenden wir nicht für Werbung und verkaufen ihn nicht an
+     Dritte.</p>
+
+  <h2>Auftragsverarbeiter</h2>
+  <p>Zur Erkennung der Inhalte nutzen wir die API des Unternehmens Anthropic
+     (Claude); der verarbeitete Text wird beim API-Anbieter weder trainiert
+     noch über die Bearbeitung der Anfrage hinaus gespeichert, gemäß dessen
+     Vertragsbedingungen. Zahlungen werden über Stripe abgewickelt. Die
+     Server befinden sich in der EU (Hetzner, Deutschland).</p>
+
+  <h2>Wie lange wir die Daten aufbewahren</h2>
+  <p>Zahlungsverlauf, Post-Zusammenfassungen und abgelegte Anhänge bewahren
+     wir für die Dauer des Kontos auf. Bei der Löschung des Kontos
+     (Einstellungen → Konto löschen) werden alle Daten sofort gelöscht;
+     Kopien in Sicherungen laufen innerhalb von 14 Tagen ab. Die Zugangsdaten
+     zu einem Postfach löschen wir sofort, wenn das Postfach aus dem Konto
+     entfernt wird.</p>
+
+  <h2>Ihre Rechte</h2>
+  <p>Sie haben das Recht auf Auskunft über Ihre Daten, Berichtigung,
+     Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und
+     Widerspruch. Der Export aller Daten sowie die vollständige Löschung des
+     Kontos (Recht auf Löschung) stehen Ihnen als Selbstbedienung in den
+     Einstellungen zur Verfügung; für alles Weitere schreiben Sie an
+     obchod@sorbxt.sk. Eine Beschwerde kann bei der slowakischen
+     Datenschutzbehörde (Úrad na ochranu osobných údajov SR —
+     dataprotection.gov.sk) eingereicht werden.</p>
+
+  <h2>Sicherheit</h2>
+  <p>Die Kommunikation mit dem Server sowie mit den Mailservern erfolgt
+     verschlüsselt (HTTPS/TLS). Die Passwörter der Postfächer werden auf der
+     Festplatte verschlüsselt gespeichert, Kontopasswörter als
+     PBKDF2-Hashes. Der Zugriff auf den Server ist beschränkt.</p>
+
+  <h2>Geschäftskunden (DPA)</h2>
+  <p>Wenn Sie den Dienst als Unternehmen zur Verarbeitung der Post Ihrer
+     Firma nutzen, tritt SORB XT s.r.o. als Auftragsverarbeiter im Sinne des
+     Art. 28 DSGVO auf. Die Bedingungen der Verarbeitung regelt der
+     <a href="/dpa?lang=de">Auftragsverarbeitungsvertrag (DPA)</a>, der
+     Bestandteil der Allgemeinen Geschäftsbedingungen ist. Eine schriftliche
+     Ausfertigung stellen wir auf Anfrage zur Verfügung.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Ochrana osobních údajů — VORU{% endblock %}
+{% block content %}
+<div class="card" style="max-width:760px;margin:30px auto">
+  <h1 style="margin-top:0">Ochrana osobních údajů</h1>
+  <p class="muted">Toto je český překlad pro usnadnění. Právně závazná je <a href="/gdpr">slovenská verze</a>.</p>
+  <p class="muted">Správce: SORB XT s.r.o. · kontakt: obchod@sorbxt.sk</p>
+
+  <h2>Jaké údaje zpracováváme</h2>
+  <p>Při poskytování služby zpracováváme: (a) registrační údaje — e-mail a heslo
+     účtu (heslo ukládáme jen jako kryptografický otisk); (b) přístupové
+     údaje k připojeným schránkám — uložené šifrovaně; (c) obsah e-mailů
+     v připojených schránkách včetně příloh, v rozsahu potřebném k
+     rozpoznání faktur, plateb a termínů; (d) fakturační údaje při platbě
+     (zpracovává Stripe).</p>
+
+  <h2>Proč a na jakém základě</h2>
+  <p>Údaje zpracováváme výlučně k poskytování služby (plnění smlouvy podle
+     čl. 6 odst. 1 písm. b GDPR). Obsah pošty nepoužíváme k reklamě ani ho
+     neprodáváme třetím stranám.</p>
+
+  <h2>Zpracovatelé</h2>
+  <p>K rozpoznávání obsahu využíváme API společnosti Anthropic (Claude);
+     zpracovávaný text se u poskytovatele API netrénuje ani neuchovává nad rámec
+     zpracování požadavku podle jeho smluvních podmínek. Platby zpracovává
+     Stripe. Servery jsou umístěny v EU (Hetzner, Německo).</p>
+
+  <h2>Jak dlouho údaje držíme</h2>
+  <p>Historii plateb, souhrny pošty a odložené přílohy držíme po dobu trvání
+     účtu. Při zrušení účtu (Nastavení → Zrušení účtu) se všechna data mažou
+     okamžitě; kopie v zálohách expirují do 14 dní. Přístupové údaje
+     ke schránce smažeme okamžitě při odebrání schránky z účtu.</p>
+
+  <h2>Vaše práva</h2>
+  <p>Máte právo na přístup k údajům, opravu, výmaz, omezení zpracování,
+     přenositelnost a námitku. Export všech dat i úplné zrušení účtu
+     (právo na výmaz) máte samoobslužně v Nastavení; s čímkoli dalším
+     napište na obchod@sorbxt.sk. Stížnost lze podat u Úřadu pro ochranu
+     osobních údajů Slovenské republiky (dataprotection.gov.sk).</p>
+
+  <h2>Zabezpečení</h2>
+  <p>Komunikace se serverem i s poštovními servery probíhá šifrovaně
+     (HTTPS/TLS). Hesla schránek jsou na disku uložena šifrovaně, hesla účtů
+     jako PBKDF2 otisky. Přístup k serveru je omezen.</p>
+
+  <h2>Firemní klienti (DPA)</h2>
+  <p>Pokud službu používáte jako firma ke zpracování pošty vaší společnosti,
+     SORB XT s.r.o. vystupuje jako zpracovatel ve smyslu čl. 28 GDPR.
+     Podmínky zpracování upravuje
+     <a href="/dpa?lang=cs">smlouva o zpracování osobních údajů (DPA)</a>, která je
+     součástí obchodních podmínek. Písemné vyhotovení poskytneme
+     na vyžádání.</p>
+</div>
+{% endblock %}
