@@ -75,9 +75,9 @@ _CS = {
     "opt_both": "obojí",
     "email_label": "Váš e-mail (sem budou chodit přehledy)",
     "password_label": "Heslo (min. 8 znaků)",
-    "consent_html": "Souhlasím s <a href='/podmienky' target='_blank'>obchodními "
+    "consent_html": "Souhlasím s <a href='/podmienky?lang=cs' target='_blank'>obchodními "
                     "podmínkami</a> a se zpracováním osobních údajů podle "
-                    "<a href='/gdpr' target='_blank'>zásad ochrany údajů</a> "
+                    "<a href='/gdpr?lang=cs' target='_blank'>zásad ochrany údajů</a> "
                     "(včetně zpracování obsahu připojené pošty pro účely služby).",
     "reg_btn": "Zaregistrovat se",
     "have_account": "Máte účet?",
@@ -124,9 +124,9 @@ _PL = {
     "opt_both": "jedno i drugie",
     "email_label": "Twój e-mail (tu będą przychodzić zestawienia)",
     "password_label": "Hasło (min. 8 znaków)",
-    "consent_html": "Akceptuję <a href='/podmienky' target='_blank'>regulamin</a> "
+    "consent_html": "Akceptuję <a href='/podmienky?lang=pl' target='_blank'>regulamin</a> "
                     "i zgadzam się na przetwarzanie danych osobowych zgodnie z "
-                    "<a href='/gdpr' target='_blank'>polityką prywatności</a> "
+                    "<a href='/gdpr?lang=pl' target='_blank'>polityką prywatności</a> "
                     "(w tym przetwarzanie treści podłączonej poczty na potrzeby "
                     "usługi).",
     "reg_btn": "Zarejestruj się",
@@ -176,9 +176,9 @@ _DE = {
     "opt_both": "beides",
     "email_label": "Ihre E-Mail (hierhin kommen die Übersichten)",
     "password_label": "Passwort (min. 8 Zeichen)",
-    "consent_html": "Ich stimme den <a href='/podmienky' target='_blank'>AGB</a> "
+    "consent_html": "Ich stimme den <a href='/podmienky?lang=de' target='_blank'>AGB</a> "
                     "und der Verarbeitung personenbezogener Daten gemäß der "
-                    "<a href='/gdpr' target='_blank'>Datenschutzerklärung</a> zu "
+                    "<a href='/gdpr?lang=de' target='_blank'>Datenschutzerklärung</a> zu "
                     "(einschließlich der Verarbeitung der Inhalte des "
                     "verbundenen Postfachs für den Dienst).",
     "reg_btn": "Registrieren",
@@ -231,9 +231,9 @@ _HU = {
     "opt_both": "mindkettő",
     "email_label": "Az Ön e-mail-címe (ide érkeznek az áttekintések)",
     "password_label": "Jelszó (min. 8 karakter)",
-    "consent_html": "Elfogadom az <a href='/podmienky' target='_blank'>ÁSZF-et</a> "
+    "consent_html": "Elfogadom az <a href='/podmienky?lang=hu' target='_blank'>ÁSZF-et</a> "
                     "és hozzájárulok a személyes adatok kezeléséhez az "
-                    "<a href='/gdpr' target='_blank'>adatvédelmi tájékoztató</a> "
+                    "<a href='/gdpr?lang=hu' target='_blank'>adatvédelmi tájékoztató</a> "
                     "szerint (beleértve a csatlakoztatott postafiók tartalmának "
                     "kezelését a szolgáltatás céljából).",
     "reg_btn": "Regisztráció",
