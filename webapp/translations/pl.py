@@ -311,3 +311,21 @@ APP.update({
                        "Dziękujemy za wypróbowanie VORU.",
 })
 APP["back_btn"] = "Wstecz"
+
+# e-maile o końcu okresu próbnego
+APP.update({
+    "trial_mail_subject_warn": "VORU — okres próbny kończy się {date}",
+    "trial_mail_subject_end": "VORU — okres próbny dobiegł końca",
+    "trial_mail_warn_title": "Okres próbny dobiega końca",
+    "trial_mail_warn_lead": "Twój okres próbny kończy się {date}. Aby VORU "
+                            "dalej pilnowało Twoich faktur, płatności i "
+                            "terminów, aktywuj subskrypcję — 4,99 € miesięcznie "
+                            "lub 49 € rocznie (2 miesiące gratis).",
+    "trial_mail_end_title": "Okres próbny dobiegł końca",
+    "trial_mail_end_lead": "Twój okres próbny dziś się zakończył i usługa jest "
+                           "wstrzymana — zestawienia i przypomnienia nie są na "
+                           "razie wysyłane. Wszystkie Twoje dane pozostają "
+                           "zapisane; subskrypcja od razu je przywróci.",
+    "trial_mail_btn": "Aktywuj subskrypcję",
+    "trial_mail_footer": "Pytania? Odpowiedz na ten e-mail.",
+})

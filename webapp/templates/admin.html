@@ -2,6 +2,20 @@
 {% block title %}Admin — VORU{% endblock %}
 {% block content %}
 <h1>Admin — klienti ({{ clients|length }})</h1>
+
+<div class="stats">
+  <div class="stat"><div class="num">{{ stats.paying }}</div>
+    <div class="lbl">platiaci</div></div>
+  <div class="stat"><div class="num">{{ stats.trialing }}</div>
+    <div class="lbl">aktívny trial</div></div>
+  <div class="stat"><div class="num">{{ stats.new7 }} / {{ stats.new30 }}</div>
+    <div class="lbl">noví za 7 / 30 dní</div></div>
+  <div class="stat"><div class="num">{{ stats.verified }}/{{ stats.total }}</div>
+    <div class="lbl">overený e-mail</div></div>
+  <div class="stat"><div class="num">{{ stats.with_mailbox }}</div>
+    <div class="lbl">s pripojenou schránkou</div></div>
+</div>
+
 <div class="card">
 <div style="overflow-x:auto">
 <table>

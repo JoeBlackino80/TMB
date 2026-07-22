@@ -311,3 +311,21 @@ APP.update({
                        "Thank you for trying VORU.",
 })
 APP["back_btn"] = "Back"
+
+# trial-ending emails
+APP.update({
+    "trial_mail_subject_warn": "VORU — your trial ends on {date}",
+    "trial_mail_subject_end": "VORU — your trial has ended",
+    "trial_mail_warn_title": "Your trial is ending soon",
+    "trial_mail_warn_lead": "Your trial ends on {date}. To keep VORU tracking "
+                            "your invoices, payments and deadlines, activate "
+                            "a subscription — €4.99 a month or €49 a year "
+                            "(2 months free).",
+    "trial_mail_end_title": "Your trial has ended",
+    "trial_mail_end_lead": "Your trial ended today and the service is paused — "
+                           "digests and reminders are not being sent for now. "
+                           "All your data is kept safe; subscribing brings it "
+                           "back instantly.",
+    "trial_mail_btn": "Activate subscription",
+    "trial_mail_footer": "Questions? Just reply to this email.",
+})

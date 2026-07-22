@@ -339,3 +339,22 @@ APP = {
                        "dass Sie VORU ausprobiert haben.",
 }
 APP["back_btn"] = "Zurück"
+
+# E-Mails zum Ende der Testphase
+APP.update({
+    "trial_mail_subject_warn": "VORU — Testphase endet am {date}",
+    "trial_mail_subject_end": "VORU — Testphase beendet",
+    "trial_mail_warn_title": "Ihre Testphase endet bald",
+    "trial_mail_warn_lead": "Ihre Testphase endet am {date}. Damit VORU Ihre "
+                            "Rechnungen, Zahlungen und Termine weiter im Blick "
+                            "behält, aktivieren Sie Ihr Abonnement — 4,99 € "
+                            "monatlich oder 49 € jährlich (2 Monate gratis).",
+    "trial_mail_end_title": "Testphase beendet",
+    "trial_mail_end_lead": "Ihre Testphase ist heute abgelaufen und der Dienst "
+                           "ist pausiert — Übersichten und Erinnerungen werden "
+                           "vorerst nicht gesendet. Alle Ihre Daten bleiben "
+                           "gespeichert; mit einem Abonnement geht es sofort "
+                           "weiter.",
+    "trial_mail_btn": "Abonnement aktivieren",
+    "trial_mail_footer": "Fragen? Antworten Sie einfach auf diese E-Mail.",
+})

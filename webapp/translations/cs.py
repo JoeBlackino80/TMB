@@ -295,3 +295,21 @@ APP.update({
                        "že jste VORU vyzkoušeli.",
 })
 APP["back_btn"] = "Zpět"
+
+# e-maily o konci zkušební doby
+APP.update({
+    "trial_mail_subject_warn": "VORU — zkušební doba končí {date}",
+    "trial_mail_subject_end": "VORU — zkušební doba skončila",
+    "trial_mail_warn_title": "Zkušební doba se blíží ke konci",
+    "trial_mail_warn_lead": "Vaše zkušební doba končí {date}. Aby VORU dál "
+                            "hlídalo vaše faktury, platby a termíny, aktivujte "
+                            "si předplatné — 4,99 € měsíčně nebo 49 € ročně "
+                            "(2 měsíce zdarma).",
+    "trial_mail_end_title": "Zkušební doba skončila",
+    "trial_mail_end_lead": "Vaše zkušební doba dnes skončila a služba je "
+                           "pozastavena — přehledy a připomínky se zatím "
+                           "neposílají. Všechna vaše data zůstávají uložena; "
+                           "předplatným je hned oživíte.",
+    "trial_mail_btn": "Aktivovat předplatné",
+    "trial_mail_footer": "Otázky? Odpovězte na tento e-mail.",
+})

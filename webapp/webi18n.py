@@ -625,6 +625,21 @@ _SK_APP = {
     "s_del_done_body": "Váš účet aj všetky údaje sme zmazali. Ďakujeme, "
                        "že ste VORU vyskúšali.",
     "back_btn": "Späť",
+    # e-maily o konci skúšobnej doby (posiela webapp/expire.py)
+    "trial_mail_subject_warn": "VORU — skúšobná doba končí {date}",
+    "trial_mail_subject_end": "VORU — skúšobná doba skončila",
+    "trial_mail_warn_title": "Skúšobná doba sa končí",
+    "trial_mail_warn_lead": "Vaša skúšobná doba končí {date}. Aby vám VORU "
+                            "ďalej strážilo faktúry, platby a termíny, "
+                            "aktivujte si predplatné — 4,99 € mesačne alebo "
+                            "49 € ročne (2 mesiace zadarmo).",
+    "trial_mail_end_title": "Skúšobná doba skončila",
+    "trial_mail_end_lead": "Vaša skúšobná doba dnes skončila a služba je "
+                           "pozastavená — prehľady a pripomienky sa zatiaľ "
+                           "neposielajú. Všetky vaše údaje zostávajú uložené; "
+                           "predplatným ich hneď oživíte.",
+    "trial_mail_btn": "Aktivovať predplatné",
+    "trial_mail_footer": "Otázky? Odpovedzte na tento e-mail.",
 }
 
 

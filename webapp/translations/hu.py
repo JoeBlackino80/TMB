@@ -337,3 +337,21 @@ APP = {
                        "hogy kipróbálta a VORU-t.",
 }
 APP["back_btn"] = "Vissza"
+
+# a próbaidőszak végéről szóló e-mailek
+APP.update({
+    "trial_mail_subject_warn": "VORU — hamarosan lejár a próbaidőszak ({date})",
+    "trial_mail_subject_end": "VORU — lejárt a próbaidőszak",
+    "trial_mail_warn_title": "Hamarosan lejár a próbaidőszak",
+    "trial_mail_warn_lead": "A próbaidőszaka {date}-ig tart. Hogy a VORU "
+                            "továbbra is figyelje számláit, fizetéseit és "
+                            "határidőit, aktiválja előfizetését — havi 4,99 € "
+                            "vagy évi 49 € (2 hónap ingyen).",
+    "trial_mail_end_title": "Lejárt a próbaidőszak",
+    "trial_mail_end_lead": "A próbaidőszaka ma lejárt, a szolgáltatás szünetel "
+                           "— az összefoglalókat és emlékeztetőket egyelőre "
+                           "nem küldjük. Minden adata megmarad; előfizetéssel "
+                           "azonnal folytatódik.",
+    "trial_mail_btn": "Előfizetés aktiválása",
+    "trial_mail_footer": "Kérdése van? Válaszoljon erre az e-mailre.",
+})

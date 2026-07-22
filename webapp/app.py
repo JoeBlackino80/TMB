@@ -1611,7 +1611,22 @@ def admin(request: Request, user=Depends(current_user)):
         } for u in rows]
     finally:
         users.close()
-    return _render(request, "admin.html", user=user, clients=data)
+
+    from datetime import timedelta
+
+    def _newer_than(c, days):
+        return c["created_at"][:10] >= (date.today() - timedelta(days=days)).isoformat()
+
+    stats = {
+        "total": len(data),
+        "new7": sum(1 for c in data if c["created_at"] and _newer_than(c, 7)),
+        "new30": sum(1 for c in data if c["created_at"] and _newer_than(c, 30)),
+        "verified": sum(1 for c in data if c["verified"]),
+        "with_mailbox": sum(1 for c in data if c["mailboxes"]),
+        "paying": sum(1 for c in data if c["status"] == "active"),
+        "trialing": sum(1 for c in data if c["status"] == "trial" and c["enabled"]),
+    }
+    return _render(request, "admin.html", user=user, clients=data, stats=stats)
 
 
 @app.post("/admin/update")
