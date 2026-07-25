@@ -7,7 +7,7 @@ lebo ich pošle VORU samo".
 **Čo VORU účtovníčke reálne rieši:** klient pripojí schránku, VORU celý mesiac
 zbiera došlé faktúry a na konci mesiaca vytvorí ZIP — faktúry v PDF + CSV
 prehľad platieb a stráženého (poistky, STK, splatnosti). Klient ho pošle
-jedným klikom, alebo si nastaví automatické posielanie priamo účtovníčke.
+jedným klikom rovno z prehľadu.
 
 ---
 
@@ -29,7 +29,7 @@ jedným klikom, alebo si nastaví automatické posielanie priamo účtovníčke.
 > VORU je slovenská služba, ktorá sa pripojí na e-mailovú schránku klienta,
 > sama z pošty vyzbiera došlé faktúry a na konci mesiaca pripraví ZIP:
 > všetky faktúry v PDF plus CSV prehľad platieb. Klient vám ho pošle jedným
-> klikom — alebo mu chodí automaticky.
+> klikom rovno z prehľadu.
 >
 > Pre vás je to zadarmo. Klient platí 4,99 € mesačne, prvých 14 dní má
 > zadarmo bez karty.
