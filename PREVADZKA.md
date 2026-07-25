@@ -163,6 +163,24 @@ Rovnaký postup zopakuj pre .cz/.pl/.at/.hu, ak z nich posielaš poštu.
 
 ---
 
+## 3b. Prihlásenie cez Google — dokončenie v Google Console
+
+Kód pre „Pokračovať cez Google" na registrácii/prihlásení je nasadený, ale
+Google odmietne presmerovanie, kým nepridáš nové redirect URI:
+
+1. console.cloud.google.com → projekt VORU → **APIs & Services → Credentials**
+   → OAuth 2.0 Client (Web)
+2. V **Authorized redirect URIs** pridaj (popri existujúcom
+   `/oauth/google/callback` pre Gmail):
+   - `https://voru.sk/auth/google/callback`
+   - (voliteľne pre ďalšie domény: `https://voru.cz/auth/google/callback` atď.)
+3. **Save**. Zmena je aktívna do pár minút.
+4. Over: na `/login` klikni „Pokračovať cez Google" → po prihlásení u Googla ťa
+   vráti prihláseného do VORU.
+
+Poznámka: `GOOGLE_CLIENT_ID` sa nemení, takže Gmail pripájanie funguje ďalej.
+Tlačidlo sa zobrazí len keď je `GOOGLE_CLIENT_ID` nastavený (už je).
+
 ## 4. UptimeRobot (monitoring dostupnosti)
 
 Zadarmo ťa upozorní e-mailom/SMS, keď web spadne.

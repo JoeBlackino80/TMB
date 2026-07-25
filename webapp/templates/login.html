@@ -24,6 +24,7 @@
       <input type="password" name="password" required autocomplete="current-password">
       <button type="submit">{{ tt.login_btn }}</button>
     </form>
+    {% include "_google_btn.html" %}
     <p class="muted" style="margin-top:18px">{{ tt.no_account }}
        <a href="/register?lang={{ lang or 'sk' }}">{{ tt.register_link }}</a>
        {{ tt.trial_note }}<br>

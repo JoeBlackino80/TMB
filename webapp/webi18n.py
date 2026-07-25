@@ -640,6 +640,11 @@ _SK_APP = {
                            "predplatným ich hneď oživíte.",
     "trial_mail_btn": "Aktivovať predplatné",
     "trial_mail_footer": "Otázky? Odpovedzte na tento e-mail.",
+    # prihlásenie cez Google
+    "g_login_btn": "Pokračovať cez Google",
+    "g_login_or": "alebo",
+    "g_login_fail_title": "Prihlásenie cez Google zlyhalo",
+    "g_login_fail_body": "Skúste to znova alebo použite e-mail a heslo.",
     # jazyk aplikácie + kalendárový feed
     "s_lang": "Jazyk aplikácie a e-mailov",
     "s_cal_title": "Kalendár termínov",

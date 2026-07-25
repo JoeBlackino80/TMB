@@ -415,6 +415,7 @@ def _register_page(request: Request, lang: str = "sk", ref: str = "",
     return _render(request, "register.html", ref=ref[:80],
                    error=t.get(error, error) if error else None,
                    ts=_reg_ts(), t=t, lang=lang,
+                   google_login=bool(os.environ.get("GOOGLE_CLIENT_ID", "")),
                    turnstile_site_key=os.environ.get("TURNSTILE_SITE_KEY", ""))
 
 
@@ -452,36 +453,47 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
                             reg_ip=_client_ip(request))
         _REG_ATTEMPTS.setdefault(_client_ip(request), []).append(time.time())
         _REG_GLOBAL.append(time.time())
-        # referral: obom predĺžime skúšobnú dobu (novému +14, odporúčajúcemu +30)
-        referrer = users.by_client_dir(ref.strip()) if ref.strip() else None
-        if referrer and referrer["id"] != user["id"]:
-            users.set_referred_by(user["id"], referrer["client_dir"])
-            users.extend_trial(user["id"], 14)
-            users.extend_trial(referrer["id"], 30)
-            user = users.by_id(user["id"])
+        _apply_referral(users, user, ref)
+        user = users.by_id(user["id"])
     finally:
         users.close()
-    clientfs.ensure_client(user["client_dir"], reminder_to=email,
+    _provision_client(request, user, account_type, lang,
+                      send_welcome=not user["verified"])
+    response = _redirect("/")
+    _set_session(response, user)
+    return response
+
+
+def _apply_referral(users, user, ref: str) -> None:
+    """Referral: novému +14 dní, odporúčajúcemu +30 dní."""
+    referrer = users.by_client_dir(ref.strip()) if ref.strip() else None
+    if referrer and referrer["id"] != user["id"]:
+        users.set_referred_by(user["id"], referrer["client_dir"])
+        users.extend_trial(user["id"], 14)
+        users.extend_trial(referrer["id"], 30)
+
+
+def _provision_client(request: Request, user, account_type: str, lang: str,
+                      *, send_welcome: bool) -> None:
+    """Vytvorí adresár klienta, ukážkové dáta a pošle uvítací/admin e-mail.
+    Spoločné pre registráciu heslom aj cez Google."""
+    clientfs.ensure_client(user["client_dir"], reminder_to=user["email"],
                            account_type=account_type, lang=lang)
     if not user["verified"]:
         # kým klient nepotvrdí adresu, cron mu nič neposiela
         clientfs.set_verified(user["client_dir"], False)
-    # ukážkové dáta, nech nový účet nie je prázdny (zmiznú po pridaní schránky)
-    store = Store(os.path.join(clientfs.client_path(user["client_dir"]), "bill_agent.db"))
+    store = Store(os.path.join(clientfs.client_path(user["client_dir"]),
+                               "bill_agent.db"))
     try:
         store.seed_demo()
     finally:
         store.close()
-    if not user["verified"]:
+    if send_welcome:
         _send_welcome(request, user, lang)
-    # upozornenie adminovi na novú registráciu (best-effort)
-    if ADMIN_EMAIL and email != ADMIN_EMAIL:
-        mailer.send(ADMIN_EMAIL, f"VORU: nová registrácia — {email}",
-                    f"E-mail: {email}\nJazyk: {lang}\nTyp účtu: {account_type}\n"
-                    f"IP: {_client_ip(request)}\n")
-    response = _redirect("/")
-    _set_session(response, user)
-    return response
+    if ADMIN_EMAIL and user["email"] != ADMIN_EMAIL:
+        mailer.send(ADMIN_EMAIL, f"VORU: nová registrácia — {user['email']}",
+                    f"E-mail: {user['email']}\nJazyk: {lang}\n"
+                    f"Typ účtu: {account_type}\nIP: {_client_ip(request)}\n")
 
 
 def _login_page(request: Request, lang: str = "sk", **ctx) -> HTMLResponse:
@@ -489,6 +501,8 @@ def _login_page(request: Request, lang: str = "sk", **ctx) -> HTMLResponse:
     t = webi18n.t(lang)
     if "error" in ctx and ctx["error"]:
         ctx["error"] = t.get(ctx["error"], ctx["error"])
+    ctx.setdefault("google_login",
+                   bool(os.environ.get("GOOGLE_CLIENT_ID", "")))
     return _render(request, "login.html", t=t, lang=lang, **ctx)
 
 
@@ -1393,6 +1407,123 @@ def google_oauth_callback(request: Request, user=Depends(current_user),
                          port=993, user=email, password=refresh_token,
                          security="ssl", auth="oauth_google")
     return _redirect("/mailboxes")
+
+
+# -- prihlásenie / registrácia cez Google (bez hesla) -----------------------------
+#
+# Samostatný od pripájania Gmailu vyššie: ľahká scope (len identita, žiadne
+# čítanie pošty), vlastné redirect_uri /auth/google/callback. Stav (state) je
+# podpísaný a nesie jazyk + referral, aby callback fungoval bez prihlásenia.
+_GOOGLE_LOGIN_SCOPE = "openid email"
+
+
+def _google_login_state(lang: str, ref: str) -> str:
+    raw = f"{lang}|{ref}|{int(time.time())}"
+    sig = hmac.new(SECRET.encode(), ("glogin|" + raw).encode(),
+                   hashlib.sha256).hexdigest()[:32]
+    return base64.urlsafe_b64encode(f"{raw}|{sig}".encode()).decode()
+
+
+def _check_google_login_state(state: str):
+    """Vráti (lang, ref) alebo None pri zlom podpise / vypršaní (1 h)."""
+    try:
+        raw = base64.urlsafe_b64decode(state.encode()).decode()
+        lang, ref, ts, sig = raw.split("|")
+        expected = hmac.new(SECRET.encode(),
+                            ("glogin|" + f"{lang}|{ref}|{ts}").encode(),
+                            hashlib.sha256).hexdigest()[:32]
+        if not hmac.compare_digest(expected, sig):
+            return None
+        if time.time() - int(ts) > 3600:
+            return None
+        return (lang if lang in webi18n.LANGS else "sk"), ref
+    except Exception:
+        return None
+
+
+@app.get("/auth/google/login")
+def google_login_start(request: Request, lang: str = "sk", ref: str = ""):
+    if not os.environ.get("GOOGLE_CLIENT_ID"):
+        return _redirect("/login")
+    from urllib.parse import urlencode
+
+    params = {
+        "client_id": os.environ["GOOGLE_CLIENT_ID"],
+        "redirect_uri": f"{_base_url(request)}/auth/google/callback",
+        "response_type": "code",
+        "scope": _GOOGLE_LOGIN_SCOPE,
+        "state": _google_login_state(
+            lang if lang in webi18n.LANGS else "sk", ref.strip()[:80]),
+    }
+    return _redirect(f"{_GOOGLE_AUTH_URL}?{urlencode(params)}")
+
+
+@app.get("/auth/google/callback", response_class=HTMLResponse)
+def google_login_callback(request: Request, code: str = "", state: str = "",
+                          error: str = ""):
+    parsed = _check_google_login_state(state)
+    if error or not code or parsed is None:
+        return _render(request, "message.html", lang="sk",
+                       title=webi18n.t("sk")["g_login_fail_title"],
+                       body=webi18n.t("sk")["g_login_fail_body"],
+                       cta="/login", cta_label=webi18n.t("sk")["login_cta"])
+    lang, ref = parsed
+    tr = webi18n.t(lang)
+    import urllib.parse
+    import urllib.request
+
+    from bill_agent.google_oauth import TOKEN_URL
+
+    data = urllib.parse.urlencode({
+        "client_id": os.environ["GOOGLE_CLIENT_ID"],
+        "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET", ""),
+        "code": code,
+        "grant_type": "authorization_code",
+        "redirect_uri": f"{_base_url(request)}/auth/google/callback",
+    }).encode()
+    try:
+        with urllib.request.urlopen(
+            urllib.request.Request(TOKEN_URL, data=data), timeout=20
+        ) as resp:
+            tokens = json.load(resp)
+        payload = tokens["id_token"].split(".")[1]
+        payload = base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4))
+        claims = json.loads(payload)
+        email = claims["email"].lower()
+        if not claims.get("email_verified", True):
+            raise ValueError("neoverený Google e-mail")
+    except Exception:
+        return _render(request, "message.html", lang=lang,
+                       title=tr["g_login_fail_title"], body=tr["g_login_fail_body"],
+                       cta="/login", cta_label=tr["login_cta"])
+
+    users = Users()
+    try:
+        user = users.by_email(email)
+        is_new = user is None
+        if is_new:
+            # účet cez Google: e-mail už overený Googlom, náhodné (nepoužité) heslo
+            import secrets as _secrets
+
+            user = users.create(email, _secrets.token_urlsafe(32),
+                                verified=True, reg_ip=_client_ip(request))
+            _apply_referral(users, user, ref)
+            user = users.by_id(user["id"])
+        elif not user["verified"]:
+            # existujúci neoverený účet sa prihlásením cez Google overí
+            users.mark_verified(user["id"])
+            clientfs.set_verified(user["client_dir"], True)
+            user = users.by_id(user["id"])
+    finally:
+        users.close()
+    if is_new:
+        settings = clientfs.read_settings(user["client_dir"])
+        _provision_client(request, user,
+                          settings.get("ACCOUNT_TYPE") or "business", lang,
+                          send_welcome=False)
+    response = _redirect("/")
+    _set_session(response, user)
+    return response
 
 
 @app.post("/mailboxes")

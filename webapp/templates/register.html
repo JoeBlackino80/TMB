@@ -47,6 +47,7 @@
     {% endif %}
     <button type="submit">{{ tt.reg_btn }}</button>
   </form>
+  {% include "_google_btn.html" %}
   <p class="muted" style="margin-top:18px">{{ tt.have_account }}
      <a href="/login?lang={{ lang or 'sk' }}">{{ tt.sign_in }}</a></p>
 </div>

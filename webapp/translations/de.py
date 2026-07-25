@@ -372,3 +372,11 @@ APP.update({
     "ics_cal_name": "VORU — Zahlungen und Termine",
     "ics_pay": "Bezahlen: {s}",
 })
+
+# prihlásenie cez Google
+APP.update({
+    "g_login_btn": "Mit Google fortfahren",
+    "g_login_or": "oder",
+    "g_login_fail_title": "Anmeldung über Google fehlgeschlagen",
+    "g_login_fail_body": "Versuchen Sie es erneut oder nutzen Sie E-Mail und Passwort.",
+})

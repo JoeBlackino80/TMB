@@ -368,3 +368,11 @@ APP.update({
     "ics_cal_name": "VORU — fizetések és határidők",
     "ics_pay": "Fizetendő: {s}",
 })
+
+# prihlásenie cez Google
+APP.update({
+    "g_login_btn": "Folytatás Google-fiókkal",
+    "g_login_or": "vagy",
+    "g_login_fail_title": "A Google-bejelentkezés nem sikerült",
+    "g_login_fail_body": "Próbálja újra, vagy használjon e-mailt és jelszót.",
+})

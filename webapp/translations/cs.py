@@ -326,3 +326,11 @@ APP.update({
     "ics_cal_name": "VORU — platby a termíny",
     "ics_pay": "Zaplatit: {s}",
 })
+
+# prihlásenie cez Google
+APP.update({
+    "g_login_btn": "Pokračovat přes Google",
+    "g_login_or": "nebo",
+    "g_login_fail_title": "Přihlášení přes Google selhalo",
+    "g_login_fail_body": "Zkuste to znovu nebo použijte e-mail a heslo.",
+})
