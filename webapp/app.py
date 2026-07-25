@@ -1000,6 +1000,67 @@ def _app_icon(size: int) -> bytes:
     return _ICON_CACHE[size]
 
 
+_OG_CACHE: dict = {}
+_OG_TAGLINE = {
+    "sk": "AI strážca faktúr, platieb a termínov",
+    "cs": "AI hlídač faktur, plateb a termínů",
+    "pl": "Asystent AI, który pilnuje faktur i terminów",
+    "de": "KI-Wächter für Rechnungen und Termine",
+    "hu": "AI-őr számlákhoz és határidőkhöz",
+    "en": "AI guard for invoices, payments and deadlines",
+}
+
+
+def _og_png(lang: str) -> bytes:
+    """Obrázok pre zdieľanie na sociálnych sieťach (1200×630, tmavý s logom)."""
+    if lang in _OG_CACHE:
+        return _OG_CACHE[lang]
+    import io
+    import textwrap
+
+    from PIL import Image, ImageDraw, ImageFont
+
+    W, H = 1200, 630
+    img = Image.new("RGB", (W, H), (10, 12, 16))
+    draw = ImageDraw.Draw(img)
+    # chevron z loga vľavo (rovnaká geometria ako ikona aplikácie)
+    s = 360
+    ox, oy = 90, (H - s) // 2
+    cx = ox + s * 0.5
+    for i in range(4):
+        w = s * (0.305 - 0.058 * i)
+        a = oy + s * (0.205 + 0.115 * i)
+        drop = 0.62 * w
+        t = s * 0.062
+        draw.polygon([(cx - w, a), (cx, a + drop), (cx + w, a),
+                      (cx + w, a + t), (cx, a + drop + t), (cx - w, a + t)],
+                     fill=(245, 242, 234))
+    try:
+        bold = ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 120)
+        regular = ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 42)
+    except OSError:
+        bold = ImageFont.load_default(120)
+        regular = ImageFont.load_default(42)
+    draw.text((520, 190), "VORU", font=bold, fill=(245, 242, 234))
+    tagline = _OG_TAGLINE.get(lang, _OG_TAGLINE["sk"])
+    for n, line in enumerate(textwrap.wrap(tagline, width=30)[:3]):
+        draw.text((524, 350 + n * 56), line, font=regular, fill=(152, 161, 178))
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    _OG_CACHE[lang] = buf.getvalue()
+    return _OG_CACHE[lang]
+
+
+@app.get("/og.png")
+def og_image(request: Request, lang: str = ""):
+    if lang not in webi18n.LANGS:
+        lang = _LANDING_LANG[_landing_for_host(request)]
+    return Response(content=_og_png(lang), media_type="image/png",
+                    headers={"Cache-Control": "public, max-age=86400"})
+
+
 @app.get("/icon-{size}.png")
 def app_icon(size: int):
     if size not in (180, 192, 512):
