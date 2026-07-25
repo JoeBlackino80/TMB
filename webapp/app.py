@@ -588,29 +588,81 @@ def _client_db(user) -> str:
     return os.path.join(clientfs.client_path(user["client_dir"]), "bill_agent.db")
 
 
+# jazyk landing page + ponuka prepnutia podľa jazyka prehliadača
+# (Accept-Language; žiadna IP geolokácia — doména rozhoduje, návštevník volí)
+
+_LANDING_LANG = {"landing.html": "sk", "landing_cs.html": "cs",
+                 "landing_pl.html": "pl", "landing_de.html": "de",
+                 "landing_hu.html": "hu", "landing_en.html": "en"}
+_LANG_PATH = {"sk": "/sk", "cs": "/cs", "pl": "/pl",
+              "de": "/de", "hu": "/hu", "en": "/en"}
+_LANG_SUGGEST_TEXT = {
+    "sk": "Prejsť na slovenskú verziu?",
+    "cs": "Přejít na českou verzi?",
+    "pl": "Przejść na polską wersję?",
+    "de": "Zur deutschen Version wechseln?",
+    "hu": "Váltás a magyar verzióra?",
+    "en": "Switch to English?",
+}
+
+
+def _browser_lang(request: Request) -> str:
+    """Najlepší podporovaný jazyk z hlavičky Accept-Language ('' ak žiadny)."""
+    prefs = []
+    for i, part in enumerate(request.headers.get("accept-language", "").split(",")):
+        piece = part.strip()
+        if not piece:
+            continue
+        code, _, q = piece.partition(";q=")
+        try:
+            weight = float(q) if q else 1.0
+        except ValueError:
+            weight = 1.0
+        prefs.append((weight, -i, code.split("-")[0].strip().lower()))
+    for _, _, code in sorted(prefs, reverse=True):
+        if code in webi18n.LANGS:
+            return code
+    return ""
+
+
+def _landing(request: Request, template: str) -> HTMLResponse:
+    ctx = {}
+    if request.cookies.get("langsug") != "off":
+        browser = _browser_lang(request)
+        if browser and browser != _LANDING_LANG[template]:
+            ctx["lang_suggest"] = {"url": _LANG_PATH[browser],
+                                   "text": _LANG_SUGGEST_TEXT[browser]}
+    return _render(request, template, **ctx)
+
+
+@app.get("/sk", response_class=HTMLResponse)
+def landing_sk(request: Request):
+    return _landing(request, "landing.html")
+
+
 @app.get("/cs", response_class=HTMLResponse)
 def landing_cs(request: Request):
-    return _render(request, "landing_cs.html")
+    return _landing(request, "landing_cs.html")
 
 
 @app.get("/pl", response_class=HTMLResponse)
 def landing_pl(request: Request):
-    return _render(request, "landing_pl.html")
+    return _landing(request, "landing_pl.html")
 
 
 @app.get("/de", response_class=HTMLResponse)
 def landing_de(request: Request):
-    return _render(request, "landing_de.html")
+    return _landing(request, "landing_de.html")
 
 
 @app.get("/hu", response_class=HTMLResponse)
 def landing_hu(request: Request):
-    return _render(request, "landing_hu.html")
+    return _landing(request, "landing_hu.html")
 
 
 @app.get("/en", response_class=HTMLResponse)
 def landing_en(request: Request):
-    return _render(request, "landing_en.html")
+    return _landing(request, "landing_en.html")
 
 
 def _landing_for_host(request: Request) -> str:
@@ -629,7 +681,7 @@ def _landing_for_host(request: Request) -> str:
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request, user=Depends(current_user)):
     if not user:
-        return _render(request, _landing_for_host(request))
+        return _landing(request, _landing_for_host(request))
     db_path = _client_db(user)
     payments, tasks, missing, renewals = [], [], [], []
     stats = {"overdue": 0, "pending": 0, "total": 0.0}
@@ -1065,7 +1117,7 @@ def sitemap(request: Request):
     host = request.url.hostname or "voru.sk"
     urls = "".join(
         f"<url><loc>https://{host}{path}</loc></url>"
-        for path in ("/", "/cs", "/pl", "/de", "/hu", "/en", "/register", "/login", "/navod",
+        for path in ("/", "/sk", "/cs", "/pl", "/de", "/hu", "/en", "/register", "/login", "/navod",
                      "/podmienky", "/gdpr", "/dpa")
     )
     xml = ('<?xml version="1.0" encoding="UTF-8"?>'
