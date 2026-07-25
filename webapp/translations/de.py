@@ -358,3 +358,17 @@ APP.update({
     "trial_mail_btn": "Abonnement aktivieren",
     "trial_mail_footer": "Fragen? Antworten Sie einfach auf diese E-Mail.",
 })
+
+# App-Sprache + Kalender-Feed
+APP.update({
+    "s_lang": "Sprache der App und E-Mails",
+    "s_cal_title": "Terminkalender",
+    "s_cal_lead": "Fügen Sie diesen Link zu Ihrem Kalender hinzu — "
+                  "Fälligkeiten, Steuertermine und Ablaufdaten erscheinen "
+                  "direkt darin. Der Link ist privat — geben Sie ihn nicht "
+                  "weiter.",
+    "s_cal_how": "Google Kalender: Weitere Kalender → + → Per URL. "
+                 "Apple Kalender: Ablage → Neues Kalenderabonnement.",
+    "ics_cal_name": "VORU — Zahlungen und Termine",
+    "ics_pay": "Bezahlen: {s}",
+})

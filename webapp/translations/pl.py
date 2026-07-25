@@ -329,3 +329,16 @@ APP.update({
     "trial_mail_btn": "Aktywuj subskrypcję",
     "trial_mail_footer": "Pytania? Odpowiedz na ten e-mail.",
 })
+
+# język aplikacji + kanał kalendarza
+APP.update({
+    "s_lang": "Język aplikacji i e-maili",
+    "s_cal_title": "Kalendarz terminów",
+    "s_cal_lead": "Dodaj ten link do swojego kalendarza, a terminy płatności, "
+                  "terminy podatkowe i końce ważności pojawią się bezpośrednio "
+                  "w nim. Link jest prywatny — nie udostępniaj go.",
+    "s_cal_how": "Kalendarz Google: Inne kalendarze → + → Z adresu URL. "
+                 "Kalendarz Apple: Plik → Nowa subskrypcja kalendarza.",
+    "ics_cal_name": "VORU — płatności i terminy",
+    "ics_pay": "Zapłać: {s}",
+})

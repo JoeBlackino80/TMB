@@ -329,3 +329,16 @@ APP.update({
     "trial_mail_btn": "Activate subscription",
     "trial_mail_footer": "Questions? Just reply to this email.",
 })
+
+# app language + calendar feed
+APP.update({
+    "s_lang": "Language of the app and emails",
+    "s_cal_title": "Deadline calendar",
+    "s_cal_lead": "Add this link to your calendar and due dates, tax "
+                  "deadlines and expiry dates will show up right in it. "
+                  "The link is private — don't share it.",
+    "s_cal_how": "Google Calendar: Other calendars → + → From URL. "
+                 "Apple Calendar: File → New Calendar Subscription.",
+    "ics_cal_name": "VORU — payments and deadlines",
+    "ics_pay": "Pay: {s}",
+})

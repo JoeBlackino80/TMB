@@ -640,6 +640,16 @@ _SK_APP = {
                            "predplatným ich hneď oživíte.",
     "trial_mail_btn": "Aktivovať predplatné",
     "trial_mail_footer": "Otázky? Odpovedzte na tento e-mail.",
+    # jazyk aplikácie + kalendárový feed
+    "s_lang": "Jazyk aplikácie a e-mailov",
+    "s_cal_title": "Kalendár termínov",
+    "s_cal_lead": "Pridajte si tento odkaz do svojho kalendára a splatnosti, "
+                  "daňové termíny aj konce platnosti sa vám zobrazia priamo "
+                  "v ňom. Odkaz je súkromný — nezverejňujte ho.",
+    "s_cal_how": "Google Kalendár: Ostatné kalendáre → + → Z URL adresy. "
+                 "Apple Kalendár: Súbor → Nový odber kalendára.",
+    "ics_cal_name": "VORU — platby a termíny",
+    "ics_pay": "Zaplatiť: {s}",
 }
 
 

@@ -13,6 +13,15 @@
       <option value="both" {% if settings['ACCOUNT_TYPE'] == 'both' %}selected{% endif %}>{{ t.s_type_both }}</option>
     </select>
 
+    <label>{{ t.s_lang }}</label>
+    <select name="lang" style="max-width:260px">
+      {% for code, name in [('sk','Slovenčina'), ('cs','Čeština'),
+                            ('pl','Polski'), ('de','Deutsch'),
+                            ('hu','Magyar'), ('en','English')] %}
+      <option value="{{ code }}" {% if (settings['APP_LANG'] or 'sk') == code %}selected{% endif %}>{{ name }}</option>
+      {% endfor %}
+    </select>
+
     <label>{{ t.s_reminder_to }}</label>
     <input type="email" name="reminder_to" value="{{ settings['REMINDER_TO'] }}" required>
     <label>{{ t.s_pdf }}</label>
@@ -77,6 +86,14 @@
     </div>
     <button type="submit">{{ t.s_save }}</button>
   </form>
+</div>
+
+<div class="card">
+  <h2>{{ t.s_cal_title }}</h2>
+  <p class="muted">{{ t.s_cal_lead }}</p>
+  <p><input readonly value="{{ ics_url }}" onclick="this.select()"
+            style="max-width:480px;font-size:13px"></p>
+  <p class="muted">{{ t.s_cal_how }}</p>
 </div>
 
 <div class="card">

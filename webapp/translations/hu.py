@@ -355,3 +355,16 @@ APP.update({
     "trial_mail_btn": "Előfizetés aktiválása",
     "trial_mail_footer": "Kérdése van? Válaszoljon erre az e-mailre.",
 })
+
+# az alkalmazás nyelve + naptár-feed
+APP.update({
+    "s_lang": "Az alkalmazás és az e-mailek nyelve",
+    "s_cal_title": "Határidő-naptár",
+    "s_cal_lead": "Adja hozzá ezt a linket a naptárához — a fizetési "
+                  "határidők, adóhatáridők és lejáratok közvetlenül benne "
+                  "jelennek meg. A link privát — ne ossza meg.",
+    "s_cal_how": "Google Naptár: További naptárak → + → URL-cím alapján. "
+                 "Apple Naptár: Fájl → Új naptár-feliratkozás.",
+    "ics_cal_name": "VORU — fizetések és határidők",
+    "ics_pay": "Fizetendő: {s}",
+})

@@ -1234,16 +1234,76 @@ def delete_mailbox(request: Request, user=Depends(current_user), name: str = For
     return _redirect("/mailboxes")
 
 
+# -- kalendárový feed (ICS) ---------------------------------------------------------
+
+def _ics_sig(client_dir: str) -> str:
+    """Podpis v odkaze na kalendár — feed číta kalendárová appka bez prihlásenia."""
+    return hmac.new(SECRET.encode(), f"ics|{client_dir}".encode(),
+                    hashlib.sha256).hexdigest()[:24]
+
+
+def _ics_escape(text: str) -> str:
+    return (text.replace("\\", "\\\\").replace(";", "\\;")
+            .replace(",", "\\,").replace("\n", " "))
+
+
+@app.get("/calendar/{c}/{sig}.ics")
+def calendar_ics(c: str, sig: str):
+    """Splatnosti, konce platnosti a daňové termíny ako odoberateľný kalendár."""
+    if not SECRET or not hmac.compare_digest(sig, _ics_sig(c)):
+        return Response(status_code=404)
+    settings = clientfs.read_settings(c)
+    if not settings["REMINDER_TO"]:
+        return Response(status_code=404)
+    lang = settings["APP_LANG"] if settings["APP_LANG"] in webi18n.LANGS else "sk"
+    tr = webi18n.t(lang)
+    from bill_agent import i18n as agent_i18n
+    from bill_agent import taxcal
+    renewal_labels = agent_i18n.t(lang)["renewal_labels"]
+
+    events = []  # (uid, YYYY-MM-DD, popis)
+    db = os.path.join(clientfs.client_path(c), "bill_agent.db")
+    if os.path.exists(db):
+        store = Store(db)
+        try:
+            for p in store.pending_payments():
+                if p.due_date:
+                    amount = f"{p.amount:.2f}".replace(".", ",")
+                    events.append((f"p{p.id}", p.due_date,
+                                   tr["ics_pay"].format(s=p.supplier or "—")
+                                   + f" — {amount} {p.currency}"))
+            for r in store.upcoming_renewals(365):
+                label = renewal_labels.get(r.kind, renewal_labels["ine"])
+                events.append((f"r{r.id}", r.expires_on,
+                               label + (f": {r.subject}" if r.subject else "")))
+        finally:
+            store.close()
+    if (settings["ACCOUNT_TYPE"] or "business") != "personal":
+        profile = {p for p in settings["TAX_PROFILE"].split(",") if p}
+        for d in taxcal.upcoming(profile, 365):
+            events.append((f"t{d.date}", d.date, d.label))
+
+    lines = ["BEGIN:VCALENDAR", "VERSION:2.0",
+             "PRODID:-//VORU//voru.sk//SK",
+             f"X-WR-CALNAME:{_ics_escape(tr['ics_cal_name'])}"]
+    for uid, day, summary in events:
+        d8 = day.replace("-", "")
+        lines += ["BEGIN:VEVENT", f"UID:voru-{uid}@voru.sk",
+                  f"DTSTAMP:{d8}T000000Z", f"DTSTART;VALUE=DATE:{d8}",
+                  f"SUMMARY:{_ics_escape(summary)}", "TRANSP:TRANSPARENT",
+                  "END:VEVENT"]
+    lines.append("END:VCALENDAR")
+    return Response("\r\n".join(lines) + "\r\n", media_type="text/calendar",
+                    headers={"Cache-Control": "private, max-age=900"})
+
+
 # -- nastavenia -----------------------------------------------------------------
 
 @app.get("/settings", response_class=HTMLResponse)
 def settings(request: Request, user=Depends(current_user)):
     if not user:
         return _redirect("/login")
-    from bill_agent import taxcal
-    return _render(request, "settings.html", user=user,
-                   tax_profiles=taxcal.PROFILES,
-                   settings=clientfs.read_settings(user["client_dir"]))
+    return _settings_page(request, user)
 
 
 @app.post("/settings")
@@ -1261,6 +1321,8 @@ async def save_settings(request: Request, user=Depends(current_user),
         return value if value in allowed else default
 
     account_type = pick("account_type", {"business", "personal", "both"}, "business")
+    lang = pick("lang", set(webi18n.LANGS),
+                clientfs.read_settings(user["client_dir"])["APP_LANG"] or "sk")
     hours = {str(h) for h in range(5, 22)}
     schedule = {
         "REMIND_SCHEDULE": pick("remind_schedule", {"workdays", "daily", "off"}, "workdays"),
@@ -1276,7 +1338,8 @@ async def save_settings(request: Request, user=Depends(current_user),
                        own_name=own_name.strip(),
                        tax_profile=profile,
                        schedule=schedule,
-                       account_type=account_type)
+                       account_type=account_type,
+                       lang=lang)
     return _redirect("/settings")
 
 
@@ -1284,8 +1347,10 @@ async def save_settings(request: Request, user=Depends(current_user),
 
 def _settings_page(request: Request, user, **extra) -> HTMLResponse:
     from bill_agent import taxcal
+    ics_url = (f"{_base_url(request)}/calendar/{user['client_dir']}/"
+               f"{_ics_sig(user['client_dir'])}.ics")
     return _render(request, "settings.html", user=user,
-                   tax_profiles=taxcal.PROFILES,
+                   tax_profiles=taxcal.PROFILES, ics_url=ics_url,
                    settings=clientfs.read_settings(user["client_dir"]), **extra)
 
 

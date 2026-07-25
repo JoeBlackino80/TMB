@@ -313,3 +313,16 @@ APP.update({
     "trial_mail_btn": "Aktivovat předplatné",
     "trial_mail_footer": "Otázky? Odpovězte na tento e-mail.",
 })
+
+# jazyk aplikace + kalendářový feed
+APP.update({
+    "s_lang": "Jazyk aplikace a e-mailů",
+    "s_cal_title": "Kalendář termínů",
+    "s_cal_lead": "Přidejte si tento odkaz do svého kalendáře a splatnosti, "
+                  "daňové termíny i konce platnosti se vám zobrazí přímo "
+                  "v něm. Odkaz je soukromý — nezveřejňujte ho.",
+    "s_cal_how": "Google Kalendář: Ostatní kalendáře → + → Z adresy URL. "
+                 "Apple Kalendář: Soubor → Nový odběr kalendáře.",
+    "ics_cal_name": "VORU — platby a termíny",
+    "ics_pay": "Zaplatit: {s}",
+})
