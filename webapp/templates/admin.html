@@ -6,6 +6,8 @@
 <div class="stats">
   <div class="stat"><div class="num">{{ stats.paying }}</div>
     <div class="lbl">platiaci</div></div>
+  <div class="stat"><div class="num">≈ {{ ('%.2f'|format(stats.mrr)).replace('.', ',') }} €</div>
+    <div class="lbl">odhad MRR</div></div>
   <div class="stat"><div class="num">{{ stats.trialing }}</div>
     <div class="lbl">aktívny trial</div></div>
   <div class="stat"><div class="num">{{ stats.new7 }} / {{ stats.new30 }}</div>
@@ -17,14 +19,60 @@
 </div>
 
 <div class="card">
+  <h2>Registrácie za 30 dní</h2>
+  <svg width="100%" height="64" viewBox="0 0 300 64" preserveAspectRatio="none"
+       style="display:block">
+    {% for day, n in reg_days %}
+    <rect x="{{ loop.index0 * 10 + 1 }}" width="8"
+          y="{{ 62 - (n / reg_max * 56) }}" height="{{ n / reg_max * 56 + 2 }}"
+          rx="1" fill="{{ '#059669' if n else '#eff1f5' }}">
+      <title>{{ day }}: {{ n }}</title></rect>
+    {% endfor %}
+  </svg>
+  <p class="muted" style="margin-top:6px">{{ reg_days[0][0] }} …
+     {{ reg_days[-1][0] }} (podržte kurzor nad stĺpcom)</p>
+</div>
+
+<div class="card">
+  <h2>Zdravie systému</h2>
+  <table>
+    <tr><td>Posledná aktivita cronu (agent.log)</td><td><b>{{ health.log_mtime }}</b></td></tr>
+    <tr><td>Posledná záloha</td><td><b>{{ health.backup_last }}</b></td></tr>
+    <tr><td>Voľné miesto na disku</td>
+        <td><b>{{ health.disk_free_gb }} GB</b>
+        {% if health.disk_free_gb is not none and health.disk_free_gb < 5 %}
+        <span class="badge b-red">málo!</span>{% endif %}</td></tr>
+    <tr><td>SMTP</td><td>
+      {% if health.smtp %}<span class="badge b-green">nakonfigurované</span>
+      {% else %}<span class="badge b-red">chýba konfigurácia</span>{% endif %}
+      <form method="post" action="/admin/test-smtp" style="display:inline;margin-left:8px">
+        <button class="small">Poslať testovací e-mail</button>
+      </form></td></tr>
+  </table>
+  {% if health.errors %}
+  <p style="margin-top:12px"><b>Posledné chyby v agent.log:</b></p>
+  <pre style="font-size:11.5px;background:#fef0ef;border:1px solid #f2c8c4;
+       border-radius:8px;padding:10px;overflow-x:auto;margin-top:6px">{% for e in health.errors %}{{ e }}
+{% endfor %}</pre>
+  {% else %}
+  <p class="muted" style="margin-top:10px">V logu nie sú žiadne čerstvé chyby. 👌</p>
+  {% endif %}
+</div>
+
+<div class="card">
+<div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+  <input id="q" placeholder="Hľadať e-mail, IP, stav…" oninput="filterRows()"
+         style="max-width:280px;margin:0">
+  <a class="btn" style="margin:0;padding:8px 13px" href="/admin/export.csv">Export CSV</a>
+</div>
 <div style="overflow-x:auto">
 <table>
   <tr><th>ID</th><th>E-mail</th><th>Stav</th><th>Trial do</th>
       <th>Registrácia</th><th>IP</th><th>Schránky</th><th>Info</th><th></th></tr>
   {% for c in clients %}
-  <tr>
+  <tr data-row="{{ c.id }}">
     <td>{{ c.id }}</td>
-    <td>{{ c.email }}{% if c.referred_by %}<br>
+    <td><a href="/admin/client/{{ c.id }}"><b>{{ c.email }}</b></a>{% if c.referred_by %}<br>
         <span class="muted" style="font-size:11px">odporučil: {{ c.referred_by }}</span>{% endif %}</td>
     <td>
       {% if c.status == 'active' %}<span class="badge b-green">active{% if c.plan %} · {{ c.plan }}{% endif %}</span>
@@ -52,9 +100,13 @@
         <input type="hidden" name="status" value="expired">
         <button class="small danger">vypnúť</button>
       </form>
+      <form method="post" action="/admin/run" style="display:inline">
+        <input type="hidden" name="user_id" value="{{ c.id }}">
+        <button class="small">spracovať teraz</button>
+      </form>
     </td>
   </tr>
-  <tr>
+  <tr id="det-{{ c.id }}">
     <td></td>
     <td colspan="8" style="padding-top:0">
       <details>
@@ -87,4 +139,36 @@
    kryptografické odtlačky — nedajú sa zobraziť, iba nastaviť nové.
    Zmena e-mailu presunie prihlásenie aj notifikácie na novú adresu.</p>
 </div>
+
+<div class="card">
+  <h2>Hromadný e-mail klientom</h2>
+  <p class="muted">Novinky vo VORU a pod. Pošle sa všetkým overeným účtom
+     (okrem admina); voliteľne len tým s aktívnou službou.</p>
+  <form method="post" action="/admin/broadcast"
+        onsubmit="return confirm('Naozaj poslať hromadný e-mail všetkým klientom?')">
+    <label>Predmet</label>
+    <input name="subject" required placeholder="VORU: novinka…">
+    <label>Text (odseky oddeľte prázdnym riadkom)</label>
+    <textarea name="body" required rows="6" style="width:100%;max-width:560px;
+        padding:9px 12px;border:1px solid var(--line);border-radius:8px;
+        font-family:var(--sans);font-size:14px"></textarea>
+    <label style="display:flex;align-items:center;gap:8px;margin:10px 0;font-weight:500">
+      <input type="checkbox" name="only_enabled" value="1" style="width:auto">
+      len klienti s aktívnou službou (trial/predplatné)
+    </label>
+    <button type="submit">Odoslať hromadný e-mail</button>
+  </form>
+</div>
+
+<script>
+function filterRows() {
+  const q = document.getElementById('q').value.toLowerCase();
+  document.querySelectorAll('tr[data-row]').forEach(r => {
+    const det = document.getElementById('det-' + r.dataset.row);
+    const show = (r.textContent + ' ').toLowerCase().includes(q);
+    r.style.display = show ? '' : 'none';
+    if (det) det.style.display = show ? '' : 'none';
+  });
+}
+</script>
 {% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Admin — {{ c.email }} — VORU{% endblock %}
+{% block content %}
+<h1>{{ c.email }}</h1>
+
+<div class="stats">
+  <div class="stat{% if counts.pending %} warn{% endif %}">
+    <div class="num">{{ counts.pending }}</div>
+    <div class="lbl">nezaplatené platby</div></div>
+  <div class="stat"><div class="num">{{ ('%.2f'|format(counts.pending_eur)).replace('.', ',') }} €</div>
+    <div class="lbl">čaká na úhradu (EUR)</div></div>
+  <div class="stat"><div class="num">{{ counts.paid }}</div>
+    <div class="lbl">zaplatené</div></div>
+  <div class="stat"><div class="num">{{ counts.tasks }}</div>
+    <div class="lbl">otvorené úlohy</div></div>
+</div>
+
+<div class="card">
+  <h2>Účet</h2>
+  <table>
+    <tr><td>Stav</td><td>
+      {% if c.status == 'active' %}<span class="badge b-green">active{% if c.plan %} · {{ c.plan }}{% endif %}</span>
+      {% elif c.status == 'trial' %}<span class="badge b-amber">trial do {{ c.trial_until }}</span>
+      {% else %}<span class="badge b-red">{{ c.status }}</span>{% endif %}
+      {% if not enabled %}<span class="badge b-red">vypnutý</span>{% endif %}
+      {% if c.verified %}<span class="badge b-green">overený</span>
+      {% else %}<span class="badge b-gray">neoverený</span>{% endif %}
+      {% if c.totp_secret %}<span class="badge b-green">2FA</span>{% endif %}</td></tr>
+    <tr><td>Registrácia</td><td>{{ (c.created_at or '').replace('T', ' ')[:16] }}
+        · IP {{ c.reg_ip or '—' }}</td></tr>
+    {% if c.referred_by %}<tr><td>Odporučil</td><td>{{ c.referred_by }}</td></tr>{% endif %}
+    <tr><td>Jazyk / typ účtu</td><td>{{ settings['APP_LANG'] or 'sk' }} ·
+        {{ settings['ACCOUNT_TYPE'] or 'business' }}</td></tr>
+    <tr><td>Prehľady chodia na</td><td>{{ settings['REMINDER_TO'] }}</td></tr>
+    <tr><td>Rozvrh</td><td>prehľad: {{ settings['REMIND_SCHEDULE'] or 'workdays' }}
+        o {{ settings['REMIND_HOUR'] or '7' }}:00 ·
+        zhrnutie: {{ settings['DIGEST_SCHEDULE'] or 'workdays' }}
+        o {{ settings['DIGEST_HOUR'] or '17' }}:00</td></tr>
+    {% if settings['TAX_PROFILE'] %}
+    <tr><td>Daňový profil</td><td>{{ settings['TAX_PROFILE'] }}</td></tr>{% endif %}
+  </table>
+</div>
+
+<div class="card">
+  <h2>Schránky ({{ mailboxes|length }})</h2>
+  {% if mailboxes %}
+  <table>
+    <tr><th>Názov</th><th>Server</th><th>Prihlásenie</th><th>Typ</th></tr>
+    {% for m in mailboxes %}
+    <tr><td><b>{{ m.name }}</b></td><td>{{ m.host }}</td><td>{{ m.user }}</td>
+        <td>{{ 'Google OAuth' if m.auth == 'oauth_google' else 'heslo' }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">Žiadna pripojená schránka.</p>{% endif %}
+</div>
+
+<div class="card">
+  <h2>Posledná spracovaná pošta</h2>
+  {% if emails %}
+  <table>
+    <tr><th>Prijaté</th><th>Od</th><th>Predmet</th><th>Kategória</th></tr>
+    {% for e in emails %}
+    <tr><td style="white-space:nowrap">{{ (e['received_at'] or '')[:16].replace('T', ' ') }}</td>
+        <td>{{ e['sender'][:40] }}</td><td>{{ e['subject'][:60] }}</td>
+        <td><span class="badge b-gray">{{ e['category'] }}</span></td></tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">Zatiaľ žiadna spracovaná pošta.</p>{% endif %}
+</div>
+
+<div class="card">
+  <h2>Akcie</h2>
+  <div class="actions" style="display:flex;gap:10px;flex-wrap:wrap">
+    <form method="post" action="/admin/run">
+      <input type="hidden" name="user_id" value="{{ c.id }}">
+      <button class="small">Spracovať teraz (fetch + prehľad)</button>
+    </form>
+  </div>
+  <form method="post" action="/admin/send-mail" style="margin-top:14px">
+    <input type="hidden" name="user_id" value="{{ c.id }}">
+    <label>Poslať klientovi e-mail — predmet</label>
+    <input name="subject" required placeholder="napr. Ako vám môžem pomôcť?">
+    <label>Text</label>
+    <textarea name="body" required rows="5" style="width:100%;max-width:560px;
+        padding:9px 12px;border:1px solid var(--line);border-radius:8px;
+        font-family:var(--sans);font-size:14px"></textarea>
+    <div><button type="submit">Odoslať e-mail</button></div>
+  </form>
+</div>
+{% endblock %}

@@ -395,6 +395,11 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
         store.close()
     if not user["verified"]:
         _send_welcome(request, user, lang)
+    # upozornenie adminovi na novú registráciu (best-effort)
+    if ADMIN_EMAIL and email != ADMIN_EMAIL:
+        mailer.send(ADMIN_EMAIL, f"VORU: nová registrácia — {email}",
+                    f"E-mail: {email}\nJazyk: {lang}\nTyp účtu: {account_type}\n"
+                    f"IP: {_client_ip(request)}\n")
     response = _redirect("/")
     response.set_cookie("session", _session_cookie(user["id"]),
                         httponly=True, max_age=30 * 86400, samesite="lax")
@@ -1658,6 +1663,46 @@ def _is_admin(user) -> bool:
     return bool(user and ADMIN_EMAIL and user["email"] == ADMIN_EMAIL)
 
 
+def _repo_root() -> str:
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _admin_health() -> dict:
+    """Zdravie systému pre admin panel: cron, chyby, disk, zálohy, SMTP."""
+    import shutil as sh
+    from datetime import datetime as dt
+
+    health = {"log_mtime": "—", "errors": [], "disk_free_gb": None,
+              "backup_last": "—", "smtp": mailer.smtp_configured()}
+    log_path = os.path.join(_repo_root(), "agent.log")
+    try:
+        st = os.stat(log_path)
+        health["log_mtime"] = dt.fromtimestamp(st.st_mtime).strftime("%d.%m. %H:%M")
+        with open(log_path, "rb") as fh:
+            fh.seek(max(0, st.st_size - 200_000))
+            tail = fh.read().decode("utf-8", "replace").splitlines()
+        health["errors"] = [line.strip() for line in tail
+                            if ("Traceback" in line or "Error" in line
+                                or "zlyha" in line.lower() or "⚠" in line)][-8:]
+    except OSError:
+        pass
+    try:
+        health["disk_free_gb"] = round(sh.disk_usage("/").free / 1e9, 1)
+    except OSError:
+        pass
+    backup_dir = os.environ.get("BACKUP_DIR", "/root/backups")
+    try:
+        files = [os.path.join(backup_dir, n) for n in os.listdir(backup_dir)]
+        files = [f for f in files if os.path.isfile(f)]
+        if files:
+            newest = max(files, key=os.path.getmtime)
+            health["backup_last"] = (os.path.basename(newest) + " ("
+                + dt.fromtimestamp(os.path.getmtime(newest)).strftime("%d.%m. %H:%M") + ")")
+    except OSError:
+        pass
+    return health
+
+
 @app.get("/admin", response_class=HTMLResponse)
 def admin(request: Request, user=Depends(current_user)):
     if not _is_admin(user):
@@ -1691,7 +1736,180 @@ def admin(request: Request, user=Depends(current_user)):
         "paying": sum(1 for c in data if c["status"] == "active"),
         "trialing": sum(1 for c in data if c["status"] == "trial" and c["enabled"]),
     }
-    return _render(request, "admin.html", user=user, clients=data, stats=stats)
+    stats["mrr"] = stats["paying"] * 4.99
+    # graf registrácií za posledných 30 dní
+    per_day = {}
+    for c in data:
+        per_day[c["created_at"][:10]] = per_day.get(c["created_at"][:10], 0) + 1
+    reg_days = []
+    for i in range(29, -1, -1):
+        day = (date.today() - timedelta(days=i)).isoformat()
+        reg_days.append((day, per_day.get(day, 0)))
+    return _render(request, "admin.html", user=user, clients=data, stats=stats,
+                   reg_days=reg_days, reg_max=max(n for _, n in reg_days) or 1,
+                   health=_admin_health())
+
+
+@app.post("/admin/test-smtp")
+def admin_test_smtp(request: Request, user=Depends(current_user)):
+    if not _is_admin(user):
+        return _redirect("/")
+    ok = mailer.send(user["email"], "VORU: test SMTP",
+                     "Tento e-mail potvrdzuje, že odosielanie zo servera funguje.")
+    return _render(request, "message.html", user=user,
+                   title="SMTP test " + ("prešiel" if ok else "zlyhal"),
+                   body=("Testovací e-mail odišiel na " + user["email"] + "."
+                         if ok else "E-mail sa nepodarilo odoslať — skontrolujte "
+                         "SMTP_* hodnoty v .env.master a log servera."),
+                   cta="/admin", cta_label="Späť na admin")
+
+
+@app.post("/admin/run")
+def admin_run_client(request: Request, user=Depends(current_user),
+                     user_id: int = Form(...)):
+    """Spustí fetch + prehľad pre jedného klienta (na pozadí, výstup do agent.log)."""
+    import subprocess
+    import sys
+
+    if not _is_admin(user):
+        return _redirect("/")
+    users = Users()
+    try:
+        target = users.by_id(user_id)
+    finally:
+        users.close()
+    if not target:
+        return _redirect("/admin")
+    env = dict(os.environ)
+    env["PYTHONPATH"] = _repo_root() + os.pathsep + env.get("PYTHONPATH", "")
+    log = open(os.path.join(_repo_root(), "agent.log"), "ab")
+    subprocess.Popen([sys.executable, "-m", "bill_agent", "run"],
+                     cwd=clientfs.client_path(target["client_dir"]),
+                     env=env, stdout=log, stderr=log)
+    return _render(request, "message.html", user=user, title="Spracovanie beží",
+                   body=f"Pre klienta {target['email']} beží na pozadí fetch + "
+                        "prehľad. Výsledok o chvíľu uvidíte v agent.log a klient "
+                        "dostane e-mail, ak je čo poslať.",
+                   cta="/admin", cta_label="Späť na admin")
+
+
+def _mail_html(subject: str, body: str) -> str:
+    from html import escape
+    paragraphs = "".join(
+        f"<p style='margin:12px 0 0;font-family:{ly.FONT};font-size:14px;"
+        f"line-height:1.6;color:{ly.INK}'>{escape(p)}</p>"
+        for p in body.split("\n\n") if p.strip())
+    return ly.wrap(ly.heading(subject) + paragraphs,
+                   preheader=body[:100], footer="VORU · voru.sk")
+
+
+@app.post("/admin/send-mail")
+def admin_send_mail(request: Request, user=Depends(current_user),
+                    user_id: int = Form(...), subject: str = Form(...),
+                    body: str = Form(...)):
+    if not _is_admin(user):
+        return _redirect("/")
+    users = Users()
+    try:
+        target = users.by_id(user_id)
+    finally:
+        users.close()
+    ok = bool(target) and mailer.send(target["email"], subject.strip(),
+                                      body, _mail_html(subject.strip(), body))
+    return _render(request, "message.html", user=user,
+                   title="Odoslané" if ok else "Neodoslané",
+                   body=(f"E-mail „{subject.strip()}“ odišiel na {target['email']}."
+                         if ok else "E-mail sa nepodarilo odoslať."),
+                   cta="/admin", cta_label="Späť na admin")
+
+
+@app.post("/admin/broadcast")
+def admin_broadcast(request: Request, user=Depends(current_user),
+                    subject: str = Form(...), body: str = Form(...),
+                    only_enabled: str = Form("")):
+    """Hromadný e-mail klientom (novinky). Len overeným účtom, nie adminovi."""
+    if not _is_admin(user):
+        return _redirect("/")
+    users = Users()
+    try:
+        targets = [u for u in users.all()
+                   if u["verified"] and u["email"] != ADMIN_EMAIL
+                   and (not only_enabled or users.is_service_enabled(u))]
+    finally:
+        users.close()
+    html = _mail_html(subject.strip(), body)
+    sent = sum(1 for u in targets
+               if mailer.send(u["email"], subject.strip(), body, html))
+    return _render(request, "message.html", user=user, title="Hromadný e-mail",
+                   body=f"Odoslané {sent} z {len(targets)} príjemcov.",
+                   cta="/admin", cta_label="Späť na admin")
+
+
+@app.get("/admin/export.csv")
+def admin_export_csv(request: Request, user=Depends(current_user)):
+    import csv
+    import io
+
+    if not _is_admin(user):
+        return _redirect("/")
+    users = Users()
+    try:
+        rows = users.all()
+        out = io.StringIO()
+        writer = csv.writer(out, delimiter=";")
+        writer.writerow(["id", "email", "stav", "plán", "trial do",
+                         "registrácia", "IP", "overený", "2FA", "odporučil",
+                         "schránky", "jazyk"])
+        for u in rows:
+            settings = clientfs.read_settings(u["client_dir"])
+            writer.writerow([
+                u["id"], u["email"], u["status"], u["plan"], u["trial_until"],
+                (u["created_at"] or "")[:16], u["reg_ip"],
+                "1" if u["verified"] else "0", "1" if u["totp_secret"] else "0",
+                u["referred_by"], len(clientfs.list_mailboxes(u["client_dir"])),
+                settings["APP_LANG"] or "sk"])
+    finally:
+        users.close()
+    return Response("﻿" + out.getvalue(), media_type="text/csv",
+                    headers={"Content-Disposition":
+                             'attachment; filename="voru-klienti.csv"'})
+
+
+@app.get("/admin/client/{user_id}", response_class=HTMLResponse)
+def admin_client_detail(request: Request, user_id: int,
+                        user=Depends(current_user)):
+    if not _is_admin(user):
+        return _redirect("/")
+    users = Users()
+    try:
+        target = users.by_id(user_id)
+    finally:
+        users.close()
+    if not target:
+        return _redirect("/admin")
+    settings = clientfs.read_settings(target["client_dir"])
+    counts = {"pending": 0, "paid": 0, "ignored": 0, "tasks": 0,
+              "pending_eur": 0.0}
+    emails = []
+    db = os.path.join(clientfs.client_path(target["client_dir"]), "bill_agent.db")
+    if os.path.exists(db):
+        store = Store(db)
+        try:
+            for status, n in store.conn.execute(
+                    "SELECT status, COUNT(*) FROM payments GROUP BY status"):
+                counts[status] = n
+            counts["pending_eur"] = sum(
+                p.amount for p in store.pending_payments() if p.currency == "EUR")
+            counts["tasks"] = len(store.pending_tasks())
+            emails = store.conn.execute(
+                "SELECT received_at, sender, subject, category FROM email_log "
+                "ORDER BY received_at DESC LIMIT 10").fetchall()
+        finally:
+            store.close()
+    return _render(request, "admin_client.html", user=user, c=target,
+                   settings=settings, counts=counts, emails=emails,
+                   mailboxes=clientfs.list_mailboxes(target["client_dir"]),
+                   enabled=clientfs.is_enabled(target["client_dir"]))
 
 
 @app.post("/admin/update")
