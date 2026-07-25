@@ -39,6 +39,36 @@ STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 app = FastAPI(title="VORU")
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
 
+# Content-Security-Policy: povolené len skutočne používané zdroje.
+# 'unsafe-inline' pri skriptoch je nutné (inline <script> a onclick v šablónach),
+# ale obmedzené na vlastný pôvod + Turnstile/Plausible; žiadne eval.
+_CSP = (
+    "default-src 'self'; "
+    "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com "
+    "https://plausible.io; "
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+    "font-src 'self' https://fonts.gstatic.com; "
+    "img-src 'self' data:; "
+    "connect-src 'self' https://plausible.io; "
+    "frame-src https://challenges.cloudflare.com; "
+    "form-action 'self' https://accounts.google.com; "
+    "base-uri 'self'; frame-ancestors 'none'"
+)
+
+
+@app.middleware("http")
+async def _security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault("Content-Security-Policy", _CSP)
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault(
+        "Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    response.headers.setdefault(
+        "Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+    return response
+
 
 def _sign(value: str) -> str:
     return hmac.new(SECRET.encode(), value.encode(), hashlib.sha256).hexdigest()
