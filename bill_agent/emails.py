@@ -29,6 +29,9 @@ class Email:
     date: str
     body: str
     attachments: list[Attachment] = field(default_factory=list)
+    # výsledok kontrol pravosti odosielateľa od prijímajúceho servera
+    # (DKIM/SPF/DMARC) — používa sa na odmietnutie sfalšovaných príkazov
+    auth_results: str = ""
 
 
 def _decode_header(value: str) -> str:
@@ -96,6 +99,7 @@ def parse_message(raw: bytes) -> Email:
         date=msg.get("Date", ""),
         body=_extract_body(msg),
         attachments=_extract_attachments(msg),
+        auth_results=" ".join(msg.get_all("Authentication-Results", [])).lower(),
     )
 
 
@@ -106,9 +110,10 @@ def _connect(account: MailAccount) -> imaplib.IMAP4:
     starttls — nešifrovaný port + STARTTLS (napr. Proton Mail Bridge na 127.0.0.1:1143)
     plain    — bez šifrovania (len na testovanie)
     """
+    # timeout: zaseknutý alebo škodlivý IMAP server nesmie zablokovať celý run-all
     if account.security == "ssl":
-        return imaplib.IMAP4_SSL(account.host, account.port)
-    conn = imaplib.IMAP4(account.host, account.port)
+        return imaplib.IMAP4_SSL(account.host, account.port, timeout=30)
+    conn = imaplib.IMAP4(account.host, account.port, timeout=30)
     if account.security == "starttls":
         conn.starttls()
     return conn

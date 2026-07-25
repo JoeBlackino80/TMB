@@ -50,12 +50,25 @@ _ALL_WORDS = {"vsetko", "všetko", "vše", "vse", "všechno", "vsechno", "wszyst
 DEFAULT_SNOOZE_DAYS = 3
 
 
+# jednoznačné zlyhanie overenia pravosti odosielateľa (spoofing)
+_AUTH_FAIL = ("dkim=fail", "spf=fail", "dmarc=fail",
+              "dkim=softfail", "spf=softfail")
+
+
 def is_command_email(mail: Email, allowed_senders: list[str]) -> bool:
-    """Je to odpoveď na našu pripomienku od samotného používateľa?"""
+    """Je to odpoveď na našu pripomienku od samotného používateľa?
+
+    Príkazy menia stav platieb, preto overujeme aj hlavičku From. Ak
+    prijímajúci server označil DKIM/SPF/DMARC ako zlyhané, e-mail je
+    pravdepodobne sfalšovaný a príkaz sa nevykoná (chýbajúca hlavička sa
+    toleruje — malí poskytovatelia ju nepridávajú).
+    """
     subject = mail.subject.lower().strip()
     if not any(marker in subject for marker in SUBJECT_MARKERS):
         return False
     if not subject.startswith(_REPLY_PREFIXES):
+        return False
+    if any(flag in mail.auth_results for flag in _AUTH_FAIL):
         return False
     sender = mail.sender.lower()
     return any(a and a in sender for a in allowed_senders)

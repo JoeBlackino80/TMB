@@ -70,24 +70,49 @@ async def _security_headers(request: Request, call_next):
     return response
 
 
+@app.on_event("startup")
+def _check_secret() -> None:
+    """Fail-fast: prázdny/slabý WEBAPP_SECRET by umožnil sfalšovať session
+    cookie aj tokeny na reset hesla (HMAC s prázdnym kľúčom je verejný).
+    Beží len pri štarte servera (uvicorn), nie v testoch."""
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        return
+    if len(SECRET) < 16:
+        raise RuntimeError(
+            "WEBAPP_SECRET musí mať aspoň 16 znakov (ideálne 64). "
+            "Nastavte ho v .env.master — bez neho nie je autentifikácia bezpečná.")
+
+
 def _sign(value: str) -> str:
     return hmac.new(SECRET.encode(), value.encode(), hashlib.sha256).hexdigest()
 
 
-def _session_cookie(user_id: int) -> str:
-    return f"{user_id}.{_sign(str(user_id))}"
+def _session_cookie(user) -> str:
+    # podpis viaže reláciu na heslo — zmena/reset hesla zneplatní staré cookies
+    return f"{user['id']}.{_sign(str(user['id']) + '|' + (user['pw_hash'] or '')[:16])}"
+
+
+def _set_session(response, user) -> None:
+    response.set_cookie("session", _session_cookie(user), httponly=True,
+                        secure=True, max_age=30 * 86400, samesite="lax")
 
 
 def current_user(request: Request):
     cookie = request.cookies.get("session", "")
     user_id, _, signature = cookie.partition(".")
-    if not user_id or not hmac.compare_digest(signature, _sign(user_id)):
+    if not user_id.isdigit() or not signature:
         return None
     users = Users()
     try:
-        return users.by_id(int(user_id))
+        user = users.by_id(int(user_id))
     finally:
         users.close()
+    if not user:
+        return None
+    expected = _sign(str(user["id"]) + "|" + (user["pw_hash"] or "")[:16])
+    if not hmac.compare_digest(signature, expected):
+        return None
+    return user
 
 
 def _redirect(url: str) -> RedirectResponse:
@@ -308,10 +333,34 @@ def _register_daily_cap(request: Request) -> bool:
 
 
 def _client_ip(request: Request) -> str:
+    # za reverznou proxy (Caddy) je skutočná IP posledná v X-Forwarded-For —
+    # tú pridáva proxy. Prvú hodnotu si klient vie ľubovoľne podvrhnúť, preto
+    # ju nepoužívame (obišiel by rate-limit a otrávil IP v logoch/admine).
     forwarded = request.headers.get("x-forwarded-for", "")
     if forwarded:
-        return forwarded.split(",")[0].strip()
+        return forwarded.split(",")[-1].strip()
     return request.client.host if request.client else ""
+
+
+def _host_is_public(host: str) -> bool:
+    """Zabráni SSRF: pri pridaní schránky nedovolí smerovať na privátne,
+    loopback či link-local adresy (metadáta cloudu, interná sieť)."""
+    import ipaddress
+    import socket
+
+    try:
+        infos = socket.getaddrinfo(host, None)
+    except (socket.gaierror, UnicodeError, ValueError):
+        return False
+    for info in infos:
+        try:
+            ip = ipaddress.ip_address(info[4][0])
+        except ValueError:
+            return False
+        if (ip.is_private or ip.is_loopback or ip.is_link_local
+                or ip.is_reserved or ip.is_multicast or ip.is_unspecified):
+            return False
+    return True
 
 
 def _reg_ts() -> str:
@@ -431,8 +480,7 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
                     f"E-mail: {email}\nJazyk: {lang}\nTyp účtu: {account_type}\n"
                     f"IP: {_client_ip(request)}\n")
     response = _redirect("/")
-    response.set_cookie("session", _session_cookie(user["id"]),
-                        httponly=True, max_age=30 * 86400, samesite="lax")
+    _set_session(response, user)
     return response
 
 
@@ -455,18 +503,23 @@ _LOCKOUT_AFTER = 5
 _LOCKOUT_SECONDS = 15 * 60
 
 
-def _login_blocked(key: str) -> bool:
+def _login_blocked(key: str, limit: int = _LOCKOUT_AFTER) -> bool:
     now = time.time()
     fails = [t for t in _LOGIN_FAILS.get(key, []) if now - t < _LOCKOUT_SECONDS]
     _LOGIN_FAILS[key] = fails
-    return len(fails) >= _LOCKOUT_AFTER
+    return len(fails) >= limit
 
 
 @app.post("/login")
 def login(request: Request, email: str = Form(...), password: str = Form(...),
           lang: str = Form("sk")):
     key = email.strip().lower()
-    if _login_blocked(key):
+    # blokujeme podľa účtu aj podľa IP — IP bráni aj hádaniu naprieč účtami
+    # (password spraying) a znižuje riziko zamknutia obete cudzou IP
+    # IP limit je vyšší (20/15 min) — firma za spoločnou IP sa nezablokuje,
+    # ale spraying stoviek pokusov z jednej IP áno
+    ip_key = f"ip:{_client_ip(request)}"
+    if _login_blocked(key) or _login_blocked(ip_key, limit=20):
         return _login_page(request, lang, error="err_lockout")
     users = Users()
     try:
@@ -475,15 +528,16 @@ def login(request: Request, email: str = Form(...), password: str = Form(...),
         users.close()
     if not user or not verify_password(password, user["pw_hash"]):
         _LOGIN_FAILS.setdefault(key, []).append(time.time())
+        _LOGIN_FAILS.setdefault(ip_key, []).append(time.time())
         return _login_page(request, lang, error="err_login")
     _LOGIN_FAILS.pop(key, None)
+    _LOGIN_FAILS.pop(ip_key, None)
     if user["totp_secret"]:
         # druhý krok: kód z autentifikačnej appky (token platí krátko)
         return _login_page(request, lang, totp_step=True,
                            totp_t=_make_token("totp", user["id"], hours=1))
     response = _redirect("/")
-    response.set_cookie("session", _session_cookie(user["id"]),
-                        httponly=True, max_age=30 * 86400, samesite="lax")
+    _set_session(response, user)
     return response
 
 
@@ -506,8 +560,7 @@ def login_totp(request: Request, t: str = Form(...), code: str = Form(...),
                            error="err_totp_wrong")
     _LOGIN_FAILS.pop(f"totp:{uid}", None)
     response = _redirect("/")
-    response.set_cookie("session", _session_cookie(user["id"]),
-                        httponly=True, max_age=30 * 86400, samesite="lax")
+    _set_session(response, user)
     return response
 
 
@@ -515,7 +568,7 @@ def login_totp(request: Request, t: str = Form(...), code: str = Form(...),
 def logout(user=Depends(current_user)):
     # prihlásenie sa otvorí v jazyku účtu, z ktorého sa klient odhlásil
     response = _redirect(f"/login?lang={_user_lang(user)}")
-    response.delete_cookie("session")
+    response.delete_cookie("session", httponly=True, secure=True, samesite="lax")
     return response
 
 
@@ -1223,6 +1276,8 @@ def _test_imap(host: str, port: int, user: str, password: str, security: str) ->
     """Overí prihlásenie do schránky. Vráti '' pri úspechu, inak text chyby."""
     if os.environ.get("WEBAPP_SKIP_IMAP_CHECK") == "1":
         return ""
+    if not _host_is_public(host):
+        return "Neplatná adresa servera."
     try:
         if security == "ssl":
             conn = imaplib.IMAP4_SSL(host, port, timeout=15)
@@ -1617,7 +1672,7 @@ def delete_account(request: Request, user=Depends(current_user),
         users.close()
     response = _render(request, "message.html", title=tr["s_del_done_title"],
                        body=tr["s_del_done_body"])
-    response.delete_cookie("session")
+    response.delete_cookie("session", httponly=True, secure=True, samesite="lax")
     return response
 
 
@@ -1765,7 +1820,10 @@ def _verify_stripe_signature(payload: bytes, header: str) -> bool:
     timestamp, signature = parts.get("t", ""), parts.get("v1", "")
     if not timestamp or not signature:
         return False
-    if abs(time.time() - int(timestamp)) > 600:
+    try:
+        if abs(time.time() - int(timestamp)) > 600:
+            return False
+    except ValueError:
         return False
     expected = hmac.new(STRIPE_WEBHOOK_SECRET.encode(),
                         f"{timestamp}.".encode() + payload, hashlib.sha256).hexdigest()

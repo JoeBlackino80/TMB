@@ -13,11 +13,11 @@ from bill_agent import crypto
 
 CLIENTS_DIR = os.environ.get("CLIENTS_DIR", "clients")
 
-# hodnoty zdieľané všetkými klientmi — z prostredia servera (.env.master)
-MASTER_KEYS = (
-    "ANTHROPIC_API_KEY", "CLAUDE_MODEL",
-    "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD",
-)
+# Zdieľané tajomstvá (ANTHROPIC_API_KEY, SMTP_PASSWORD…) sa do klientskych .env
+# ZÁMERNE nekopírujú — engine ich číta z prostredia servera (.env.master načíta
+# cron aj webapp). Držať ich v každom clients/<x>/.env by znamenalo rozliezanie
+# tajomstiev: únik jedného adresára = únik API kľúča a SMTP hesla.
+MASTER_KEYS: tuple[str, ...] = ()
 
 
 def client_path(client_dir: str) -> str:
