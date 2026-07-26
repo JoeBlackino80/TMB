@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Flight reservation in minutes — pay €{{ price }}, not the fare</h1>
+<p class="lead">A <b>genuine airline reservation (PNR)</b> without buying the
+ticket. Verifiable on the airline's website, delivered to your e-mail within
+minutes. Perfect for <b>visa applications</b> and <b>proof of onward
+travel</b>. The reservation stays valid for 24–72&nbsp;hours (airline
+dependent), then the airline releases it automatically.</p>
+
+<div class="card">
+  <h2>Order your reservation</h2>
+  <form method="post" action="/order">
+    <div class="row">
+      <div><label>From (airport code)</label>
+        <input name="origin" placeholder="VIE" maxlength="3" required></div>
+      <div><label>To (airport code)</label>
+        <input name="destination" placeholder="BKK" maxlength="3" required></div>
+    </div>
+    <div class="row">
+      <div><label>Departure date</label>
+        <input type="date" name="depart_date" min="{{ min_date }}" required></div>
+      <div><label>Title</label>
+        <select name="title">
+          <option value="mr">Mr</option><option value="ms">Ms</option>
+          <option value="mrs">Mrs</option>
+        </select></div>
+    </div>
+    <div class="row">
+      <div><label>Given name (as in passport)</label>
+        <input name="given_name" required></div>
+      <div><label>Surname (as in passport)</label>
+        <input name="family_name" required></div>
+    </div>
+    <div class="row">
+      <div><label>Date of birth</label>
+        <input type="date" name="born_on" required></div>
+      <div><label>Gender</label>
+        <select name="gender">
+          <option value="m">Male</option><option value="f">Female</option>
+        </select></div>
+    </div>
+    <div class="row">
+      <div><label>E-mail (itinerary is sent here)</label>
+        <input type="email" name="email" required></div>
+      <div><label>Phone (international, +421...)</label>
+        <input name="phone" placeholder="+421900123456" required></div>
+    </div>
+    <button type="submit">Get my reservation — €{{ price }}</button>
+    <p class="note">You pay only our service fee. We never charge you the
+    price of the flight and the airline is never paid.</p>
+  </form>
+</div>
+
+<div class="card">
+  <h2>How it works</h2>
+  <ol>
+    <li>You pay the €{{ price }} service fee.</li>
+    <li>We place a real reservation with the airline in your name —
+        a booking with a PNR code, held without payment.</li>
+    <li>The itinerary with the PNR arrives in your inbox, usually within
+        minutes. You can verify it on the airline's own website
+        (&ldquo;Manage booking&rdquo;).</li>
+    <li>After 24–72&nbsp;hours the unpaid booking is released by the
+        airline automatically. Nothing to cancel, nothing more to pay.</li>
+  </ol>
+</div>
+
+<div class="card">
+  <h2>What it is — and what it is not</h2>
+  <p>You receive a <b>real reservation</b>, not an edited PDF: the PNR exists
+  in the airline's system and anyone can verify it while it is valid.</p>
+  <p>It is <b>not a flight ticket</b> — you cannot board with it, and once it
+  expires, verification will show it as released. Embassies commonly accept
+  (and often recommend) unticketed reservations for visa applications; time
+  your application so the reservation is live when it is checked, and order
+  a fresh one whenever you need it again.</p>
+</div>
+{% endblock %}

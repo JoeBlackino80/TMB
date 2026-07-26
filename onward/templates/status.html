@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  {% if order['status'] == 'booked' %}
+    <h2 class="ok">Reservation confirmed</h2>
+    <div class="pnr">{{ order['pnr'] }}</div>
+    <p style="text-align:center">{{ order['airline'] }} —
+      passenger {{ order['given_name'] }} {{ order['family_name'] }}</p>
+    <table>
+      <tr><th>Flight</th><th>Route</th><th>Departure</th><th>Arrival</th></tr>
+      {% for s in segments %}
+      <tr><td><b>{{ s['flight'] }}</b></td>
+          <td>{{ s['origin'] }} → {{ s['destination'] }}</td>
+          <td>{{ s['departing_at'].replace('T',' ')[:16] }}</td>
+          <td>{{ s['arriving_at'].replace('T',' ')[:16] }}</td></tr>
+      {% endfor %}
+    </table>
+    <p><b>Valid until {{ order['hold_expires_at'].replace('T',' ').replace('Z',' UTC') }}.</b>
+    Verify it on the airline's website under &ldquo;Manage booking&rdquo; with
+    the PNR and your surname. The itinerary was also sent to
+    {{ order['email'] }}.</p>
+  {% elif order['status'] in ('new', 'paid') %}
+    <h2>Working on it…</h2>
+    <p>Your reservation is being created. This page refreshes automatically;
+    the itinerary will also arrive by e-mail.</p>
+    <meta http-equiv="refresh" content="10">
+  {% elif order['status'] == 'expired' %}
+    <h2 class="bad">Reservation expired</h2>
+    <p>Reservation {{ order['pnr'] }} reached the end of its validity and was
+    released by the airline. Need a fresh one? <a href="/">Place a new
+    order</a>.</p>
+  {% else %}
+    <h2 class="bad">We could not complete this reservation</h2>
+    <p>{{ order['error'] or 'Please try a different route or date.' }}</p>
+    <p>If you already paid, reply to your confirmation e-mail and we will
+    make it right or refund you.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+"""Odoslanie itinerára zákazníkovi (SMTP z ONWARD_SMTP_*, fallback SMTP_*)."""
+
+import os
+import smtplib
+from email.message import EmailMessage
+
+
+def _env(name: str) -> str:
+    return os.environ.get(f"ONWARD_{name}", "") or os.environ.get(name, "")
+
+
+def smtp_configured() -> bool:
+    return bool(_env("SMTP_HOST") and _env("SMTP_USER") and _env("SMTP_PASSWORD"))
+
+
+def send(to: str, subject: str, text: str, html: str = "") -> bool:
+    if not smtp_configured():
+        return False
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = _env("SMTP_USER")
+    msg["To"] = to
+    msg.set_content(text)
+    if html:
+        msg.add_alternative(html, subtype="html")
+    port = int(_env("SMTP_PORT") or 587)
+    try:
+        if port == 465:
+            server = smtplib.SMTP_SSL(_env("SMTP_HOST"), port, timeout=20)
+        else:
+            server = smtplib.SMTP(_env("SMTP_HOST"), port, timeout=20)
+            server.starttls()
+        try:
+            server.login(_env("SMTP_USER"), _env("SMTP_PASSWORD"))
+            server.send_message(msg)
+        finally:
+            server.quit()
+        return True
+    except Exception:
+        return False
