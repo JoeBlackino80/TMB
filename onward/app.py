@@ -36,9 +36,9 @@ ADMIN_KEY = os.environ.get("ONWARD_ADMIN_KEY", "")
 
 # plán → (dní platnosti, env s cenou, predvolená cena, env so Stripe linkom)
 PLANS = {
-    "basic": (0, "ONWARD_PRICE_EUR", "14.90", "STRIPE_LINK_ONWARD"),
-    "week": (7, "ONWARD_PRICE_WEEK_EUR", "24.90", "STRIPE_LINK_ONWARD_WEEK"),
-    "twoweek": (14, "ONWARD_PRICE_2WEEK_EUR", "34.90", "STRIPE_LINK_ONWARD_2WEEK"),
+    "basic": (0, "ONWARD_PRICE_EUR", "9.90", "STRIPE_LINK_ONWARD"),
+    "week": (7, "ONWARD_PRICE_WEEK_EUR", "16.90", "STRIPE_LINK_ONWARD_WEEK"),
+    "twoweek": (14, "ONWARD_PRICE_2WEEK_EUR", "24.90", "STRIPE_LINK_ONWARD_2WEEK"),
 }
 MAX_PAX = 4
 
