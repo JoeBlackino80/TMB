@@ -350,3 +350,17 @@ APP.update({
     "g_login_fail_title": "Google sign-in failed",
     "g_login_fail_body": "Please try again or use email and password.",
 })
+
+# popisky k typom účtu
+APP.update({
+    "acct_hint_business": "invoices, taxes, documents for your accountant",
+    "acct_hint_personal": "household bills, insurance, payment reminders",
+    "acct_hint_both": "one inbox — business and personal items together",
+})
+
+# uvítacia obrazovka (onboarding)
+APP.update({
+    "ob_title": "One more thing",
+    "ob_lead": "How will you use VORU? We'll tailor the overview and emails to it — you can change it anytime in Settings.",
+    "ob_save": "Continue",
+})

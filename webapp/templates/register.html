@@ -14,19 +14,21 @@
              autocomplete="off"></label>
     </div>
     <label>{{ tt.use_as }}</label>
-    <div style="display:flex;gap:14px;margin:4px 0 6px;flex-wrap:wrap">
-      <label style="display:flex;align-items:center;gap:7px;font-weight:500;margin:0">
-        <input type="radio" name="account_type" value="business" checked
-               style="width:auto"> {{ tt.opt_business }}
+    <div style="display:flex;flex-direction:column;gap:8px;margin:4px 0 6px">
+      {% for val, name, hint in [
+          ('business', tt.opt_business, tt.acct_hint_business),
+          ('personal', tt.opt_personal, tt.acct_hint_personal),
+          ('both', tt.opt_both, tt.acct_hint_both)] %}
+      <label style="display:flex;align-items:flex-start;gap:9px;margin:0;
+                    padding:9px 12px;border:1px solid var(--line);border-radius:8px;
+                    cursor:pointer">
+        <input type="radio" name="account_type" value="{{ val }}"
+               {% if val == 'business' %}checked{% endif %}
+               style="width:auto;margin-top:2px">
+        <span><b style="font-weight:600">{{ name }}</b><br>
+          <span class="muted" style="font-size:12.5px">{{ hint }}</span></span>
       </label>
-      <label style="display:flex;align-items:center;gap:7px;font-weight:500;margin:0">
-        <input type="radio" name="account_type" value="personal"
-               style="width:auto"> {{ tt.opt_personal }}
-      </label>
-      <label style="display:flex;align-items:center;gap:7px;font-weight:500;margin:0">
-        <input type="radio" name="account_type" value="both"
-               style="width:auto"> {{ tt.opt_both }}
-      </label>
+      {% endfor %}
     </div>
     <label>{{ tt.email_label }}</label>
     <input type="email" name="email" required autocomplete="email">

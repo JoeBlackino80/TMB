@@ -334,3 +334,17 @@ APP.update({
     "g_login_fail_title": "Přihlášení přes Google selhalo",
     "g_login_fail_body": "Zkuste to znovu nebo použijte e-mail a heslo.",
 })
+
+# popisky k typom účtu
+APP.update({
+    "acct_hint_business": "faktury, daně, podklady pro účetní",
+    "acct_hint_personal": "účty za domácnost, pojistky, připomínky plateb",
+    "acct_hint_both": "jedna schránka — zpracuji firemní i domácí položky",
+})
+
+# uvítacia obrazovka (onboarding)
+APP.update({
+    "ob_title": "Ještě jedna věc",
+    "ob_lead": "Jak budete VORU používat? Podle toho vám přizpůsobíme přehled a e-maily — změnit to lze kdykoli v Nastavení.",
+    "ob_save": "Pokračovat",
+})

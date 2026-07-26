@@ -20,7 +20,7 @@ _SK = {
     "use_as": "Používam VORU ako",
     "opt_business": "firma / živnostník",
     "opt_personal": "súkromná osoba",
-    "opt_both": "obidvoje",
+    "opt_both": "firma aj súkromne",
     "email_label": "Váš e-mail (sem budú chodiť prehľady)",
     "password_label": "Heslo (min. 8 znakov)",
     "consent_html": "Súhlasím s <a href='/podmienky' target='_blank'>obchodnými "
@@ -72,7 +72,7 @@ _CS = {
     "use_as": "Používám VORU jako",
     "opt_business": "firma / živnostník",
     "opt_personal": "soukromá osoba",
-    "opt_both": "obojí",
+    "opt_both": "firma i soukromě",
     "email_label": "Váš e-mail (sem budou chodit přehledy)",
     "password_label": "Heslo (min. 8 znaků)",
     "consent_html": "Souhlasím s <a href='/podmienky?lang=cs' target='_blank'>obchodními "
@@ -121,7 +121,7 @@ _PL = {
     "use_as": "Używam VORU jako",
     "opt_business": "firma / działalność gospodarcza",
     "opt_personal": "osoba prywatna",
-    "opt_both": "jedno i drugie",
+    "opt_both": "firma i prywatnie",
     "email_label": "Twój e-mail (tu będą przychodzić zestawienia)",
     "password_label": "Hasło (min. 8 znaków)",
     "consent_html": "Akceptuję <a href='/podmienky?lang=pl' target='_blank'>regulamin</a> "
@@ -173,7 +173,7 @@ _DE = {
     "use_as": "Ich nutze VORU als",
     "opt_business": "Firma / Selbstständige(r)",
     "opt_personal": "Privatperson",
-    "opt_both": "beides",
+    "opt_both": "Firma und privat",
     "email_label": "Ihre E-Mail (hierhin kommen die Übersichten)",
     "password_label": "Passwort (min. 8 Zeichen)",
     "consent_html": "Ich stimme den <a href='/podmienky?lang=de' target='_blank'>AGB</a> "
@@ -228,7 +228,7 @@ _HU = {
     "use_as": "A VORU-t így használom",
     "opt_business": "cég / vállalkozó",
     "opt_personal": "magánszemély",
-    "opt_both": "mindkettő",
+    "opt_both": "céges és magán",
     "email_label": "Az Ön e-mail-címe (ide érkeznek az áttekintések)",
     "password_label": "Jelszó (min. 8 karakter)",
     "consent_html": "Elfogadom az <a href='/podmienky?lang=hu' target='_blank'>ÁSZF-et</a> "
@@ -279,7 +279,7 @@ _EN = {
     "use_as": "I'm using VORU as",
     "opt_business": "a business / freelancer",
     "opt_personal": "a private individual",
-    "opt_both": "both",
+    "opt_both": "business and personal",
     "email_label": "Your email (your digests will be sent here)",
     "password_label": "Password (min. 8 characters)",
     "consent_html": "I agree to the <a href='/podmienky?lang=en' "
@@ -441,7 +441,15 @@ _SK_APP = {
     "s_account_type": "Typ účtu",
     "s_type_business": "firma / živnostník",
     "s_type_personal": "súkromná osoba",
-    "s_type_both": "obidvoje — firma aj súkromné",
+    "s_type_both": "firma aj súkromne",
+    "acct_hint_business": "faktúry, dane, podklady pre účtovníčku",
+    "acct_hint_personal": "účty za domácnosť, poistky, pripomienky platieb",
+    "acct_hint_both": "jedna schránka — spracujem firemné aj domáce položky",
+    "ob_title": "Ešte jedna vec",
+    "ob_lead": "Ako budete VORU používať? Podľa toho vám prispôsobíme "
+               "prehľad a e-maily — zmeniť sa to dá kedykoľvek v "
+               "Nastaveniach.",
+    "ob_save": "Pokračovať",
     "s_reminder_to": "Kam posielať prehľady a upozornenia",
     "s_pdf": "Heslá k chráneným PDF (výpisy z banky) — viacero hesiel "
              "oddeľte čiarkou",

@@ -1517,13 +1517,34 @@ def google_login_callback(request: Request, code: str = "", state: str = "",
     finally:
         users.close()
     if is_new:
-        settings = clientfs.read_settings(user["client_dir"])
-        _provision_client(request, user,
-                          settings.get("ACCOUNT_TYPE") or "business", lang,
-                          send_welcome=False)
-    response = _redirect("/")
+        # cez Google sa typ účtu nezvolil pri registrácii — dopýtame ho hneď
+        _provision_client(request, user, "business", lang, send_welcome=False)
+    response = _redirect("/onboarding" if is_new else "/")
     _set_session(response, user)
     return response
+
+
+@app.get("/onboarding", response_class=HTMLResponse)
+def onboarding(request: Request, user=Depends(current_user)):
+    if not user:
+        return _redirect("/login")
+    return _render(request, "onboarding.html", user=user,
+                   settings=clientfs.read_settings(user["client_dir"]))
+
+
+@app.post("/onboarding")
+def onboarding_save(request: Request, user=Depends(current_user),
+                    account_type: str = Form("business")):
+    if not user:
+        return _redirect("/login")
+    if account_type not in ("business", "personal", "both"):
+        account_type = "business"
+    cur = clientfs.read_settings(user["client_dir"])
+    clientfs.write_env(user["client_dir"],
+                       reminder_to=cur["REMINDER_TO"] or user["email"],
+                       pdf_passwords=cur["PDF_PASSWORDS"],
+                       account_type=account_type)
+    return _redirect("/")
 
 
 @app.post("/mailboxes")

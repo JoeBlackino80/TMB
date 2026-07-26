@@ -350,3 +350,17 @@ APP.update({
     "g_login_fail_title": "Logowanie przez Google nie powiodło się",
     "g_login_fail_body": "Spróbuj ponownie lub użyj e-maila i hasła.",
 })
+
+# popisky k typom účtu
+APP.update({
+    "acct_hint_business": "faktury, podatki, dokumenty dla księgowej",
+    "acct_hint_personal": "rachunki domowe, ubezpieczenia, przypomnienia o płatnościach",
+    "acct_hint_both": "jedna skrzynka — obsłużę pozycje firmowe i domowe",
+})
+
+# uvítacia obrazovka (onboarding)
+APP.update({
+    "ob_title": "Jeszcze jedno",
+    "ob_lead": "Jak będziesz korzystać z VORU? Dopasujemy do tego przegląd i e-maile — zmienisz to w każdej chwili w Ustawieniach.",
+    "ob_save": "Kontynuuj",
+})

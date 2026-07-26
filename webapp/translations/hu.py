@@ -376,3 +376,17 @@ APP.update({
     "g_login_fail_title": "A Google-bejelentkezés nem sikerült",
     "g_login_fail_body": "Próbálja újra, vagy használjon e-mailt és jelszót.",
 })
+
+# popisky k typom účtu
+APP.update({
+    "acct_hint_business": "számlák, adók, könyvelési dokumentumok",
+    "acct_hint_personal": "háztartási számlák, biztosítások, fizetési emlékeztetők",
+    "acct_hint_both": "egy postafiók — céges és otthoni tételek együtt",
+})
+
+# uvítacia obrazovka (onboarding)
+APP.update({
+    "ob_title": "Még egy dolog",
+    "ob_lead": "Hogyan fogja használni a VORU-t? Ehhez igazítjuk az áttekintést és az e-maileket — bármikor módosítható a Beállításokban.",
+    "ob_save": "Tovább",
+})

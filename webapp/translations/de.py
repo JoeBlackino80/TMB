@@ -380,3 +380,17 @@ APP.update({
     "g_login_fail_title": "Anmeldung über Google fehlgeschlagen",
     "g_login_fail_body": "Versuchen Sie es erneut oder nutzen Sie E-Mail und Passwort.",
 })
+
+# popisky k typom účtu
+APP.update({
+    "acct_hint_business": "Rechnungen, Steuern, Unterlagen für die Buchhaltung",
+    "acct_hint_personal": "Haushaltsrechnungen, Versicherungen, Zahlungserinnerungen",
+    "acct_hint_both": "ein Postfach — Geschäftliches und Privates zusammen",
+})
+
+# uvítacia obrazovka (onboarding)
+APP.update({
+    "ob_title": "Noch eine Sache",
+    "ob_lead": "Wie werden Sie VORU nutzen? Danach richten wir Übersicht und E-Mails aus — jederzeit in den Einstellungen änderbar.",
+    "ob_save": "Weiter",
+})

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ t.ob_title }} — VORU{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px;margin:48px auto">
+  <h1 style="margin-top:0">{{ t.ob_title }}</h1>
+  <p class="muted">{{ t.ob_lead }}</p>
+  <form method="post" action="/onboarding">
+    <div style="display:flex;flex-direction:column;gap:8px;margin:14px 0 6px">
+      {% for val, name, hint in [
+          ('business', t.s_type_business, t.acct_hint_business),
+          ('personal', t.s_type_personal, t.acct_hint_personal),
+          ('both', t.s_type_both, t.acct_hint_both)] %}
+      <label style="display:flex;align-items:flex-start;gap:9px;margin:0;
+                    padding:10px 12px;border:1px solid var(--line);border-radius:8px;
+                    cursor:pointer">
+        <input type="radio" name="account_type" value="{{ val }}"
+               {% if val == (settings['ACCOUNT_TYPE'] or 'business') %}checked{% endif %}
+               style="width:auto;margin-top:2px">
+        <span><b style="font-weight:600">{{ name }}</b><br>
+          <span class="muted" style="font-size:12.5px">{{ hint }}</span></span>
+      </label>
+      {% endfor %}
+    </div>
+    <button type="submit">{{ t.ob_save }}</button>
+  </form>
+</div>
+{% endblock %}

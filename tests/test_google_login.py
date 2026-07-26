@@ -69,7 +69,8 @@ def test_callback_creates_and_logs_in_new_user(client, monkeypatch, tmp_path):
     _mock_google_token(monkeypatch, "novy@gmail.com")
     state = app_module._google_login_state("sk", "")
     r = client.get(f"/auth/google/callback?code=abc&state={state}")
-    assert r.status_code == 303 and r.headers["location"] == "/"
+    # nový účet ide na uvítaciu obrazovku (voľba typu účtu)
+    assert r.status_code == 303 and r.headers["location"] == "/onboarding"
     assert "session" in r.cookies
     users = Users()
     try:
@@ -81,6 +82,27 @@ def test_callback_creates_and_logs_in_new_user(client, monkeypatch, tmp_path):
     assert (tmp_path / "clients" / "novy-gmail-com" / ".env").exists()
     # prihlásený → dashboard funguje
     assert client.get("/", cookies={"session": r.cookies["session"]}).status_code == 200
+
+
+def test_onboarding_sets_account_type(client, monkeypatch):
+    import webapp.app as app_module
+    from webapp import clientfs
+
+    _mock_google_token(monkeypatch, "novy@gmail.com")
+    state = app_module._google_login_state("sk", "")
+    r = client.get(f"/auth/google/callback?code=abc&state={state}")
+    session = r.cookies["session"]
+    # onboarding stránka ponúka tri typy s popiskami
+    page = client.get("/onboarding", cookies={"session": session}).text
+    assert "firma aj súkromne" in page and "jedna schránka" in page
+    # nový Google účet začína ako business (default)
+    assert (clientfs.read_settings("novy-gmail-com")["ACCOUNT_TYPE"]
+            or "business") == "business"
+    # voľba "personal" sa uloží a presmeruje na prehľad
+    r = client.post("/onboarding", cookies={"session": session},
+                    data={"account_type": "personal"})
+    assert r.status_code == 303 and r.headers["location"] == "/"
+    assert clientfs.read_settings("novy-gmail-com")["ACCOUNT_TYPE"] == "personal"
 
 
 def test_callback_logs_in_existing_account(client, monkeypatch):
