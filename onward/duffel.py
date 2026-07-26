@@ -48,15 +48,17 @@ def _request(method: str, path: str, payload: dict | None = None) -> dict:
 
 
 def search_offers(origin: str, destination: str, departure_date: str,
+                  return_date: str = "", passengers: int = 1,
                   cabin_class: str = "economy") -> list[dict]:
-    """Jednosmerný let pre 1 dospelého; vráti ponuky zoradené od najlacnejšej."""
+    """Vráti ponuky zoradené od najlacnejšej; s `return_date` spiatočný let."""
+    slices = [{"origin": origin.upper(), "destination": destination.upper(),
+               "departure_date": departure_date}]
+    if return_date:
+        slices.append({"origin": destination.upper(), "destination": origin.upper(),
+                       "departure_date": return_date})
     result = _request("POST", "/air/offer_requests", {
-        "slices": [{
-            "origin": origin.upper(),
-            "destination": destination.upper(),
-            "departure_date": departure_date,
-        }],
-        "passengers": [{"type": "adult"}],
+        "slices": slices,
+        "passengers": [{"type": "adult"}] * passengers,
         "cabin_class": cabin_class,
     })
     offers = result.get("data", {}).get("offers", [])
@@ -72,14 +74,22 @@ def pick_hold_offer(offers: list[dict]) -> dict | None:
     return None
 
 
-def create_hold_order(offer_id: str, passenger_id: str, passenger: dict) -> dict:
-    """Vytvorí hold rezerváciu (bez platby). `passenger` musí obsahovať
-    given_name, family_name, born_on (YYYY-MM-DD), gender (m/f),
-    title (mr/ms/mrs), email a phone_number (+421...)."""
+def create_hold_order(offer: dict, passengers: list[dict]) -> dict:
+    """Vytvorí hold rezerváciu (bez platby) pre všetkých pasažierov ponuky.
+
+    `passengers[i]` musí obsahovať given_name, family_name, born_on
+    (YYYY-MM-DD), gender (m/f), title (mr/ms/mrs), email a phone_number;
+    priradia sa v poradí k offer["passengers"].
+    """
+    offer_pax = offer.get("passengers", [])
+    if len(offer_pax) != len(passengers):
+        raise DuffelError(f"Ponuka má {len(offer_pax)} pasažierov,"
+                          f" objednávka {len(passengers)}")
     result = _request("POST", "/air/orders", {
         "type": "hold",
-        "selected_offers": [offer_id],
-        "passengers": [dict(passenger, id=passenger_id)],
+        "selected_offers": [offer["id"]],
+        "passengers": [dict(details, id=op["id"])
+                       for op, details in zip(offer_pax, passengers)],
     })
     return result["data"]
 

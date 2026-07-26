@@ -4,8 +4,10 @@
   {% if order['status'] == 'booked' %}
     <h2 class="ok">Reservation confirmed</h2>
     <div class="pnr">{{ order['pnr'] }}</div>
-    <p style="text-align:center">{{ order['airline'] }} —
-      passenger {{ order['given_name'] }} {{ order['family_name'] }}</p>
+    <p style="text-align:center">{{ order['airline'] }}</p>
+    <p><b>Passengers:</b>
+      {% for p in passengers %}{{ p['title']|capitalize }} {{ p['given_name'] }}
+      {{ p['family_name'] }}{{ ", " if not loop.last }}{% endfor %}</p>
     <table>
       <tr><th>Flight</th><th>Route</th><th>Departure</th><th>Arrival</th></tr>
       {% for s in segments %}
@@ -19,6 +21,13 @@
     Verify it on the airline's website under &ldquo;Manage booking&rdquo; with
     the PNR and your surname. The itinerary was also sent to
     {{ order['email'] }}.</p>
+    {% if order['plan'] != 'basic' %}
+    <p class="note">Auto-renew is on: whenever the airline releases this hold,
+    we create a fresh reservation and e-mail you the new PNR — until
+    {{ order['valid_until'] }}.
+    {% if order['renew_count'] %}(Renewed {{ order['renew_count'] }}× so far.){% endif %}</p>
+    {% endif %}
+    <p><a href="/itinerary/{{ order['token'] }}.pdf"><b>⬇ Download PDF itinerary</b></a></p>
   {% elif order['status'] in ('new', 'paid') %}
     <h2>Working on it…</h2>
     <p>Your reservation is being created. This page refreshes automatically;

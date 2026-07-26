@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Orders</h1>
+<div class="card" style="overflow-x:auto">
+  <table>
+    <tr><th>#</th><th>Created</th><th>Status</th><th>Plan</th><th>Route</th>
+        <th>Date</th><th>PNR</th><th>Expires</th><th>Renews</th><th>E-mail</th>
+        <th>Error</th></tr>
+    {% for o in orders %}
+    <tr>
+      <td>{{ o['id'] }}</td>
+      <td>{{ o['created_at'][:16].replace('T',' ') }}</td>
+      <td>{{ o['status'] }}</td>
+      <td>{{ o['plan'] }}</td>
+      <td>{{ o['origin'] }}→{{ o['destination'] }}{{ ' ⇄' if o['return_date'] }}</td>
+      <td>{{ o['depart_date'] }}</td>
+      <td><a href="/status/{{ o['token'] }}">{{ o['pnr'] or '—' }}</a></td>
+      <td>{{ (o['hold_expires_at'] or '')[:16].replace('T',' ') }}</td>
+      <td>{{ o['renew_count'] }}</td>
+      <td>{{ o['email'] }}</td>
+      <td class="note">{{ (o['error'] or '')[:80] }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

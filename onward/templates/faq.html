@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Frequently asked questions</h1>
+
+<div class="card">
+  <h2>Is the reservation real?</h2>
+  <p>Yes. We create an actual booking in the airline's reservation system —
+  the same kind a travel agency creates before ticketing. It has a real PNR
+  code you can verify on the airline's website under &ldquo;Manage
+  booking&rdquo; (PNR + passenger surname) for as long as it is valid.</p>
+</div>
+
+<div class="card">
+  <h2>Can I fly with it?</h2>
+  <p><b>No.</b> A reservation is not a ticket — no ticket number is issued
+  and it cannot be used to board. It is supporting documentation for a visa
+  application or proof of onward travel.</p>
+</div>
+
+<div class="card">
+  <h2>How long is it valid?</h2>
+  <p>The airline holds an unpaid booking for 24–72 hours, depending on the
+  carrier. With the 7-day or 14-day option we automatically create a fresh
+  reservation each time one is released and e-mail you the new PNR, so you
+  have a live, verifiable booking for the whole period.</p>
+</div>
+
+<div class="card">
+  <h2>Do embassies accept it?</h2>
+  <p>Most embassies ask for a flight <i>reservation or itinerary</i> — many
+  explicitly advise <b>not</b> to buy a ticket before the visa is approved.
+  An unticketed reservation is the standard document for this purpose.
+  Always check your embassy's exact requirements; time your appointment so
+  the reservation is valid on the day it is checked (or use auto-renew).</p>
+</div>
+
+<div class="card">
+  <h2>How fast will I get it?</h2>
+  <p>Usually within minutes of payment. If no hold-capable fare exists for
+  your route and date, we'll tell you right away and refund you in full.</p>
+</div>
+
+<div class="card">
+  <h2>What is your refund policy?</h2>
+  <p>If we cannot deliver a verifiable reservation, you get a full refund —
+  no questions asked. See <a href="/terms">Terms</a>.</p>
+</div>
+{% endblock %}

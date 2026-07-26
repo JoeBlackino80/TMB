@@ -1,15 +1,29 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Flight reservation in minutes — pay €{{ price }}, not the fare</h1>
+<h1>Flight reservation in minutes — pay €{{ prices['basic'] }}, not the fare</h1>
 <p class="lead">A <b>genuine airline reservation (PNR)</b> without buying the
 ticket. Verifiable on the airline's website, delivered to your e-mail within
-minutes. Perfect for <b>visa applications</b> and <b>proof of onward
-travel</b>. The reservation stays valid for 24–72&nbsp;hours (airline
-dependent), then the airline releases it automatically.</p>
+minutes — with a printable <b>PDF itinerary</b>. Perfect for
+<b>visa applications</b> and <b>proof of onward travel</b>.</p>
 
 <div class="card">
   <h2>Order your reservation</h2>
   <form method="post" action="/order">
+    <label style="margin-bottom:2px">Validity</label>
+    <div class="plans">
+      <label class="plan"><input type="radio" name="plan" value="basic" checked>
+        <b>Standard</b><span class="price">€{{ prices['basic'] }}</span>
+        <small>One reservation, valid 24–72&nbsp;h (airline dependent)</small></label>
+      <label class="plan"><input type="radio" name="plan" value="week">
+        <b>7 days</b><span class="price">€{{ prices['week'] }}</span>
+        <small>Auto-renewed with a fresh PNR whenever it expires — kept valid
+        for 7 days</small></label>
+      <label class="plan"><input type="radio" name="plan" value="twoweek">
+        <b>14 days</b><span class="price">€{{ prices['twoweek'] }}</span>
+        <small>Auto-renewed for 14 days — ideal for longer visa
+        processing</small></label>
+    </div>
+
     <div class="row">
       <div><label>From (airport code)</label>
         <input name="origin" placeholder="VIE" maxlength="3" required></div>
@@ -19,25 +33,8 @@ dependent), then the airline releases it automatically.</p>
     <div class="row">
       <div><label>Departure date</label>
         <input type="date" name="depart_date" min="{{ min_date }}" required></div>
-      <div><label>Title</label>
-        <select name="title">
-          <option value="mr">Mr</option><option value="ms">Ms</option>
-          <option value="mrs">Mrs</option>
-        </select></div>
-    </div>
-    <div class="row">
-      <div><label>Given name (as in passport)</label>
-        <input name="given_name" required></div>
-      <div><label>Surname (as in passport)</label>
-        <input name="family_name" required></div>
-    </div>
-    <div class="row">
-      <div><label>Date of birth</label>
-        <input type="date" name="born_on" required></div>
-      <div><label>Gender</label>
-        <select name="gender">
-          <option value="m">Male</option><option value="f">Female</option>
-        </select></div>
+      <div><label>Return date (optional — leave empty for one-way)</label>
+        <input type="date" name="return_date" min="{{ min_date }}"></div>
     </div>
     <div class="row">
       <div><label>E-mail (itinerary is sent here)</label>
@@ -45,7 +42,35 @@ dependent), then the airline releases it automatically.</p>
       <div><label>Phone (international, +421...)</label>
         <input name="phone" placeholder="+421900123456" required></div>
     </div>
-    <button type="submit">Get my reservation — €{{ price }}</button>
+
+    {% for i in range(max_pax) %}
+    <fieldset class="pax" id="pax{{ i }}" {% if i > 0 %}hidden disabled{% endif %}
+              style="border:1px solid #e0e7f2">
+      <h3>Passenger {{ i + 1 }}</h3>
+      <div class="row3">
+        <div><label>Title</label>
+          <select name="title">
+            <option value="mr">Mr</option><option value="ms">Ms</option>
+            <option value="mrs">Mrs</option>
+          </select></div>
+        <div><label>Given name (as in passport)</label>
+          <input name="given_name" required></div>
+        <div><label>Surname (as in passport)</label>
+          <input name="family_name" required></div>
+      </div>
+      <div class="row">
+        <div><label>Date of birth</label>
+          <input type="date" name="born_on" required></div>
+        <div><label>Gender</label>
+          <select name="gender">
+            <option value="m">Male</option><option value="f">Female</option>
+          </select></div>
+      </div>
+    </fieldset>
+    {% endfor %}
+    <button type="button" class="linklike" id="addpax">+ Add passenger</button>
+
+    <button type="submit">Get my reservation</button>
     <p class="note">You pay only our service fee. We never charge you the
     price of the flight and the airline is never paid.</p>
   </form>
@@ -54,14 +79,15 @@ dependent), then the airline releases it automatically.</p>
 <div class="card">
   <h2>How it works</h2>
   <ol>
-    <li>You pay the €{{ price }} service fee.</li>
+    <li>You pay the service fee — nothing else, ever.</li>
     <li>We place a real reservation with the airline in your name —
         a booking with a PNR code, held without payment.</li>
-    <li>The itinerary with the PNR arrives in your inbox, usually within
-        minutes. You can verify it on the airline's own website
+    <li>The itinerary with the PNR and a printable PDF arrives in your inbox,
+        usually within minutes. Verify it on the airline's own website
         (&ldquo;Manage booking&rdquo;).</li>
-    <li>After 24–72&nbsp;hours the unpaid booking is released by the
-        airline automatically. Nothing to cancel, nothing more to pay.</li>
+    <li>Standard: the airline releases the unpaid booking after
+        24–72&nbsp;hours. With the 7/14-day option we automatically create a
+        fresh reservation each time one expires and e-mail you the new PNR.</li>
   </ol>
 </div>
 
@@ -71,8 +97,19 @@ dependent), then the airline releases it automatically.</p>
   in the airline's system and anyone can verify it while it is valid.</p>
   <p>It is <b>not a flight ticket</b> — you cannot board with it, and once it
   expires, verification will show it as released. Embassies commonly accept
-  (and often recommend) unticketed reservations for visa applications; time
-  your application so the reservation is live when it is checked, and order
-  a fresh one whenever you need it again.</p>
+  (and often recommend) unticketed reservations for visa applications; the
+  auto-renew options keep a live PNR in your inbox for the whole processing
+  window.</p>
+  <p>More questions? See the <a href="/faq">FAQ</a>.</p>
 </div>
+
+<script>
+  const boxes = [...document.querySelectorAll('.pax')];
+  const btn = document.getElementById('addpax');
+  btn.addEventListener('click', () => {
+    const next = boxes.find(b => b.hidden);
+    if (next) { next.hidden = false; next.disabled = false; }
+    if (!boxes.some(b => b.hidden)) btn.hidden = true;
+  });
+</script>
 {% endblock %}

@@ -5,13 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ brand }} — flight reservation for visa &amp; onward travel</title>
 <style>
-  :root { --ink:#16213a; --mut:#5a6880; --acc:#1c64f2; --bg:#f5f7fb; }
   * { box-sizing:border-box; }
   body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
          color:#16213a; background:#f5f7fb; }
   header { background:#0d1b3d; color:#fff; padding:14px 20px; }
   header .wrap, main { max-width:860px; margin:0 auto; }
+  header .wrap { display:flex; justify-content:space-between; align-items:center; }
   header b { font-size:20px; letter-spacing:.5px; }
+  header a { color:#c7d4f2; text-decoration:none; margin-left:16px; font-size:14px; }
+  header a:hover { color:#fff; }
   main { padding:24px 20px 60px; }
   .card { background:#fff; border-radius:14px; padding:24px;
           box-shadow:0 2px 10px rgba(20,30,60,.07); margin-bottom:22px; }
@@ -20,9 +22,10 @@
   p.lead { font-size:17px; color:#44506e; }
   label { display:block; font-size:13px; font-weight:600; margin:12px 0 4px; }
   input, select { width:100%; padding:10px 12px; border:1px solid #c8d2e4;
-                  border-radius:8px; font-size:15px; }
+                  border-radius:8px; font-size:15px; background:#fff; }
   .row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  @media (max-width:600px){ .row { grid-template-columns:1fr; } }
+  .row3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  @media (max-width:600px){ .row, .row3 { grid-template-columns:1fr; } }
   button { margin-top:18px; width:100%; padding:13px; font-size:16px; font-weight:700;
            color:#fff; background:#1c64f2; border:0; border-radius:9px; cursor:pointer; }
   button:hover { background:#174fc4; }
@@ -32,14 +35,31 @@
   th, td { text-align:left; padding:7px 10px; border-bottom:1px solid #e6ebf4; }
   .ok { color:#0a7d38; font-weight:700; }
   .bad { color:#b3261e; font-weight:700; }
+  .plans { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:8px; }
+  @media (max-width:600px){ .plans { grid-template-columns:1fr; } }
+  .plan { border:2px solid #c8d2e4; border-radius:12px; padding:14px; cursor:pointer;
+          display:block; }
+  .plan input { display:none; }
+  .plan:has(input:checked) { border-color:#1c64f2; background:#eef3fe; }
+  .plan b { display:block; font-size:15px; }
+  .plan .price { font-size:22px; font-weight:800; margin:6px 0 2px; }
+  .plan small { color:#5a6880; }
+  .pax { border:1px solid #e0e7f2; border-radius:10px; padding:4px 14px 14px; margin-top:12px; }
+  .pax h3 { font-size:14px; margin:10px 0 0; color:#44506e; }
+  .linklike { background:none; border:0; color:#1c64f2; font-size:14px; font-weight:600;
+              cursor:pointer; width:auto; padding:0; margin-top:10px; }
   footer { text-align:center; font-size:12px; color:#8090a8; padding:20px; }
+  footer a { color:#8090a8; }
 </style>
 </head>
 <body>
-<header><div class="wrap"><b>✈ {{ brand }}</b></div></header>
+<header><div class="wrap"><b>✈ {{ brand }}</b>
+  <nav><a href="/">Order</a><a href="/faq">FAQ</a><a href="/terms">Terms</a></nav>
+</div></header>
 <main>{% block content %}{% endblock %}</main>
 <footer>{{ brand }} sells genuine, airline-verifiable flight reservations
 (no ticket issued) for visa applications and proof of onward travel.
-A reservation is not a flight ticket and cannot be used to board.</footer>
+A reservation is not a flight ticket and cannot be used to board.<br>
+<a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/faq">FAQ</a></footer>
 </body>
 </html>

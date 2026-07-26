@@ -1,14 +1,14 @@
 """FastAPI aplikácia Onward — objednávka → platba → hold rezervácia → e-mail.
 
 Tok:
-1. Zákazník vyplní formulár (trasa, dátum, pasažier, e-mail) → vznikne
-   objednávka `new` a presmeruje sa na Stripe Payment Link
+1. Zákazník vyplní formulár (trasa, dátum, 1–4 pasažieri, plán platnosti)
+   → vznikne objednávka `new` a presmeruje sa na Stripe Payment Link plánu
    (client_reference_id = token objednávky).
 2. Stripe webhook `checkout.session.completed` → objednávka `paid`
    → cez Duffel sa vytvorí hold rezervácia (skutočný PNR, bez platby
-   aerolinke) → `booked` → itinerár letí zákazníkovi e-mailom.
-3. `python -m onward.expire` (cron) označí prepadnuté rezervácie
-   a pošle zákazníkovi oznam.
+   aerolinke) → `booked` → itinerár + PDF letí zákazníkovi e-mailom.
+3. `python -m onward.expire` (cron) prepadnuté holdy obnoví
+   (plány week/twoweek) alebo označí za expirované.
 
 Bez STRIPE_LINK_ONWARD (vývoj/test) sa objednávka rezervuje hneď po
 odoslaní formulára — s Duffel test kľúčom vznikajú fiktívne rezervácie.
@@ -20,20 +20,27 @@ import json
 import os
 import re
 import time
-from datetime import date
+from datetime import date, timedelta
 from urllib.parse import quote
 
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from . import duffel, emails, mailer
+from . import booking, pdf
 from .store import Orders
 
 BRAND = os.environ.get("ONWARD_BRAND", "OnwardPass")
-PRICE_EUR = os.environ.get("ONWARD_PRICE_EUR", "14.90")
-STRIPE_LINK = os.environ.get("STRIPE_LINK_ONWARD", "")
 STRIPE_WEBHOOK_SECRET = os.environ.get("ONWARD_STRIPE_WEBHOOK_SECRET", "")
+ADMIN_KEY = os.environ.get("ONWARD_ADMIN_KEY", "")
+
+# plán → (dní platnosti, env s cenou, predvolená cena, env so Stripe linkom)
+PLANS = {
+    "basic": (0, "ONWARD_PRICE_EUR", "14.90", "STRIPE_LINK_ONWARD"),
+    "week": (7, "ONWARD_PRICE_WEEK_EUR", "24.90", "STRIPE_LINK_ONWARD_WEEK"),
+    "twoweek": (14, "ONWARD_PRICE_2WEEK_EUR", "34.90", "STRIPE_LINK_ONWARD_2WEEK"),
+}
+MAX_PAX = 4
 
 app = FastAPI(title=BRAND)
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
@@ -41,9 +48,18 @@ templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "t
 _IATA = re.compile(r"^[A-Za-z]{3}$")
 
 
+def _prices() -> dict:
+    return {plan: os.environ.get(env, default)
+            for plan, (_, env, default, _link) in PLANS.items()}
+
+
+def _stripe_link(plan: str) -> str:
+    return os.environ.get(PLANS[plan][3], "") or os.environ.get("STRIPE_LINK_ONWARD", "")
+
+
 def _render(request: Request, name: str, **ctx):
     return templates.TemplateResponse(
-        request, name, {"brand": BRAND, "price": PRICE_EUR, **ctx})
+        request, name, {"brand": BRAND, "prices": _prices(), "max_pax": MAX_PAX, **ctx})
 
 
 @app.get("/")
@@ -51,83 +67,92 @@ def landing(request: Request):
     return _render(request, "landing.html", min_date=date.today().isoformat())
 
 
+@app.get("/faq")
+def faq(request: Request):
+    return _render(request, "faq.html")
+
+
+@app.get("/terms")
+def terms(request: Request):
+    return _render(request, "terms.html")
+
+
+@app.get("/privacy")
+def privacy(request: Request):
+    return _render(request, "privacy.html")
+
+
+def _valid_date(value: str, *, future: bool) -> bool:
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError:
+        return False
+    return parsed >= date.today() if future else True
+
+
 @app.post("/order")
 def order(request: Request,
           origin: str = Form(...), destination: str = Form(...),
-          depart_date: str = Form(...), title: str = Form("mr"),
-          given_name: str = Form(...), family_name: str = Form(...),
-          born_on: str = Form(...), gender: str = Form(...),
-          email: str = Form(...), phone: str = Form(...)):
+          depart_date: str = Form(...), return_date: str = Form(""),
+          plan: str = Form("basic"),
+          email: str = Form(...), phone: str = Form(...),
+          title: list[str] = Form(...), given_name: list[str] = Form(...),
+          family_name: list[str] = Form(...), born_on: list[str] = Form(...),
+          gender: list[str] = Form(...)):
     problems = []
     if not _IATA.match(origin or ""):
         problems.append("Origin must be a 3-letter airport code (e.g. VIE).")
     if not _IATA.match(destination or ""):
         problems.append("Destination must be a 3-letter airport code (e.g. BKK).")
-    try:
-        if date.fromisoformat(depart_date) < date.today():
-            problems.append("Departure date must be in the future.")
-    except ValueError:
-        problems.append("Invalid departure date.")
+    if not _valid_date(depart_date, future=True):
+        problems.append("Departure date must be today or later.")
+    if return_date and (not _valid_date(return_date, future=True)
+                        or return_date < depart_date):
+        problems.append("Return date must be on or after the departure date.")
     if "@" not in email:
         problems.append("Invalid e-mail address.")
-    if title not in ("mr", "ms", "mrs") or gender not in ("m", "f"):
-        problems.append("Invalid passenger details.")
+    if plan not in PLANS:
+        plan = "basic"
+
+    counts = {len(title), len(given_name), len(family_name), len(born_on), len(gender)}
+    if counts != {len(title)} or not 1 <= len(title) <= MAX_PAX:
+        problems.append(f"Between 1 and {MAX_PAX} complete passengers required.")
+        passengers = []
+    else:
+        passengers = [
+            {"title": t, "given_name": g.strip(), "family_name": f.strip(),
+             "born_on": b, "gender": s}
+            for t, g, f, b, s in zip(title, given_name, family_name, born_on, gender)
+        ]
+        for p in passengers:
+            if (p["title"] not in ("mr", "ms", "mrs") or p["gender"] not in ("m", "f")
+                    or not p["given_name"] or not p["family_name"]
+                    or not _valid_date(p["born_on"], future=False)):
+                problems.append("Invalid passenger details.")
+                break
     if problems:
         return _render(request, "message.html", heading="Please check the form",
                        lines=problems, back="/")
 
+    days = PLANS[plan][0]
+    valid_until = min(date.today() + timedelta(days=days),
+                      date.fromisoformat(depart_date)).isoformat() if days else ""
+
     store = Orders()
     try:
-        token = store.create(email=email, title=title, given_name=given_name,
-                             family_name=family_name, born_on=born_on,
-                             gender=gender, phone=phone, origin=origin,
-                             destination=destination, depart_date=depart_date)
-        if STRIPE_LINK:
+        token = store.create(email=email, phone=phone, origin=origin,
+                             destination=destination, depart_date=depart_date,
+                             return_date=return_date, passengers=passengers,
+                             plan=plan, valid_until=valid_until)
+        link = _stripe_link(plan)
+        if link:
             return RedirectResponse(
-                f"{STRIPE_LINK}?client_reference_id={quote(token)}", status_code=303)
+                f"{link}?client_reference_id={quote(token)}", status_code=303)
         # vývojový režim bez Stripe: rezervuj rovno
-        _book(store, token)
+        booking.book(store, token)
         return RedirectResponse(f"/status/{token}", status_code=303)
     finally:
         store.close()
-
-
-def _book(store: Orders, token: str) -> None:
-    """Vytvorí hold rezerváciu pre zaplatenú objednávku a pošle itinerár."""
-    row = store.by_token(token)
-    if not row or row["status"] in ("booked", "cancelled"):
-        return
-    try:
-        offers = duffel.search_offers(row["origin"], row["destination"],
-                                      row["depart_date"])
-        offer = duffel.pick_hold_offer(offers)
-        if not offer:
-            store.set_status(token, "failed",
-                             "No hold-capable fare found for this route/date")
-            return
-        passenger_id = offer["passengers"][0]["id"]
-        order_data = duffel.create_hold_order(offer["id"], passenger_id, {
-            "title": row["title"],
-            "given_name": row["given_name"],
-            "family_name": row["family_name"],
-            "born_on": row["born_on"],
-            "gender": row["gender"],
-            "email": row["email"],
-            "phone_number": row["phone"],
-        })
-        segs = duffel.segments(order_data)
-        airline = (order_data.get("owner") or {}).get("name", "") \
-            or (segs[0]["airline"] if segs else "")
-        expires = (order_data.get("payment_status") or {}).get("payment_required_by", "") \
-            or offer["payment_requirements"]["payment_required_by"]
-        store.set_booking(token, pnr=order_data.get("booking_reference", ""),
-                          airline=airline, duffel_order_id=order_data["id"],
-                          hold_expires_at=expires, segments=segs)
-        row = store.by_token(token)
-        subject, text, html = emails.itinerary(row, segs, BRAND)
-        mailer.send(row["email"], subject, text, html)
-    except duffel.DuffelError as e:
-        store.set_status(token, "failed", str(e)[:500])
 
 
 def _verify_stripe_signature(payload: bytes, header: str) -> bool:
@@ -157,7 +182,7 @@ async def stripe_webhook(request: Request):
             try:
                 if (row := store.by_token(token)) and row["status"] == "new":
                     store.set_status(token, "paid")
-                    _book(store, token)
+                    booking.book(store, token)
             finally:
                 store.close()
     return Response(status_code=200)
@@ -172,7 +197,34 @@ def status(request: Request, token: str):
             return _render(request, "message.html", heading="Order not found",
                            lines=["Check the link in your e-mail."], back="/")
         return _render(request, "status.html", order=row,
+                       passengers=store.passengers(row),
                        segments=store.segments(row))
+    finally:
+        store.close()
+
+
+@app.get("/itinerary/{token}.pdf")
+def itinerary_pdf(token: str):
+    store = Orders()
+    try:
+        row = store.by_token(token)
+        if not row or row["status"] != "booked":
+            return Response(status_code=404)
+        data = pdf.build_itinerary(row, store.passengers(row),
+                                   store.segments(row), BRAND)
+        return Response(data, media_type="application/pdf", headers={
+            "Content-Disposition": f'attachment; filename="itinerary-{row["pnr"]}.pdf"'})
+    finally:
+        store.close()
+
+
+@app.get("/admin")
+def admin(request: Request, key: str = ""):
+    if not ADMIN_KEY or not hmac.compare_digest(key, ADMIN_KEY):
+        return Response(status_code=404)
+    store = Orders()
+    try:
+        return _render(request, "admin.html", orders=store.all())
     finally:
         store.close()
 

@@ -1,27 +1,22 @@
-"""Údržba cez cron: označí prepadnuté rezervácie a oznámi to zákazníkovi.
+"""Údržba cez cron: prepadnuté holdy obnoví (week/twoweek) alebo expiruje.
 
-Používanie: python -m onward.expire   (napr. každú hodinu)
+Používanie: python -m onward.expire   (napr. každých 15 minút)
 
-Aerolinka nezaplatenú hold rezerváciu uvoľní sama po `payment_required_by`,
-takže netreba nič rušiť — len sa aktualizuje stav a pošle oznam.
+Basic plán: aerolinka nezaplatený hold uvoľní sama — len sa aktualizuje
+stav a pošle oznam. Week/twoweek: kým platí `valid_until`, vytvorí sa
+nová rezervácia s čerstvým PNR a zákazník dostane aktualizovaný itinerár.
 """
 
-import os
-
-from . import emails, mailer
+from . import booking
 from .store import Orders
-
-BRAND = os.environ.get("ONWARD_BRAND", "OnwardPass")
 
 
 def main() -> None:
     store = Orders()
     try:
         for row in store.booked_past_expiry():
-            store.set_status(row["token"], "expired")
-            subject, text, html = emails.expired_notice(row, BRAND)
-            mailer.send(row["email"], subject, text, html)
-            print(f"Expirovaná rezervácia {row['pnr']} ({row['email']})")
+            outcome = booking.renew_or_expire(store, row)
+            print(f"{outcome}: {row['pnr']} ({row['email']})")
     finally:
         store.close()
 

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Terms of service</h1>
+<div class="card">
+  <h2>1. What we sell</h2>
+  <p>{{ brand }} provides a service that creates a genuine, unticketed
+  airline reservation (a &ldquo;hold&rdquo; booking with a PNR code) in the
+  customer's name, delivered as an e-mail itinerary and PDF. The fee covers
+  this service only; no flight ticket is purchased and the reservation
+  cannot be used to board a flight.</p>
+
+  <h2>2. Validity</h2>
+  <p>A reservation remains valid until the airline's hold deadline (typically
+  24–72 hours). With auto-renew plans we recreate the reservation with a new
+  PNR each time it is released, until the end of the purchased period or the
+  departure date, whichever comes first. Each renewal produces a new PNR;
+  the old one becomes invalid.</p>
+
+  <h2>3. Refunds</h2>
+  <p>If we fail to deliver a verifiable reservation, we refund the full fee.
+  Otherwise the fee is non-refundable once the reservation has been
+  delivered.</p>
+
+  <h2>4. Acceptable use</h2>
+  <p>The document is intended as supporting documentation (visa application,
+  proof of onward travel). You must not present it as a paid flight ticket.
+  Whether a reservation satisfies a particular embassy, airline or border
+  authority is outside our control and remains your responsibility.</p>
+
+  <h2>5. Liability</h2>
+  <p>Our liability is limited to the fee paid. We are not liable for visa
+  refusals, denied boarding or other decisions of third parties.</p>
+</div>
+{% endblock %}

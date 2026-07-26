@@ -13,7 +13,9 @@ def smtp_configured() -> bool:
     return bool(_env("SMTP_HOST") and _env("SMTP_USER") and _env("SMTP_PASSWORD"))
 
 
-def send(to: str, subject: str, text: str, html: str = "") -> bool:
+def send(to: str, subject: str, text: str, html: str = "",
+         attachments: list[tuple[str, bytes, str]] | None = None) -> bool:
+    """`attachments`: [(filename, data, mime_type)] — napr. PDF itinerár."""
     if not smtp_configured():
         return False
     msg = EmailMessage()
@@ -23,6 +25,9 @@ def send(to: str, subject: str, text: str, html: str = "") -> bool:
     msg.set_content(text)
     if html:
         msg.add_alternative(html, subtype="html")
+    for filename, data, mime in attachments or []:
+        maintype, _, subtype = mime.partition("/")
+        msg.add_attachment(data, maintype=maintype, subtype=subtype, filename=filename)
     port = int(_env("SMTP_PORT") or 587)
     try:
         if port == 465:
