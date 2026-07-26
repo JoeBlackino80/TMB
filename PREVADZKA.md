@@ -181,6 +181,41 @@ Google odmietne presmerovanie, kým nepridáš nové redirect URI:
 Poznámka: `GOOGLE_CLIENT_ID` sa nemení, takže Gmail pripájanie funguje ďalej.
 Tlačidlo sa zobrazí len keď je `GOOGLE_CLIENT_ID` nastavený (už je).
 
+## 3c. Ochrana proti botom — Cloudflare (voliteľné rozšírenie)
+
+Aplikácia už blokuje: honeypot, časovú pečiatku, rate-limit 3/IP/hod, denný
+strop 30/deň, Turnstile, overenie e-mailu a **jednorazové e-maily**
+(mailinator, guerrillamail…). Ďalšie domény pridáš bez zásahu do kódu:
+
+```bash
+setkey EXTRA_DISPOSABLE_DOMAINS   # napr.: spam.sk,zlo.com
+systemctl restart platby-web
+```
+
+Ak by prišla väčšia vlna, pridaj obranu **pred** serverom v Cloudflare
+(voru.sk musí byť za Cloudflare — oranžový mrak na DNS zázname):
+
+**A) Blokovanie podľa krajiny / TLD (WAF pravidlo)**
+1. dash.cloudflare.com → doména voru.sk → **Security → WAF → Custom rules**
+2. **Create rule**, napr. „blokuj rizikové krajiny na /register":
+   - Field: **URI Path** — Operator: equals — Value: `/register`
+   - AND **Country** — is in — (vyber krajiny, z ktorých nečakáš klientov)
+   - Action: **Block** (alebo **Managed Challenge** — miernejšie, dá captcha)
+3. Deploy. Pozor: blokuj len krajiny mimo tvojich trhov (SK/CZ/PL/AT/HU),
+   nech nevyradíš reálnych záujemcov.
+
+**B) Rate limiting na /register (Cloudflare)**
+1. **Security → WAF → Rate limiting rules → Create**
+2. Path equals `/register`, metóda POST, napr. **max 5 požiadaviek / 10 min
+   na IP**, action **Block** na 1 h. Doplní to appkový limit už na okraji siete.
+
+**C) Bot Fight Mode (jedným klikom)**
+**Security → Bots → Bot Fight Mode → ON** — Cloudflare sám blokuje známe
+boty ešte pred serverom. Zadarmo, netreba pravidlá.
+
+Odporúčanie: začni s **C (Bot Fight Mode)** — je to jeden prepínač. A/B nasaď,
+len ak by spam pokračoval aj tak.
+
 ## 4. UptimeRobot (monitoring dostupnosti)
 
 Zadarmo ťa upozorní e-mailom/SMS, keď web spadne.

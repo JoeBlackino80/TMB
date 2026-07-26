@@ -56,6 +56,8 @@ _SK = {
     "err_turnstile": "Overenie, že nie ste robot, zlyhalo — skúste to znova.",
     "err_paused": "Registrácie sú dočasne pozastavené — skúste to neskôr, "
                   "alebo nám napíšte na obchod@sorbxt.sk.",
+    "err_disposable": "Použite prosím trvalú e-mailovú adresu — jednorazové "
+                      "schránky nie sú podporované.",
 }
 
 _CS = {
@@ -105,6 +107,8 @@ _CS = {
     "err_turnstile": "Ověření, že nejste robot, selhalo — zkuste to znovu.",
     "err_paused": "Registrace jsou dočasně pozastaveny — zkuste to později, "
                   "nebo nám napište na obchod@sorbxt.sk.",
+    "err_disposable": "Použijte prosím trvalou e-mailovou adresu — jednorázové "
+                      "schránky nejsou podporovány.",
 }
 
 _PL = {
@@ -156,6 +160,8 @@ _PL = {
                      "spróbuj ponownie.",
     "err_paused": "Rejestracje są tymczasowo wstrzymane — spróbuj później lub "
                   "napisz do nas na obchod@sorbxt.sk.",
+    "err_disposable": "Użyj proszę stałego adresu e-mail — jednorazowe skrzynki "
+                      "nie są obsługiwane.",
 }
 
 _DE = {
@@ -212,6 +218,8 @@ _DE = {
                      "versuchen.",
     "err_paused": "Registrierungen sind vorübergehend pausiert — versuchen Sie "
                   "es später oder schreiben Sie an obchod@sorbxt.sk.",
+    "err_disposable": "Bitte verwenden Sie eine dauerhafte E-Mail-Adresse — "
+                      "Wegwerf-Postfächer werden nicht unterstützt.",
 }
 
 _HU = {
@@ -263,6 +271,8 @@ _HU = {
     "err_turnstile": "A robotellenőrzés sikertelen — próbálja újra.",
     "err_paused": "A regisztráció átmenetileg szünetel — próbálja később, "
                   "vagy írjon nekünk: obchod@sorbxt.sk.",
+    "err_disposable": "Kérjük, használjon állandó e-mail-címet — az eldobható "
+                      "postafiókok nem támogatottak.",
 }
 
 _EN = {
@@ -315,6 +325,8 @@ _EN = {
     "err_turnstile": "We couldn't verify that you're human — please try again.",
     "err_paused": "Registrations are temporarily paused — try again later or "
                   "write to us at obchod@sorbxt.sk.",
+    "err_disposable": "Please use a permanent email address — disposable "
+                      "inboxes are not supported.",
 }
 
 _TABLES = {"sk": _SK, "cs": _CS, "pl": _PL, "de": _DE, "hu": _HU, "en": _EN}

@@ -26,7 +26,7 @@ from bill_agent import email_layout as ly
 from bill_agent.reminder import action_sig
 from bill_agent.store import Store
 
-from . import clientfs, mailer, totp, webi18n
+from . import clientfs, disposable, mailer, totp, webi18n
 from .auth import Users, verify_password
 
 SECRET = os.environ.get("WEBAPP_SECRET", "")
@@ -444,6 +444,8 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
         return _register_page(request, lang, ref, error="err_consent")
     if "@" not in email or len(password) < 8:
         return _register_page(request, lang, ref, error="err_invalid")
+    if disposable.is_disposable(email):
+        return _register_page(request, lang, ref, error="err_disposable")
     users = Users()
     try:
         if users.by_email(email):
