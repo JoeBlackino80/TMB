@@ -1,0 +1,10 @@
+# Jednorazový beh údržby (obnovy/expirácie) — spúšťa ho timer.
+[Unit]
+Description=ValidFlight expire/renew run
+
+[Service]
+Type=oneshot
+WorkingDirectory=__APP_DIR__
+EnvironmentFile=__APP_DIR__/.env
+ExecStart=__APP_DIR__/.venv/bin/python -m onward.expire
+User=__APP_USER__

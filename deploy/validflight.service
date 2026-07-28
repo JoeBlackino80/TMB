@@ -1,0 +1,17 @@
+# systemd unit pre webovú aplikáciu ValidFlight (onward modul).
+# Inštaluje deploy/install.sh — cesty v ňom nahradí za skutočné.
+[Unit]
+Description=ValidFlight web (onward)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=__APP_DIR__
+EnvironmentFile=__APP_DIR__/.env
+ExecStart=__APP_DIR__/.venv/bin/uvicorn onward.app:app --host 127.0.0.1 --port 8100
+Restart=always
+RestartSec=3
+User=__APP_USER__
+
+[Install]
+WantedBy=multi-user.target

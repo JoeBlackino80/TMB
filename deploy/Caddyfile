@@ -1,0 +1,5 @@
+# Reverse proxy s automatickým HTTPS (Let's Encrypt).
+# apt install caddy && cat tento súbor >> /etc/caddy/Caddyfile && systemctl reload caddy
+validflight.com, www.validflight.com {
+    reverse_proxy 127.0.0.1:8100
+}

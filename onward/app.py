@@ -30,7 +30,7 @@ from fastapi.templating import Jinja2Templates
 from . import booking, pdf
 from .store import Orders
 
-BRAND = os.environ.get("ONWARD_BRAND", "OnwardPass")
+BRAND = os.environ.get("ONWARD_BRAND", "ValidFlight")
 STRIPE_WEBHOOK_SECRET = os.environ.get("ONWARD_STRIPE_WEBHOOK_SECRET", "")
 ADMIN_KEY = os.environ.get("ONWARD_ADMIN_KEY", "")
 

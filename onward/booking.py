@@ -11,7 +11,7 @@ from datetime import date
 from . import duffel, emails, mailer, pdf
 from .store import Orders
 
-BRAND = os.environ.get("ONWARD_BRAND", "OnwardPass")
+BRAND = os.environ.get("ONWARD_BRAND", "ValidFlight")
 BASE_URL = os.environ.get("ONWARD_BASE_URL", "").rstrip("/")
 
 

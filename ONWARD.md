@@ -69,8 +69,8 @@ uvicorn onward.app:app --port 8100
 | Premenná | Význam |
 |---|---|
 | `DUFFEL_API_KEY` | kľúč Duffel API (test/live) |
-| `ONWARD_BRAND` | názov služby (predvolene OnwardPass) |
-| `ONWARD_BASE_URL` | verejná URL (do e-mailov, napr. https://onwardpass.com) |
+| `ONWARD_BRAND` | názov služby (predvolene ValidFlight) |
+| `ONWARD_BASE_URL` | verejná URL (do e-mailov, napr. https://validflight.com) |
 | `ONWARD_PRICE_EUR` / `_WEEK_EUR` / `_2WEEK_EUR` | zobrazované ceny (9.90 / 16.90 / 24.90) |
 | `ONWARD_DB_PATH` | SQLite databáza (predvolene onward.db) |
 | `STRIPE_LINK_ONWARD` / `_WEEK` / `_2WEEK` | Stripe Payment Linky plánov |
