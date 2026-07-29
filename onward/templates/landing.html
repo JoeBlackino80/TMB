@@ -1,151 +1,143 @@
 {% extends "base.html" %}
+{% block hero %}
+<div class="hero"><div class="hero-inner">
+  <h1>{{ t['hero_title'] }}</h1>
+  <p>{{ t['hero_sub'] | safe }}</p>
+  <div class="badges">
+    <span>✅ {{ t['badge1'] }}</span>
+    <span>⚡ {{ t['badge2'] }}</span>
+    <span>📄 {{ t['badge3'] }}</span>
+  </div>
+</div></div>
+{% endblock %}
 {% block content %}
-<h1>Flight reservation in minutes — pay €{{ prices['basic'] }}, not the fare</h1>
-<p class="lead">A <b>genuine airline reservation (PNR)</b> without buying the
-ticket. Verifiable on the airline's website, delivered to your e-mail within
-minutes — with a printable <b>PDF itinerary</b>. Perfect for
-<b>visa applications</b> and <b>proof of onward travel</b>.</p>
-
-<div class="card">
-  <h2>Order your reservation</h2>
+<div class="card" style="margin-top:-34px">
+  <h2>{{ t['order_title'] }}</h2>
   <form method="post" action="/order">
-    <label style="margin-bottom:2px">Validity</label>
+    <label style="margin-bottom:2px">{{ t['validity'] }}</label>
     <div class="plans">
       <label class="plan"><input type="radio" name="plan" value="basic" checked>
-        <b>Standard</b><span class="price">€{{ prices['basic'] }}</span>
-        <small>One reservation, valid 24–72&nbsp;h (airline dependent)</small></label>
+        <b>{{ t['plan_basic'] }}</b><span class="price">€{{ prices['basic'] }}</span>
+        <small>{{ t['plan_basic_desc'] }}</small></label>
       <label class="plan"><input type="radio" name="plan" value="week">
-        <b>7 days</b><span class="price">€{{ prices['week'] }}</span>
-        <small>Auto-renewed with a fresh PNR whenever it expires — kept valid
-        for 7 days</small></label>
+        <b>{{ t['plan_week'] }}</b><span class="price">€{{ prices['week'] }}</span>
+        <small>{{ t['plan_week_desc'] }}</small></label>
       <label class="plan"><input type="radio" name="plan" value="twoweek">
-        <b>14 days</b><span class="price">€{{ prices['twoweek'] }}</span>
-        <small>Auto-renewed for 14 days — ideal for longer visa
-        processing</small></label>
+        <b>{{ t['plan_2week'] }}</b><span class="price">€{{ prices['twoweek'] }}</span>
+        <small>{{ t['plan_2week_desc'] }}</small></label>
     </div>
 
-    <label style="margin-top:16px">Trip type</label>
+    <label style="margin-top:16px">{{ t['trip_type'] }}</label>
     <div class="plans" style="grid-template-columns:1fr 1fr 1fr">
       <label class="plan"><input type="radio" name="trip_type" value="oneway" checked>
-        <b>One way</b><small>Single flight</small></label>
+        <b>{{ t['oneway'] }}</b><small>{{ t['oneway_desc'] }}</small></label>
       <label class="plan"><input type="radio" name="trip_type" value="return">
-        <b>Round trip</b><small>There and back</small></label>
+        <b>{{ t['round'] }}</b><small>{{ t['round_desc'] }}</small></label>
       <label class="plan"><input type="radio" name="trip_type" value="multi">
-        <b>Multi-city</b><small>2–3 flights</small></label>
+        <b>{{ t['multi'] }}</b><small>{{ t['multi_desc'] }}</small></label>
     </div>
 
     <div class="row">
-      <div><label>From</label>
-        <input name="origin" class="airport" placeholder="City or airport (e.g. Vienna)"
+      <div><label>{{ t['from'] }}</label>
+        <input name="origin" class="airport" placeholder="{{ t['placeholder_city'] }}"
                autocomplete="off" required></div>
-      <div><label>To</label>
-        <input name="destination" class="airport" placeholder="City or airport (e.g. Bangkok)"
+      <div><label>{{ t['to'] }}</label>
+        <input name="destination" class="airport" placeholder="{{ t['placeholder_city'] }}"
                autocomplete="off" required></div>
     </div>
     <div class="row">
-      <div><label>Departure date</label>
+      <div><label>{{ t['depart'] }}</label>
         <input type="date" name="depart_date" min="{{ min_date }}" required></div>
-      <div id="returnbox" hidden><label>Return date</label>
+      <div id="returnbox" hidden><label>{{ t['return'] }}</label>
         <input type="date" name="return_date" min="{{ min_date }}"></div>
     </div>
 
     <fieldset class="pax" id="leg2" hidden disabled>
-      <h3>Flight 2</h3>
+      <h3>{{ t['flight2'] }}</h3>
       <div class="row3">
-        <div><label>From</label>
+        <div><label>{{ t['from'] }}</label>
           <input name="origin2" class="airport" autocomplete="off" required></div>
-        <div><label>To</label>
+        <div><label>{{ t['to'] }}</label>
           <input name="destination2" class="airport" autocomplete="off" required></div>
-        <div><label>Date</label>
+        <div><label>{{ t['date'] }}</label>
           <input type="date" name="date2" min="{{ min_date }}" required></div>
       </div>
     </fieldset>
     <fieldset class="pax" id="leg3" hidden disabled>
-      <h3>Flight 3 (optional)</h3>
+      <h3>{{ t['flight3'] }}</h3>
       <div class="row3">
-        <div><label>From</label>
+        <div><label>{{ t['from'] }}</label>
           <input name="origin3" class="airport" autocomplete="off"></div>
-        <div><label>To</label>
+        <div><label>{{ t['to'] }}</label>
           <input name="destination3" class="airport" autocomplete="off"></div>
-        <div><label>Date</label>
+        <div><label>{{ t['date'] }}</label>
           <input type="date" name="date3" min="{{ min_date }}"></div>
       </div>
     </fieldset>
+
     <div class="row">
-      <div><label>E-mail (itinerary is sent here)</label>
+      <div><label>{{ t['email'] }}</label>
         <input type="email" name="email" required></div>
-      <div><label>Phone (international, +421...)</label>
+      <div><label>{{ t['phone'] }}</label>
         <input name="phone" placeholder="+421900123456" required></div>
     </div>
 
     {% for i in range(max_pax) %}
-    <fieldset class="pax" id="pax{{ i }}" {% if i > 0 %}hidden disabled{% endif %}
-              style="border:1px solid #e0e7f2">
-      <h3>Passenger {{ i + 1 }}</h3>
+    <fieldset class="pax" id="pax{{ i }}" {% if i > 0 %}hidden disabled{% endif %}>
+      <h3>{{ t['passenger'] }} {{ i + 1 }}</h3>
       <div class="row3">
-        <div><label>Title</label>
+        <div><label>{{ t['title_lbl'] }}</label>
           <select name="title">
             <option value="mr">Mr</option><option value="ms">Ms</option>
             <option value="mrs">Mrs</option>
           </select></div>
-        <div><label>Given name (as in passport)</label>
+        <div><label>{{ t['given'] }}</label>
           <input name="given_name" required></div>
-        <div><label>Surname (as in passport)</label>
+        <div><label>{{ t['surname'] }}</label>
           <input name="family_name" required></div>
       </div>
       <div class="row">
-        <div><label>Date of birth</label>
+        <div><label>{{ t['dob'] }}</label>
           <input type="date" name="born_on" required></div>
-        <div><label>Gender</label>
+        <div><label>{{ t['gender'] }}</label>
           <select name="gender">
-            <option value="m">Male</option><option value="f">Female</option>
+            <option value="m">{{ t['male'] }}</option>
+            <option value="f">{{ t['female'] }}</option>
           </select></div>
       </div>
     </fieldset>
     {% endfor %}
-    <button type="button" class="linklike" id="addpax">+ Add passenger</button>
+    <button type="button" class="linklike" id="addpax">{{ t['add_passenger'] }}</button>
 
     {% if crypto_enabled %}
-    <label style="margin-top:16px">Payment method</label>
+    <label style="margin-top:16px">{{ t['pay_method'] }}</label>
     <div class="plans" style="grid-template-columns:1fr 1fr">
       <label class="plan"><input type="radio" name="pay" value="card" checked>
-        <b>💳 Card</b><small>Visa, Mastercard — via Stripe</small></label>
+        <b>{{ t['pay_card'] }}</b><small>{{ t['pay_card_desc'] }}</small></label>
       <label class="plan"><input type="radio" name="pay" value="crypto">
-        <b>₿ Crypto</b><small>BTC, ETH, USDC, USDT — via Coinbase</small></label>
+        <b>{{ t['pay_crypto'] }}</b><small>{{ t['pay_crypto_desc'] }}</small></label>
     </div>
     {% endif %}
 
-    <button type="submit">Get my reservation</button>
-    <p class="note">You pay only our service fee. We never charge you the
-    price of the flight and the airline is never paid.</p>
+    <button type="submit">{{ t['submit'] }}</button>
+    <p class="note">{{ t['fee_note'] }}</p>
   </form>
 </div>
 
 <div class="card">
-  <h2>How it works</h2>
-  <ol>
-    <li>You pay the service fee — nothing else, ever.</li>
-    <li>We place a real reservation with the airline in your name —
-        a booking with a PNR code, held without payment.</li>
-    <li>The itinerary with the PNR and a printable PDF arrives in your inbox,
-        usually within minutes. Verify it on the airline's own website
-        (&ldquo;Manage booking&rdquo;).</li>
-    <li>Standard: the airline releases the unpaid booking after
-        24–72&nbsp;hours. With the 7/14-day option we automatically create a
-        fresh reservation each time one expires and e-mail you the new PNR.</li>
-  </ol>
+  <h2>{{ t['how_title'] }}</h2>
+  <div class="steps">
+    <div>{{ t['how1'] }}</div>
+    <div>{{ t['how2'] }}</div>
+    <div>{{ t['how3'] }}</div>
+    <div>{{ t['how4'] }}</div>
+  </div>
 </div>
 
 <div class="card">
-  <h2>What it is — and what it is not</h2>
-  <p>You receive a <b>real reservation</b>, not an edited PDF: the PNR exists
-  in the airline's system and anyone can verify it while it is valid.</p>
-  <p>It is <b>not a flight ticket</b> — you cannot board with it, and once it
-  expires, verification will show it as released. Embassies commonly accept
-  (and often recommend) unticketed reservations for visa applications; the
-  auto-renew options keep a live PNR in your inbox for the whole processing
-  window.</p>
-  <p>More questions? See the <a href="/faq">FAQ</a>.</p>
+  <h2>{{ t['what_title'] }}</h2>
+  {{ t['what_html'] | safe }}
+  <p>{{ t['more_faq'] | safe }}</p>
 </div>
 
 <script>

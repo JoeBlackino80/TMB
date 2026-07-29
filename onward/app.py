@@ -27,7 +27,7 @@ from fastapi import FastAPI, Form, Request
 from fastapi.responses import FileResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from . import booking, crypto, pdf
+from . import booking, crypto, i18n, pdf
 from .store import Orders
 
 BRAND = os.environ.get("ONWARD_BRAND", "ValidFlight")
@@ -58,9 +58,16 @@ def _stripe_link(plan: str) -> str:
 
 
 def _render(request: Request, name: str, **ctx):
-    return templates.TemplateResponse(
+    query_lang = request.query_params.get("lang", "")
+    lang = i18n.pick_lang(query_lang, request.cookies.get("lang", ""),
+                          request.headers.get("accept-language", ""))
+    resp = templates.TemplateResponse(
         request, name, {"brand": BRAND, "prices": _prices(), "max_pax": MAX_PAX,
-                        "crypto_enabled": crypto.enabled(), **ctx})
+                        "crypto_enabled": crypto.enabled(),
+                        "t": i18n.STRINGS[lang], "lang": lang, **ctx})
+    if query_lang in i18n.STRINGS:
+        resp.set_cookie("lang", query_lang, max_age=31536000)
+    return resp
 
 
 @app.get("/")

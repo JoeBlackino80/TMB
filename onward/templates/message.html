@@ -3,6 +3,6 @@
 <div class="card">
   <h2>{{ heading }}</h2>
   {% for line in lines %}<p>{{ line }}</p>{% endfor %}
-  <p><a href="{{ back }}">← Back</a></p>
+  <p><a href="{{ back }}">{{ t['back'] }}</a></p>
 </div>
 {% endblock %}

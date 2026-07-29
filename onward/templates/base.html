@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ lang }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,47 +8,74 @@
   * { box-sizing:border-box; }
   body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
          color:#16213a; background:#f5f7fb; }
-  header { background:#0d1b3d; color:#fff; padding:14px 20px; }
-  header .wrap, main { max-width:860px; margin:0 auto; }
-  header .wrap { display:flex; justify-content:space-between; align-items:center; }
-  header b { font-size:20px; letter-spacing:.5px; }
+  header { background:linear-gradient(120deg,#0d1b3d,#16307a); color:#fff;
+           padding:14px 20px; position:sticky; top:0; z-index:30;
+           box-shadow:0 2px 12px rgba(10,20,50,.25); }
+  header .wrap, main, .hero-inner { max-width:880px; margin:0 auto; }
+  header .wrap { display:flex; justify-content:space-between; align-items:center;
+                 flex-wrap:wrap; gap:8px; }
+  header b { font-size:21px; letter-spacing:.5px; }
   header a { color:#c7d4f2; text-decoration:none; margin-left:16px; font-size:14px; }
   header a:hover { color:#fff; }
-  main { padding:24px 20px 60px; }
-  .card { background:#fff; border-radius:14px; padding:24px;
-          box-shadow:0 2px 10px rgba(20,30,60,.07); margin-bottom:22px; }
+  header .lang a { margin-left:8px; padding:3px 8px; border-radius:6px;
+                   border:1px solid #3a4d85; font-size:12px; }
+  header .lang a.on { background:#fff; color:#0d1b3d; font-weight:700; }
+  .hero { background:linear-gradient(150deg,#0d1b3d 0%,#16307a 55%,#1c64f2 130%);
+          color:#fff; padding:44px 20px 52px; }
+  .hero h1 { font-size:36px; margin:0 0 12px; line-height:1.15; }
+  .hero p { font-size:17px; color:#d7e1f7; max-width:640px; margin:0 0 20px; }
+  .hero b { color:#fff; }
+  .badges { display:flex; gap:10px; flex-wrap:wrap; }
+  .badges span { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25);
+                 border-radius:99px; padding:7px 14px; font-size:13px; font-weight:600; }
+  main { padding:26px 20px 60px; }
+  .card { background:#fff; border-radius:16px; padding:26px;
+          box-shadow:0 4px 18px rgba(20,30,60,.08); margin-bottom:24px; }
   h1 { font-size:30px; margin:18px 0 8px; }
-  h2 { font-size:20px; }
-  p.lead { font-size:17px; color:#44506e; }
+  h2 { font-size:20px; margin-top:0; }
   label { display:block; font-size:13px; font-weight:600; margin:12px 0 4px; }
-  input, select { width:100%; padding:10px 12px; border:1px solid #c8d2e4;
-                  border-radius:8px; font-size:15px; background:#fff; }
+  input, select { width:100%; padding:11px 12px; border:1px solid #c8d2e4;
+                  border-radius:9px; font-size:15px; background:#fff; }
+  input:focus, select:focus { outline:2px solid #1c64f2; border-color:#1c64f2; }
   .row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   .row3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
-  @media (max-width:600px){ .row, .row3 { grid-template-columns:1fr; } }
-  button { margin-top:18px; width:100%; padding:13px; font-size:16px; font-weight:700;
-           color:#fff; background:#1c64f2; border:0; border-radius:9px; cursor:pointer; }
-  button:hover { background:#174fc4; }
+  @media (max-width:600px){ .row, .row3 { grid-template-columns:1fr; }
+    .hero h1 { font-size:28px; } }
+  button { margin-top:20px; width:100%; padding:14px; font-size:17px; font-weight:800;
+           color:#fff; background:linear-gradient(120deg,#1c64f2,#3b82f6);
+           border:0; border-radius:10px; cursor:pointer;
+           box-shadow:0 4px 14px rgba(28,100,242,.35); }
+  button:hover { filter:brightness(1.08); }
   .note { font-size:13px; color:#5a6880; }
-  .pnr { font-size:34px; font-weight:800; letter-spacing:6px; text-align:center; }
+  .pnr { font-size:36px; font-weight:800; letter-spacing:6px; text-align:center; }
   table { border-collapse:collapse; width:100%; font-size:14px; }
-  th, td { text-align:left; padding:7px 10px; border-bottom:1px solid #e6ebf4; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid #e6ebf4; }
+  th { background:#eef2f9; }
   .ok { color:#0a7d38; font-weight:700; }
   .bad { color:#b3261e; font-weight:700; }
   .plans { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:8px; }
   @media (max-width:600px){ .plans { grid-template-columns:1fr; } }
   .plan { border:2px solid #c8d2e4; border-radius:12px; padding:14px; cursor:pointer;
-          display:block; }
+          display:block; transition:border-color .12s, background .12s; }
   .plan input { display:none; }
-  .plan:has(input:checked) { border-color:#1c64f2; background:#eef3fe; }
+  .plan:has(input:checked) { border-color:#1c64f2; background:#eef3fe;
+          box-shadow:0 0 0 3px rgba(28,100,242,.12); }
   .plan b { display:block; font-size:15px; }
-  .plan .price { font-size:22px; font-weight:800; margin:6px 0 2px; }
+  .plan .price { font-size:23px; font-weight:800; margin:6px 0 2px; color:#0d1b3d; }
   .plan small { color:#5a6880; }
   .pax { border:1px solid #e0e7f2; border-radius:10px; padding:4px 14px 14px; margin-top:12px; }
   .pax h3 { font-size:14px; margin:10px 0 0; color:#44506e; }
   .linklike { background:none; border:0; color:#1c64f2; font-size:14px; font-weight:600;
-              cursor:pointer; width:auto; padding:0; margin-top:10px; }
-  footer { text-align:center; font-size:12px; color:#8090a8; padding:20px; }
+              cursor:pointer; width:auto; padding:0; margin-top:10px; box-shadow:none; }
+  .steps { display:grid; grid-template-columns:1fr 1fr; gap:14px; counter-reset:step; }
+  @media (max-width:600px){ .steps { grid-template-columns:1fr; } }
+  .steps div { background:#f2f5fb; border-radius:12px; padding:16px 16px 16px 54px;
+               position:relative; font-size:14px; color:#33405e; }
+  .steps div::before { counter-increment:step; content:counter(step);
+    position:absolute; left:14px; top:14px; width:28px; height:28px; line-height:28px;
+    text-align:center; border-radius:50%; background:#1c64f2; color:#fff;
+    font-weight:800; }
+  footer { text-align:center; font-size:12px; color:#8090a8; padding:24px 20px; }
   footer a { color:#8090a8; }
   .ac-wrap { position:relative; }
   .ac-list { position:absolute; left:0; right:0; top:100%; z-index:20; margin:2px 0 0;
@@ -63,12 +90,19 @@
 </head>
 <body>
 <header><div class="wrap"><b>✈ {{ brand }}</b>
-  <nav><a href="/">Order</a><a href="/faq">FAQ</a><a href="/terms">Terms</a></nav>
+  <nav style="display:flex;align-items:center">
+    <a href="/">{{ t['nav_order'] }}</a><a href="/faq">{{ t['nav_faq'] }}</a>
+    <a href="/terms">{{ t['nav_terms'] }}</a>
+    <span class="lang">
+      <a href="?lang=en" class="{{ 'on' if lang == 'en' }}">EN</a>
+      <a href="?lang=es" class="{{ 'on' if lang == 'es' }}">ES</a>
+    </span>
+  </nav>
 </div></header>
+{% block hero %}{% endblock %}
 <main>{% block content %}{% endblock %}</main>
-<footer>{{ brand }} sells genuine, airline-verifiable flight reservations
-(no ticket issued) for visa applications and proof of onward travel.
-A reservation is not a flight ticket and cannot be used to board.<br>
-<a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/faq">FAQ</a></footer>
+<footer>{{ brand }} {{ t['footer'] }}<br>
+<a href="/terms">{{ t['nav_terms'] }}</a> · <a href="/privacy">Privacy</a> ·
+<a href="/faq">FAQ</a></footer>
 </body>
 </html>

@@ -35,13 +35,18 @@ def build_itinerary(order, passengers: list[dict], segments: list[dict],
     pdf.set_auto_page_break(auto=True, margin=18)
     pdf.add_page()
 
-    pdf.set_text_color(*INK)
+    # tmavomodrý pás s brandom cez celú šírku strany
+    pdf.set_fill_color(13, 27, 61)
+    pdf.rect(0, 0, pdf.w, 26, style="F")
+    pdf.set_xy(pdf.l_margin, 6)
+    pdf.set_text_color(255, 255, 255)
     pdf.set_font("helvetica", "B", 20)
-    pdf.cell(0, 10, _latin(brand), new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font("helvetica", "", 11)
-    pdf.set_text_color(*MUTED)
-    pdf.cell(0, 6, "Flight reservation / itinerary", new_x="LMARGIN", new_y="NEXT")
-    pdf.ln(4)
+    pdf.cell(90, 9, _latin(f"✈ {brand}"))
+    pdf.set_font("helvetica", "", 10)
+    pdf.set_text_color(199, 212, 242)
+    pdf.cell(0, 9, "Flight reservation / itinerary", align="R")
+    pdf.set_y(32)
+    pdf.set_text_color(*INK)
 
     # PNR box
     pdf.set_fill_color(*LIGHT)

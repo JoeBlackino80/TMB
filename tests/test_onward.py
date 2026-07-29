@@ -297,3 +297,12 @@ def test_order_crypto_redirect(client, monkeypatch):
                        follow_redirects=False)
     assert resp.status_code == 303
     assert resp.headers["location"].startswith("https://commerce.coinbase.com/")
+
+
+def test_spanish_translation(client):
+    resp = client.get("/", params={"lang": "es"})
+    assert "Obtener mi reserva" in resp.text
+    assert resp.cookies.get("lang") == "es"
+    # cookie drží jazyk aj na ďalších stránkach
+    assert "Preguntas frecuentes" in client.get("/faq").text
+    assert "Get my reservation" in client.get("/", params={"lang": "en"}).text
