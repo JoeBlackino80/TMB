@@ -252,3 +252,12 @@ def test_admin_requires_key(client, monkeypatch):
     monkeypatch.setattr(onward_app, "ADMIN_KEY", "tajne")
     assert client.get("/admin", params={"key": "zle"}).status_code == 404
     assert client.get("/admin", params={"key": "tajne"}).status_code == 200
+
+
+def test_airports_json(client):
+    resp = client.get("/airports.json")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data) > 3000
+    assert any(a[0] == "VIE" for a in data)
+    assert any(a[0] == "BKK" and "Bangkok" in (a[2] or "") for a in data)

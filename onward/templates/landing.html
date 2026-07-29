@@ -35,10 +35,12 @@ minutes — with a printable <b>PDF itinerary</b>. Perfect for
     </div>
 
     <div class="row">
-      <div><label>From (airport code)</label>
-        <input name="origin" placeholder="VIE" maxlength="3" required></div>
-      <div><label>To (airport code)</label>
-        <input name="destination" placeholder="BKK" maxlength="3" required></div>
+      <div><label>From</label>
+        <input name="origin" class="airport" placeholder="City or airport (e.g. Vienna)"
+               autocomplete="off" required></div>
+      <div><label>To</label>
+        <input name="destination" class="airport" placeholder="City or airport (e.g. Bangkok)"
+               autocomplete="off" required></div>
     </div>
     <div class="row">
       <div><label>Departure date</label>
@@ -50,8 +52,10 @@ minutes — with a printable <b>PDF itinerary</b>. Perfect for
     <fieldset class="pax" id="leg2" hidden disabled>
       <h3>Flight 2</h3>
       <div class="row3">
-        <div><label>From</label><input name="origin2" maxlength="3" required></div>
-        <div><label>To</label><input name="destination2" maxlength="3" required></div>
+        <div><label>From</label>
+          <input name="origin2" class="airport" autocomplete="off" required></div>
+        <div><label>To</label>
+          <input name="destination2" class="airport" autocomplete="off" required></div>
         <div><label>Date</label>
           <input type="date" name="date2" min="{{ min_date }}" required></div>
       </div>
@@ -59,8 +63,10 @@ minutes — with a printable <b>PDF itinerary</b>. Perfect for
     <fieldset class="pax" id="leg3" hidden disabled>
       <h3>Flight 3 (optional)</h3>
       <div class="row3">
-        <div><label>From</label><input name="origin3" maxlength="3"></div>
-        <div><label>To</label><input name="destination3" maxlength="3"></div>
+        <div><label>From</label>
+          <input name="origin3" class="airport" autocomplete="off"></div>
+        <div><label>To</label>
+          <input name="destination3" class="airport" autocomplete="off"></div>
         <div><label>Date</label>
           <input type="date" name="date3" min="{{ min_date }}"></div>
       </div>
@@ -140,6 +146,56 @@ minutes — with a printable <b>PDF itinerary</b>. Perfect for
     const next = paxBoxes.find(b => b.hidden);
     if (next) { next.hidden = false; next.disabled = false; }
     if (!paxBoxes.some(b => b.hidden)) btn.hidden = true;
+  });
+
+  // --- autocomplete letísk (kód / mesto / názov) ---
+  let AIRPORTS = [];
+  fetch('/airports.json').then(r => r.json()).then(d => { AIRPORTS = d; });
+
+  function findAirports(q) {
+    q = q.trim().toLowerCase();
+    if (q.length < 2) return [];
+    const starts = [], contains = [];
+    for (const [code, name, city, country] of AIRPORTS) {
+      const codeL = code.toLowerCase(), cityL = (city || '').toLowerCase(),
+            nameL = name.toLowerCase();
+      if (codeL === q || cityL.startsWith(q) || nameL.startsWith(q))
+        starts.push([code, name, city, country]);
+      else if (cityL.includes(q) || nameL.includes(q))
+        contains.push([code, name, city, country]);
+      if (starts.length >= 8) break;
+    }
+    return starts.concat(contains).slice(0, 8);
+  }
+
+  document.querySelectorAll('input.airport').forEach(input => {
+    const wrap = document.createElement('div');
+    wrap.className = 'ac-wrap';
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(input);
+    const list = document.createElement('ul');
+    list.className = 'ac-list';
+    list.hidden = true;
+    wrap.appendChild(list);
+    let matches = [];
+
+    function choose(m) {
+      input.value = m[0];
+      list.hidden = true;
+    }
+    input.addEventListener('input', () => {
+      matches = findAirports(input.value);
+      list.innerHTML = matches.map(m =>
+        `<li><b>${m[0]}</b> — ${m[2] || m[1]}, ${m[3]}<small>${m[1]}</small></li>`).join('');
+      list.hidden = !matches.length;
+      [...list.children].forEach((li, i) =>
+        li.addEventListener('mousedown', e => { e.preventDefault(); choose(matches[i]); }));
+    });
+    input.addEventListener('blur', () => {
+      setTimeout(() => list.hidden = true, 150);
+      if (!/^[A-Za-z]{3}$/.test(input.value.trim()) && matches.length)
+        choose(matches[0]);
+    });
   });
 
   const returnBox = document.getElementById('returnbox');

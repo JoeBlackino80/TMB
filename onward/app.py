@@ -24,7 +24,7 @@ from datetime import date, timedelta
 from urllib.parse import quote
 
 from fastapi import FastAPI, Form, Request
-from fastapi.responses import RedirectResponse, Response
+from fastapi.responses import FileResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from . import booking, pdf
@@ -65,6 +65,15 @@ def _render(request: Request, name: str, **ctx):
 @app.get("/")
 def landing(request: Request):
     return _render(request, "landing.html", min_date=date.today().isoformat())
+
+
+@app.get("/airports.json")
+def airports():
+    """Databáza letísk pre autocomplete (OurAirports, public domain)."""
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "static", "airports.json"),
+        media_type="application/json",
+        headers={"Cache-Control": "public, max-age=86400"})
 
 
 @app.get("/faq")
