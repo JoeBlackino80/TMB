@@ -47,8 +47,10 @@
   </table>
   {% endif %}
 
-  <h3 style="margin-top:18px;font-size:15px">{{ t['add_saved_passenger'] }}</h3>
-  <form method="post" action="/account/passenger">
+  <button type="button" id="showadd" class="btnlink"
+          style="margin-top:16px">{{ t['add_saved_passenger'] }}</button>
+  <form method="post" action="/account/passenger" id="addform" hidden>
+    <h3 style="margin-top:18px;font-size:15px">{{ t['add_saved_passenger'] }}</h3>
     <div class="row3">
       <div><label>{{ t['title_lbl'] }}</label>
         <select name="title"><option value="mr">Mr</option>
@@ -77,4 +79,20 @@
     <button type="submit">{{ t['save'] }}</button>
   </form>
 </div>
+
+<div style="display:flex;gap:12px;flex-wrap:wrap">
+  <a href="/" class="btnlink">{{ t['new_order_btn'] }}</a>
+  <a href="/logout" class="btnlink"
+     style="background:#e6ebf4;color:#16213a">{{ t['nav_logout'] }}</a>
+</div>
+
+<script>
+  const showBtn = document.getElementById('showadd');
+  const addForm = document.getElementById('addform');
+  showBtn.addEventListener('click', () => {
+    addForm.hidden = false;
+    showBtn.hidden = true;
+    addForm.querySelector('input[name=given_name]').focus();
+  });
+</script>
 {% endblock %}
