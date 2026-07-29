@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ t['account_title'] }}</h1>
+<p class="note">{{ user['email'] }}</p>
+
+<div class="card">
+  <h2>{{ t['order_history'] }}</h2>
+  {% if orders %}
+  <table>
+    <tr><th>{{ t['th_date'] }}</th><th>{{ t['th_route'] }}</th>
+        <th>{{ t['th_status'] }}</th><th>PNR</th><th></th></tr>
+    {% for o in orders %}
+    <tr>
+      <td>{{ o['created_at'][:10] }}</td>
+      <td>{{ o['origin'] }} → {{ o['destination'] }}{% if o['return_date'] %} ({{ t['round'] }}){% endif %}</td>
+      <td>{{ o['status'] }}</td>
+      <td>{{ o['pnr'] or '-' }}</td>
+      <td><a href="/status/{{ o['token'] }}">{{ t['view'] }}</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="note">{{ t['no_orders'] }} <a href="/">{{ t['nav_order'] }}</a></p>{% endif %}
+</div>
+
+<div class="card">
+  <h2>{{ t['saved_passengers'] }}</h2>
+  <p class="note">{{ t['saved_passengers_note'] }}</p>
+  {% if passengers %}
+  <table>
+    <tr><th>{{ t['passenger'] }}</th><th>{{ t['dob'] }}</th>
+        <th>{{ t['nationality'] }}</th><th>{{ t['passport'] }}</th><th></th></tr>
+    {% for p in passengers %}
+    <tr>
+      <td>{{ p['title']|capitalize }} {{ p['given_name'] }} {{ p['family_name'] }}</td>
+      <td>{{ p['born_on'] }}</td>
+      <td>{{ p['nationality'] or '-' }}</td>
+      <td>{% if p['passport_enc'] %}••••{% else %}-{% endif %}</td>
+      <td><form method="post" action="/account/passenger/{{ p['id'] }}/delete"
+                style="margin:0"><button class="linklike bad" type="submit"
+                style="color:#b3261e">{{ t['delete'] }}</button></form></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
+  <h3 style="margin-top:18px;font-size:15px">{{ t['add_saved_passenger'] }}</h3>
+  <form method="post" action="/account/passenger">
+    <div class="row3">
+      <div><label>{{ t['title_lbl'] }}</label>
+        <select name="title"><option value="mr">Mr</option>
+          <option value="ms">Ms</option><option value="mrs">Mrs</option></select></div>
+      <div><label>{{ t['given'] }}</label><input name="given_name" required></div>
+      <div><label>{{ t['surname'] }}</label><input name="family_name" required></div>
+    </div>
+    <div class="row3">
+      <div><label>{{ t['dob'] }}</label>
+        <input type="date" name="born_on" required></div>
+      <div><label>{{ t['gender'] }}</label>
+        <select name="gender"><option value="m">{{ t['male'] }}</option>
+          <option value="f">{{ t['female'] }}</option></select></div>
+      <div><label>{{ t['nationality'] }} (ISO)</label>
+        <input name="nationality" maxlength="2" placeholder="SK"></div>
+    </div>
+    {% if passport_on %}
+    <div class="row">
+      <div><label>{{ t['passport'] }}</label>
+        <input name="passport" autocomplete="off"></div>
+      <div><label>{{ t['passport_expiry'] }}</label>
+        <input type="date" name="passport_expiry"></div>
+    </div>
+    <p class="note">{{ t['passport_note'] }}</p>
+    {% endif %}
+    <button type="submit">{{ t['save'] }}</button>
+  </form>
+</div>
+{% endblock %}

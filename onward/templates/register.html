@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width:440px;margin:20px auto">
+  <h2>{{ t['register_title'] }}</h2>
+  {% if err %}<p class="bad">{{ err }}</p>{% endif %}
+  <form method="post" action="/register">
+    <label>{{ t['email_lbl'] }}</label>
+    <input type="email" name="email" required>
+    <label>{{ t['password_lbl'] }} ({{ t['min8'] }})</label>
+    <input type="password" name="password" minlength="8" required>
+    <button type="submit">{{ t['register_btn'] }}</button>
+  </form>
+  <p class="note" style="margin-top:14px">{{ t['have_account'] }}
+    <a href="/login">{{ t['login_btn'] }}</a></p>
+</div>
+{% endblock %}

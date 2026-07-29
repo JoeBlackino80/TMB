@@ -33,7 +33,26 @@ CREATE TABLE IF NOT EXISTS orders (
     segments_json TEXT,
     renew_count INTEGER NOT NULL DEFAULT 0,
     error TEXT,
-    slices_json TEXT NOT NULL DEFAULT ''
+    slices_json TEXT NOT NULL DEFAULT '',
+    user_id INTEGER
+);
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS saved_passengers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    given_name TEXT NOT NULL,
+    family_name TEXT NOT NULL,
+    born_on TEXT NOT NULL,
+    gender TEXT NOT NULL,
+    nationality TEXT NOT NULL DEFAULT '',
+    passport_enc TEXT NOT NULL DEFAULT '',
+    passport_expiry TEXT NOT NULL DEFAULT ''
 );
 """
 
@@ -48,17 +67,21 @@ class Orders:
         self.conn = sqlite3.connect(path or os.environ.get("ONWARD_DB_PATH", "onward.db"))
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
-        try:  # migrácia starších databáz (pred multi-city)
-            self.conn.execute("ALTER TABLE orders ADD COLUMN slices_json TEXT NOT NULL DEFAULT ''")
-            self.conn.commit()
-        except sqlite3.OperationalError:
-            pass
+        for ddl in (  # migrácie starších databáz
+                "ALTER TABLE orders ADD COLUMN slices_json TEXT NOT NULL DEFAULT ''",
+                "ALTER TABLE orders ADD COLUMN user_id INTEGER"):
+            try:
+                self.conn.execute(ddl)
+                self.conn.commit()
+            except sqlite3.OperationalError:
+                pass
 
     def close(self):
         self.conn.close()
 
     def create(self, *, email: str, phone: str, slices: list[dict],
-               passengers: list[dict], plan: str, valid_until: str) -> str:
+               passengers: list[dict], plan: str, valid_until: str,
+               user_id: int | None = None) -> str:
         """`slices`: [{origin, destination, date}, ...] (1 = one-way,
         2 = spiatočný/multi, 3+ = multi-city);
         `passengers`: [{title, given_name, family_name, born_on, gender}, ...]"""
@@ -70,14 +93,62 @@ class Orders:
             and slices[1]["destination"].upper() == first["origin"].upper()) else ""
         self.conn.execute(
             "INSERT INTO orders (token, created_at, plan, valid_until, email, phone,"
-            " origin, destination, depart_date, return_date, passengers_json, slices_json)"
-            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            " origin, destination, depart_date, return_date, passengers_json,"
+            " slices_json, user_id)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (token, utcnow(), plan, valid_until, email.strip(), phone.strip(),
              first["origin"].upper(), first["destination"].upper(), first["date"],
              return_date, json.dumps(passengers, ensure_ascii=False),
-             json.dumps(slices, ensure_ascii=False)))
+             json.dumps(slices, ensure_ascii=False), user_id))
         self.conn.commit()
         return token
+
+    # -- používatelia -----------------------------------------------------------
+
+    def create_user(self, email: str, password_hash: str) -> int:
+        cur = self.conn.execute(
+            "INSERT INTO users (email, password_hash, created_at) VALUES (?,?,?)",
+            (email.strip().lower(), password_hash, utcnow()))
+        self.conn.commit()
+        return cur.lastrowid
+
+    def user_by_email(self, email: str) -> sqlite3.Row | None:
+        return self.conn.execute("SELECT * FROM users WHERE email=?",
+                                 (email.strip().lower(),)).fetchone()
+
+    def user_by_id(self, user_id: int) -> sqlite3.Row | None:
+        return self.conn.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+
+    def orders_for_user(self, user_id: int) -> list[sqlite3.Row]:
+        return self.conn.execute(
+            "SELECT * FROM orders WHERE user_id=? ORDER BY id DESC", (user_id,)).fetchall()
+
+    # -- uložení pasažieri (číslo pasu je šifrované už pri vstupe) ---------------
+
+    def add_saved_passenger(self, user_id: int, p: dict) -> int:
+        cur = self.conn.execute(
+            "INSERT INTO saved_passengers (user_id, title, given_name, family_name,"
+            " born_on, gender, nationality, passport_enc, passport_expiry)"
+            " VALUES (?,?,?,?,?,?,?,?,?)",
+            (user_id, p["title"], p["given_name"].strip(), p["family_name"].strip(),
+             p["born_on"], p["gender"], p.get("nationality", ""),
+             p.get("passport_enc", ""), p.get("passport_expiry", "")))
+        self.conn.commit()
+        return cur.lastrowid
+
+    def saved_passengers(self, user_id: int) -> list[sqlite3.Row]:
+        return self.conn.execute(
+            "SELECT * FROM saved_passengers WHERE user_id=? ORDER BY id", (user_id,)).fetchall()
+
+    def saved_passenger(self, user_id: int, pid: int) -> sqlite3.Row | None:
+        return self.conn.execute(
+            "SELECT * FROM saved_passengers WHERE id=? AND user_id=?",
+            (pid, user_id)).fetchone()
+
+    def delete_saved_passenger(self, user_id: int, pid: int):
+        self.conn.execute("DELETE FROM saved_passengers WHERE id=? AND user_id=?",
+                          (pid, user_id))
+        self.conn.commit()
 
     def slices(self, row: sqlite3.Row) -> list[dict]:
         if row["slices_json"]:

@@ -78,6 +78,8 @@ uvicorn onward.app:app --port 8100
 | `COINBASE_COMMERCE_API_KEY` | krypto platby (Coinbase Commerce); zapne výber platby na webe |
 | `ONWARD_COINBASE_WEBHOOK_SECRET` | shared secret webhooku `/crypto/webhook` |
 | `ONWARD_ADMIN_KEY` | kľúč pre /admin?key=... |
+| `ONWARD_SECRET` | podpis prihlasovacích cookies klientskych účtov (dlhý náhodný reťazec) |
+| `ONWARD_DATA_KEY` | Fernet kľúč na šifrovanie čísla pasu uložených pasažierov; bez neho sa pasové polia neukladajú |
 | `ONWARD_SMTP_HOST/PORT/USER/PASSWORD` | SMTP; ak chýba, použije sa `SMTP_*` |
 
 ## Férovosť a právne poznámky

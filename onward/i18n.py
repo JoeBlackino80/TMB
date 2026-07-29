@@ -8,6 +8,22 @@ Použitie: šablóny dostanú slovník `t` podľa jazyka požiadavky
 STRINGS = {
     "en": {
         "nav_order": "Order", "nav_faq": "FAQ", "nav_terms": "Terms",
+        "nav_login": "Sign in", "nav_account": "My account", "nav_logout": "Sign out",
+        "login_title": "Sign in", "register_title": "Create an account",
+        "email_lbl": "E-mail", "password_lbl": "Password", "min8": "min. 8 characters",
+        "login_btn": "Sign in", "register_btn": "Create account",
+        "no_account": "No account yet?", "have_account": "Already have an account?",
+        "account_title": "My account", "order_history": "Order history",
+        "th_date": "Date", "th_status": "Status", "view": "View",
+        "no_orders": "No orders yet.",
+        "saved_passengers": "Saved travellers",
+        "saved_passengers_note": "Save traveller details to reuse them on future"
+            " orders. Passport data is optional and stored encrypted.",
+        "nationality": "Nationality", "passport": "Passport number",
+        "passport_expiry": "Passport expiry", "add_saved_passenger": "Add a traveller",
+        "passport_note": "Optional. Stored encrypted; used only to complete"
+            " international reservations.",
+        "delete": "Delete", "save": "Save",
         "hero_title": "A real flight reservation in minutes",
         "hero_sub": "A <b>genuine airline reservation (PNR)</b> without buying"
                     " the ticket — verifiable on the airline's website, delivered"
@@ -130,6 +146,24 @@ a verifiable reservation, you get a full refund — no questions asked. See
     },
     "es": {
         "nav_order": "Reservar", "nav_faq": "FAQ", "nav_terms": "Términos",
+        "nav_login": "Entrar", "nav_account": "Mi cuenta", "nav_logout": "Salir",
+        "login_title": "Iniciar sesión", "register_title": "Crear una cuenta",
+        "email_lbl": "E-mail", "password_lbl": "Contraseña", "min8": "mín. 8 caracteres",
+        "login_btn": "Entrar", "register_btn": "Crear cuenta",
+        "no_account": "¿Aún no tienes cuenta?", "have_account": "¿Ya tienes cuenta?",
+        "account_title": "Mi cuenta", "order_history": "Historial de pedidos",
+        "th_date": "Fecha", "th_status": "Estado", "view": "Ver",
+        "no_orders": "Aún no hay pedidos.",
+        "saved_passengers": "Viajeros guardados",
+        "saved_passengers_note": "Guarda los datos del viajero para reutilizarlos"
+            " en futuros pedidos. Los datos del pasaporte son opcionales y se"
+            " guardan cifrados.",
+        "nationality": "Nacionalidad", "passport": "Número de pasaporte",
+        "passport_expiry": "Caducidad del pasaporte",
+        "add_saved_passenger": "Añadir viajero",
+        "passport_note": "Opcional. Se guarda cifrado; se usa solo para completar"
+            " reservas internacionales.",
+        "delete": "Eliminar", "save": "Guardar",
         "hero_title": "Una reserva de vuelo real en minutos",
         "hero_sub": "Una <b>reserva aérea genuina (PNR)</b> sin comprar el"
                     " billete — verificable en la web de la aerolínea, enviada"

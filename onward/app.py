@@ -27,12 +27,13 @@ from fastapi import FastAPI, Form, Request
 from fastapi.responses import FileResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from . import booking, crypto, i18n, pdf
+from . import auth, booking, crypto, i18n, pdf
 from .store import Orders
 
 BRAND = os.environ.get("ONWARD_BRAND", "ValidFlight")
 STRIPE_WEBHOOK_SECRET = os.environ.get("ONWARD_STRIPE_WEBHOOK_SECRET", "")
 ADMIN_KEY = os.environ.get("ONWARD_ADMIN_KEY", "")
+SECRET = os.environ.get("ONWARD_SECRET", "") or ADMIN_KEY or "dev-insecure-secret"
 
 # plán → (dní platnosti, env s cenou, predvolená cena, env so Stripe linkom)
 PLANS = {
@@ -57,10 +58,35 @@ def _stripe_link(plan: str) -> str:
     return os.environ.get(PLANS[plan][3], "") or os.environ.get("STRIPE_LINK_ONWARD", "")
 
 
+def _redirect(url: str) -> RedirectResponse:
+    return RedirectResponse(url, status_code=303)
+
+
+def _sign(value: str) -> str:
+    return hmac.new(SECRET.encode(), value.encode(), hashlib.sha256).hexdigest()
+
+
+def _session_cookie(user_id: int) -> str:
+    return f"{user_id}.{_sign(str(user_id))}"
+
+
+def current_user(request: Request):
+    cookie = request.cookies.get("session", "")
+    uid, _, sig = cookie.partition(".")
+    if not uid or not hmac.compare_digest(sig, _sign(uid)):
+        return None
+    store = Orders()
+    try:
+        return store.user_by_id(int(uid))
+    finally:
+        store.close()
+
+
 def _render(request: Request, name: str, **ctx):
     query_lang = request.query_params.get("lang", "")
     lang = i18n.pick_lang(query_lang, request.cookies.get("lang", ""),
                           request.headers.get("accept-language", ""))
+    ctx.setdefault("user", current_user(request))
     resp = templates.TemplateResponse(
         request, name, {"brand": BRAND, "prices": _prices(), "max_pax": MAX_PAX,
                         "crypto_enabled": crypto.enabled(),
@@ -87,6 +113,114 @@ def airports():
 @app.get("/faq")
 def faq(request: Request):
     return _render(request, "faq.html")
+
+
+# -- účet klienta -------------------------------------------------------------
+
+@app.get("/register")
+def register_form(request: Request):
+    if current_user(request):
+        return _redirect("/account")
+    return _render(request, "register.html")
+
+
+@app.post("/register")
+def register(request: Request, email: str = Form(...), password: str = Form(...)):
+    if "@" not in email or len(password) < 8:
+        return _render(request, "register.html",
+                       err="Enter a valid e-mail and a password of at least 8 characters.")
+    store = Orders()
+    try:
+        if store.user_by_email(email):
+            return _render(request, "register.html",
+                           err="An account with this e-mail already exists.")
+        uid = store.create_user(email, auth.hash_password(password))
+    finally:
+        store.close()
+    resp = _redirect("/account")
+    resp.set_cookie("session", _session_cookie(uid), httponly=True,
+                    samesite="lax", max_age=2592000)
+    return resp
+
+
+@app.get("/login")
+def login_form(request: Request):
+    if current_user(request):
+        return _redirect("/account")
+    return _render(request, "login.html")
+
+
+@app.post("/login")
+def login(request: Request, email: str = Form(...), password: str = Form(...)):
+    store = Orders()
+    try:
+        user = store.user_by_email(email)
+    finally:
+        store.close()
+    if not user or not auth.verify_password(password, user["password_hash"]):
+        return _render(request, "login.html", err="Wrong e-mail or password.")
+    resp = _redirect("/account")
+    resp.set_cookie("session", _session_cookie(user["id"]), httponly=True,
+                    samesite="lax", max_age=2592000)
+    return resp
+
+
+@app.get("/logout")
+def logout():
+    resp = _redirect("/")
+    resp.delete_cookie("session")
+    return resp
+
+
+@app.get("/account")
+def account(request: Request):
+    user = current_user(request)
+    if not user:
+        return _redirect("/login")
+    store = Orders()
+    try:
+        orders = store.orders_for_user(user["id"])
+        passengers = store.saved_passengers(user["id"])
+    finally:
+        store.close()
+    return _render(request, "account.html", user=user, orders=orders,
+                   passengers=passengers,
+                   passport_on=auth.passport_storage_enabled())
+
+
+@app.post("/account/passenger")
+def add_passenger(request: Request, title: str = Form("mr"),
+                  given_name: str = Form(...), family_name: str = Form(...),
+                  born_on: str = Form(...), gender: str = Form("m"),
+                  nationality: str = Form(""), passport: str = Form(""),
+                  passport_expiry: str = Form("")):
+    user = current_user(request)
+    if not user:
+        return _redirect("/login")
+    store = Orders()
+    try:
+        store.add_saved_passenger(user["id"], {
+            "title": title, "given_name": given_name, "family_name": family_name,
+            "born_on": born_on, "gender": gender,
+            "nationality": nationality.strip().upper()[:2],
+            "passport_enc": auth.encrypt_passport(passport),
+            "passport_expiry": passport_expiry})
+    finally:
+        store.close()
+    return _redirect("/account")
+
+
+@app.post("/account/passenger/{pid}/delete")
+def del_passenger(request: Request, pid: int):
+    user = current_user(request)
+    if not user:
+        return _redirect("/login")
+    store = Orders()
+    try:
+        store.delete_saved_passenger(user["id"], pid)
+    finally:
+        store.close()
+    return _redirect("/account")
 
 
 @app.get("/terms")
@@ -177,11 +311,13 @@ def order(request: Request,
     valid_until = min(date.today() + timedelta(days=days),
                       date.fromisoformat(depart_date)).isoformat() if days else ""
 
+    user = current_user(request)
     store = Orders()
     try:
         token = store.create(email=email, phone=phone, slices=slices,
                              passengers=passengers, plan=plan,
-                             valid_until=valid_until)
+                             valid_until=valid_until,
+                             user_id=user["id"] if user else None)
         if pay == "crypto" and crypto.enabled():
             url = crypto.create_charge(token, _prices()[plan],
                                        f"{BRAND} — flight reservation ({plan})",

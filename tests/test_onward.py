@@ -306,3 +306,54 @@ def test_spanish_translation(client):
     # cookie drží jazyk aj na ďalších stránkach
     assert "Preguntas frecuentes" in client.get("/faq").text
     assert "Get my reservation" in client.get("/", params={"lang": "en"}).text
+
+
+def test_register_login_account_flow(client):
+    # registrácia → prihlásený, panel dostupný
+    r = client.post("/register", data={"email": "u@x.sk", "password": "heslo1234"},
+                    follow_redirects=False)
+    assert r.status_code == 303 and r.headers["location"] == "/account"
+    assert client.get("/account").status_code == 200
+    # objednávka sa priradí prihlásenému používateľovi a je v histórii
+    from onward import duffel, booking
+    import onward.app as A
+    A_calls = _mock_duffel(client_monkeypatch := None) if False else None
+    # jednoduchšie: priamy store test priradenia
+    from onward.store import Orders
+    import os
+    store = Orders(os.environ["ONWARD_DB_PATH"])
+    uid = store.user_by_email("u@x.sk")["id"]
+    tok = store.create(email="u@x.sk", phone="+421", slices=SLICES, passengers=PAX,
+                       plan="basic", valid_until="", user_id=uid)
+    assert [o["token"] for o in store.orders_for_user(uid)] == [tok]
+    store.close()
+    hist = client.get("/account")
+    assert "VIE" in hist.text
+
+
+def test_password_hashing():
+    from onward import auth
+    h = auth.hash_password("secret12")
+    assert auth.verify_password("secret12", h)
+    assert not auth.verify_password("wrong", h)
+
+
+def test_passport_encryption(monkeypatch):
+    from cryptography.fernet import Fernet
+    from onward import auth
+    monkeypatch.setenv("ONWARD_DATA_KEY", Fernet.generate_key().decode())
+    enc = auth.encrypt_passport("AB123456")
+    assert enc and enc != "AB123456"
+    assert auth.decrypt_passport(enc) == "AB123456"
+
+
+def test_saved_passenger_crud(client, monkeypatch):
+    from cryptography.fernet import Fernet
+    monkeypatch.setenv("ONWARD_DATA_KEY", Fernet.generate_key().decode())
+    client.post("/register", data={"email": "p@x.sk", "password": "heslo1234"})
+    client.post("/account/passenger", data={
+        "title": "mr", "given_name": "Jan", "family_name": "Novak",
+        "born_on": "1990-01-01", "gender": "m", "nationality": "sk",
+        "passport": "AB123456", "passport_expiry": "2030-01-01"})
+    page = client.get("/account")
+    assert "Novak" in page.text and "AB123456" not in page.text  # pas sa nezobrazuje
