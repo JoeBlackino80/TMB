@@ -348,3 +348,11 @@ APP.update({
     "ob_lead": "Jak budete VORU používat? Podle toho vám přizpůsobíme přehled a e-maily — změnit to lze kdykoli v Nastavení.",
     "ob_save": "Pokračovat",
 })
+
+# + Pridať termín
+APP.update({
+    "d_add_deadline": "Přidat termín", "d_add_kind": "Typ", "d_add_date": "Platí do",
+    "d_add_note": "Popis (např. SPZ)", "d_add_save": "Přidat", "d_add_hint": "Pro nákup bez e-mailu (známka u pumpy, papírová STK…). Ostatní VORU zachytí z pošty sám.",
+    "k_pzp": "Povinné ručení", "k_havarijne": "Havarijní pojištění", "k_stk": "STK", "k_ek": "Emisní kontrola",
+    "k_znamka": "Dálniční známka", "k_poistka": "Pojistka", "k_ine": "Jiný termín",
+})

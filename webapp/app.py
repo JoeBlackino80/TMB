@@ -856,6 +856,35 @@ def renewal_done(request: Request, user=Depends(current_user),
     return _redirect("/")
 
 
+_RENEWAL_KINDS = {"pzp", "havarijne", "stk", "ek", "znamka", "poistka",
+                  "domena", "predplatne", "zmluva", "ine"}
+
+
+@app.post("/renewals/add")
+def renewal_add(request: Request, user=Depends(current_user),
+                kind: str = Form("ine"), expires_on: str = Form(...),
+                subject: str = Form("")):
+    """Ručne pridaný termín (známka na pumpe, papierová STK…) — pre veci,
+    ktoré neprídu e-mailom. Ostatné VORU zachytí z pošty samo."""
+    if not user:
+        return _redirect("/login")
+    if kind not in _RENEWAL_KINDS:
+        kind = "ine"
+    try:
+        date.fromisoformat(expires_on)
+    except ValueError:
+        return _redirect("/")
+    db = _client_db(user)
+    os.makedirs(os.path.dirname(db), exist_ok=True)
+    store = Store(db)
+    try:
+        store.add_renewal(kind=kind, subject=subject.strip()[:80],
+                          expires_on=expires_on)
+    finally:
+        store.close()
+    return _redirect("/")
+
+
 @app.post("/payments/set-status")
 def payment_set_status(request: Request, user=Depends(current_user),
                        payment_id: int = Form(...), status: str = Form(...)):

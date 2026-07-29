@@ -364,3 +364,11 @@ APP.update({
     "ob_lead": "Jak będziesz korzystać z VORU? Dopasujemy do tego przegląd i e-maile — zmienisz to w każdej chwili w Ustawieniach.",
     "ob_save": "Kontynuuj",
 })
+
+# + Pridať termín
+APP.update({
+    "d_add_deadline": "Dodaj termin", "d_add_kind": "Typ", "d_add_date": "Ważne do",
+    "d_add_note": "Opis (np. numer rej.)", "d_add_save": "Dodaj", "d_add_hint": "Dla zakupu bez e-maila (winieta na stacji, papierowy przegląd…). Resztę VORU wychwyci z poczty sam.",
+    "k_pzp": "OC pojazdu", "k_havarijne": "Ubezpieczenie AC", "k_stk": "Przegląd techniczny", "k_ek": "Badanie emisji",
+    "k_znamka": "Winieta autostradowa", "k_poistka": "Polisa", "k_ine": "Inny termin",
+})

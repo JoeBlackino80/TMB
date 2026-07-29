@@ -394,3 +394,11 @@ APP.update({
     "ob_lead": "Wie werden Sie VORU nutzen? Danach richten wir Übersicht und E-Mails aus — jederzeit in den Einstellungen änderbar.",
     "ob_save": "Weiter",
 })
+
+# + Pridať termín
+APP.update({
+    "d_add_deadline": "Termin hinzufügen", "d_add_kind": "Art", "d_add_date": "Gültig bis",
+    "d_add_note": "Beschreibung (z. B. Kennzeichen)", "d_add_save": "Hinzufügen", "d_add_hint": "Für Käufe ohne E-Mail (Vignette an der Tankstelle, Papier-Pickerl…). Den Rest erfasst VORU selbst aus der Post.",
+    "k_pzp": "Kfz-Haftpflicht", "k_havarijne": "Kaskoversicherung", "k_stk": "§57a-Begutachtung", "k_ek": "Abgasuntersuchung",
+    "k_znamka": "Vignette", "k_poistka": "Versicherung", "k_ine": "Sonstiger Termin",
+})

@@ -113,6 +113,7 @@ RENEWAL_LABELS = {
     "havarijne": "Havarijné poistenie",
     "stk": "STK",
     "ek": "Emisná kontrola",
+    "znamka": "Diaľničná známka",
     "poistka": "Poistka",
     "domena": "Doména",
     "predplatne": "Predplatné",

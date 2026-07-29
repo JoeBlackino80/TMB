@@ -385,6 +385,13 @@ _SK_APP = {
                    "potvrdíte naraz.",
     "d_no_payments": "Žiadne evidované nezaplatené platby.",
     "d_renewals_title": "Končí platnosť", "d_done_btn": "Vybavené",
+    "d_add_deadline": "Pridať termín",
+    "d_add_kind": "Typ", "d_add_date": "Platí do", "d_add_note": "Popis (napr. ŠPZ)",
+    "d_add_save": "Pridať", "d_add_hint": "Pre kúpu bez e-mailu (známka na pumpe, "
+                 "papierová STK…). Ostatné VORU zachytí z pošty samo.",
+    "k_pzp": "PZP poistenie", "k_havarijne": "Havarijné poistenie",
+    "k_stk": "STK", "k_ek": "Emisná kontrola", "k_znamka": "Diaľničná známka",
+    "k_poistka": "Poistka", "k_ine": "Iný termín",
     "d_renewals_note": "Poistky, STK, domény a predplatné, ktoré VORU našlo "
                        "vo vašej pošte. Vybavené odškrtnite, aby sme vám ich "
                        "nepripomínali.",

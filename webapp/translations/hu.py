@@ -390,3 +390,11 @@ APP.update({
     "ob_lead": "Hogyan fogja használni a VORU-t? Ehhez igazítjuk az áttekintést és az e-maileket — bármikor módosítható a Beállításokban.",
     "ob_save": "Tovább",
 })
+
+# + Pridať termín
+APP.update({
+    "d_add_deadline": "Határidő hozzáadása", "d_add_kind": "Típus", "d_add_date": "Érvényes eddig",
+    "d_add_note": "Leírás (pl. rendszám)", "d_add_save": "Hozzáadás", "d_add_hint": "E-mail nélküli vásárláshoz (matrica a kútnál, papír műszaki…). A többit a VORU maga kiszűri a levelekből.",
+    "k_pzp": "Kötelező biztosítás", "k_havarijne": "Casco", "k_stk": "Műszaki vizsga", "k_ek": "Környezetvédelmi vizsga",
+    "k_znamka": "Autópálya-matrica", "k_poistka": "Biztosítás", "k_ine": "Egyéb határidő",
+})

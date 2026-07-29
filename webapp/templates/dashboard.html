@@ -139,9 +139,9 @@ function toggleQr(btn) {
   {% endif %}
 </div>
 
-{% if renewals %}
-<div class="card" style="border-color:#ecd9a8">
+<div class="card"{% if renewals %} style="border-color:#ecd9a8"{% endif %}>
   <h2>{{ t.d_renewals_title }}</h2>
+  {% if renewals %}
   <table>
     {% for r in renewals %}
     <tr>
@@ -159,8 +159,29 @@ function toggleQr(btn) {
     {% endfor %}
   </table>
   <p class="muted">{{ t.d_renewals_note }}</p>
+  {% endif %}
+  <details style="margin-top:10px">
+    <summary style="cursor:pointer;font-weight:600;font-size:13.5px;color:var(--accent)">
+      + {{ t.d_add_deadline }}</summary>
+    <form method="post" action="/renewals/add"
+          style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:10px">
+      <div><label style="margin:0 0 3px">{{ t.d_add_kind }}</label>
+        <select name="kind" style="max-width:200px">
+          {% for kv, kl in [('pzp', t.k_pzp), ('stk', t.k_stk), ('ek', t.k_ek),
+                            ('znamka', t.k_znamka), ('havarijne', t.k_havarijne),
+                            ('poistka', t.k_poistka), ('ine', t.k_ine)] %}
+          <option value="{{ kv }}">{{ kl }}</option>
+          {% endfor %}
+        </select></div>
+      <div><label style="margin:0 0 3px">{{ t.d_add_date }}</label>
+        <input type="date" name="expires_on" required style="max-width:170px"></div>
+      <div><label style="margin:0 0 3px">{{ t.d_add_note }}</label>
+        <input name="subject" placeholder="EČV / ŠPZ" style="max-width:160px"></div>
+      <button type="submit" style="margin-bottom:1px">{{ t.d_add_save }}</button>
+    </form>
+    <p class="muted" style="margin-top:8px">{{ t.d_add_hint }}</p>
+  </details>
 </div>
-{% endif %}
 
 {% if tax_deadlines %}
 <div class="card">

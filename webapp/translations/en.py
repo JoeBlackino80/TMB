@@ -364,3 +364,11 @@ APP.update({
     "ob_lead": "How will you use VORU? We'll tailor the overview and emails to it — you can change it anytime in Settings.",
     "ob_save": "Continue",
 })
+
+# + Pridať termín
+APP.update({
+    "d_add_deadline": "Add a deadline", "d_add_kind": "Type", "d_add_date": "Valid until",
+    "d_add_note": "Note (e.g. plate)", "d_add_save": "Add", "d_add_hint": "For purchases without email (vignette at a kiosk, paper inspection…). VORU catches the rest from your mail automatically.",
+    "k_pzp": "Motor liability insurance", "k_havarijne": "Comprehensive insurance", "k_stk": "Vehicle inspection", "k_ek": "Emissions test",
+    "k_znamka": "Highway vignette", "k_poistka": "Insurance policy", "k_ine": "Other deadline",
+})
