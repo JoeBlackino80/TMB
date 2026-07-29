@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>{{ t['account_title'] }}</h1>
-<p class="note">{{ user['email'] }}</p>
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+  <div><h1 style="margin-bottom:2px">{{ t['account_title'] }}</h1>
+    <p class="note" style="margin:0">{{ user['email'] }}</p></div>
+  <a href="/" class="btnlink">{{ t['new_order_btn'] }}</a>
+</div>
 
 <div class="card">
   <h2>{{ t['order_history'] }}</h2>
@@ -24,6 +27,7 @@
 
 <div class="card">
   <h2>{{ t['saved_passengers'] }}</h2>
+  {% if saved %}<p class="ok">{{ t['traveller_saved'] }}</p>{% endif %}
   <p class="note">{{ t['saved_passengers_note'] }}</p>
   {% if passengers %}
   <table>

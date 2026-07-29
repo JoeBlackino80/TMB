@@ -208,6 +208,7 @@ def account(request: Request):
         store.close()
     return _render(request, "account.html", user=user, orders=orders,
                    passengers=passengers,
+                   saved="saved" in request.query_params,
                    passport_on=auth.passport_storage_enabled())
 
 
@@ -230,7 +231,7 @@ def add_passenger(request: Request, title: str = Form("mr"),
             "passport_expiry": passport_expiry})
     finally:
         store.close()
-    return _redirect("/account")
+    return _redirect("/account?saved=1")
 
 
 @app.post("/account/passenger/{pid}/delete")

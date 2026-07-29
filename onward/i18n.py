@@ -24,6 +24,7 @@ STRINGS = {
         "passport_note": "Optional. Stored encrypted; used only to complete"
             " international reservations.",
         "delete": "Delete", "save": "Save",
+        "new_order_btn": "New reservation", "traveller_saved": "Traveller saved.",
         "hero_title": "A real flight reservation in minutes",
         "hero_sub": "A <b>genuine airline reservation (PNR)</b> without buying"
                     " the ticket — verifiable on the airline's website, delivered"
@@ -164,6 +165,7 @@ a verifiable reservation, you get a full refund — no questions asked. See
         "passport_note": "Opcional. Se guarda cifrado; se usa solo para completar"
             " reservas internacionales.",
         "delete": "Eliminar", "save": "Guardar",
+        "new_order_btn": "Nueva reserva", "traveller_saved": "Viajero guardado.",
         "hero_title": "Una reserva de vuelo real en minutos",
         "hero_sub": "Una <b>reserva aérea genuina (PNR)</b> sin comprar el"
                     " billete — verificable en la web de la aerolínea, enviada"
