@@ -127,7 +127,8 @@ def register_form(request: Request):
 
 @app.post("/register")
 def register(request: Request, email: str = Form(...), password: str = Form(...),
-             website: str = Form(""), cf_turnstile_response: str = Form("")):
+             website: str = Form(""),
+             cf_turnstile_response: str = Form("", alias="cf-turnstile-response")):
     ip = security.client_ip(request)
     if security.honeypot_tripped(website):
         return _redirect("/register")
@@ -163,7 +164,8 @@ def login_form(request: Request):
 
 @app.post("/login")
 def login(request: Request, email: str = Form(...), password: str = Form(...),
-          website: str = Form(""), cf_turnstile_response: str = Form("")):
+          website: str = Form(""),
+          cf_turnstile_response: str = Form("", alias="cf-turnstile-response")):
     ip = security.client_ip(request)
     if security.honeypot_tripped(website):
         return _redirect("/login")
