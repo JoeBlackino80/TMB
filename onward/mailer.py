@@ -41,5 +41,7 @@ def send(to: str, subject: str, text: str, html: str = "",
         finally:
             server.quit()
         return True
-    except Exception:
+    except Exception as e:
+        # do žurnálu služby — odoslanie je best-effort, objednávku nezhadzuje
+        print(f"SMTP chyba pri odosielaní na {to}: {type(e).__name__}: {e}", flush=True)
         return False
