@@ -75,6 +75,8 @@ uvicorn onward.app:app --port 8100
 | `ONWARD_DB_PATH` | SQLite databáza (predvolene onward.db) |
 | `STRIPE_LINK_ONWARD` / `_WEEK` / `_2WEEK` | Stripe Payment Linky plánov |
 | `ONWARD_STRIPE_WEBHOOK_SECRET` | signing secret webhooku |
+| `COINBASE_COMMERCE_API_KEY` | krypto platby (Coinbase Commerce); zapne výber platby na webe |
+| `ONWARD_COINBASE_WEBHOOK_SECRET` | shared secret webhooku `/crypto/webhook` |
 | `ONWARD_ADMIN_KEY` | kľúč pre /admin?key=... |
 | `ONWARD_SMTP_HOST/PORT/USER/PASSWORD` | SMTP; ak chýba, použije sa `SMTP_*` |
 
