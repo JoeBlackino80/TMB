@@ -136,5 +136,14 @@ def segments(order_or_offer: dict) -> list[dict]:
                 "duration": _fmt_duration(seg.get("duration", "")),
                 "cabin": pax.get("cabin_class_marketing_name", "")
                          or (pax.get("cabin_class") or "").replace("_", " ").title(),
+                "baggage": _fmt_baggage(pax.get("baggages") or []),
             })
     return out
+
+
+def _fmt_baggage(baggages: list[dict]) -> str:
+    """[{type: checked, quantity: 1}, ...] → \"1x checked bag, 1x carry-on\"."""
+    names = {"checked": "checked bag", "carry_on": "carry-on"}
+    parts = [f"{b.get('quantity', 0)}x {names.get(b.get('type'), b.get('type', ''))}"
+             for b in baggages if b.get("quantity")]
+    return ", ".join(parts)

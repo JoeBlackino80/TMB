@@ -111,7 +111,7 @@ def test_segments_parsing():
                      "destination": "BKK", "destination_name": "Suvarnabhumi",
                      "departing_at": "2099-01-02T09:00:00",
                      "arriving_at": "2099-01-02T21:30:00",
-                     "duration": "11h 20m", "cabin": "Economy"}]
+                     "duration": "11h 20m", "cabin": "Economy", "baggage": ""}]
 
 
 def test_pdf_builds(tmp_path):

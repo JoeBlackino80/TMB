@@ -58,6 +58,10 @@ def build_itinerary(order, passengers: list[dict], segments: list[dict],
     pdf.ln(6)
 
     pdf.set_text_color(*INK)
+    pdf.set_font("helvetica", "", 10)
+    pdf.cell(0, 6, _latin(f"Booking date: {_fmt_time(order['created_at'] or '')}"),
+             new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(2)
     pdf.set_font("helvetica", "B", 12)
     pdf.cell(0, 7, "Passengers", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("helvetica", "", 11)
@@ -87,6 +91,9 @@ def build_itinerary(order, passengers: list[dict], segments: list[dict],
         if s.get("duration"):
             line += f"    Duration {s['duration']}"
         pdf.cell(0, 6, _latin(line), new_x="LMARGIN", new_y="NEXT")
+        if s.get("baggage"):
+            pdf.cell(0, 6, _latin(f"  Baggage: {s['baggage']}"),
+                     new_x="LMARGIN", new_y="NEXT")
         pdf.set_text_color(*INK)
         pdf.ln(2)
     pdf.ln(2)
