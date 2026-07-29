@@ -1,38 +1,63 @@
 {% extends "base.html" %}
 {% block title %}{{ t.m_mailboxes }} — VORU{% endblock %}
+{% block head %}
+<style>
+  .mb-lead { font-size: 14.5px; color: var(--muted); max-width: 640px; margin: -8px 0 14px; }
+  .mb-trust { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+  .mb-trust span { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px;
+    font-weight: 600; color: var(--accent); background: var(--accent-soft);
+    border: 1px solid #c3e5d3; border-radius: 99px; padding: 5px 12px; }
+  .mb-h { font-size: 14.5px; font-weight: 600; margin: 4px 0 12px; }
+  .mb-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(238px, 1fr));
+    gap: 14px; margin-bottom: 22px; }
+  .mb-opt { position: relative; background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 20px; display: flex; flex-direction: column; }
+  .mb-opt.feature { border-color: #bfe6d3; }
+  .mb-opt-ic { width: 40px; height: 40px; border-radius: 11px; background: var(--accent-soft);
+    display: flex; align-items: center; justify-content: center; color: var(--accent);
+    margin-bottom: 13px; }
+  .mb-opt h3 { font-size: 15px; font-weight: 700; margin: 0 0 6px; letter-spacing: -.2px; }
+  .mb-opt p { font-size: 13px; color: var(--muted); line-height: 1.55; flex: 1; margin: 0 0 15px; }
+  .mb-opt .btn, .mb-opt button { margin-top: 0; width: 100%; text-align: center; }
+  .mb-tag { position: absolute; top: 13px; right: 13px; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .5px; color: var(--accent);
+    background: var(--accent-soft); border-radius: 99px; padding: 3px 9px; }
+  .mb-tag.gray { color: var(--muted); background: #f2f4f7; }
+  .mb-copy { display: flex; gap: 8px; align-items: stretch; }
+  .mb-copy code { flex: 1; min-width: 0; background: #f6f8fa; border: 1px solid var(--line);
+    border-radius: 8px; padding: 10px 12px; font-size: 13px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace; overflow: auto;
+    white-space: nowrap; color: var(--ink); }
+  .mb-copy button { margin: 0; width: auto; flex-shrink: 0; }
+  .mb-warn { font-size: 12px; color: var(--amber); margin: 10px 0 0; }
+  .mb-steps { margin: 4px 0 18px; padding: 0; list-style: none; counter-reset: s; }
+  .mb-steps li { counter-increment: s; position: relative; padding: 7px 0 7px 34px;
+    font-size: 13.5px; color: var(--ink); line-height: 1.5; }
+  .mb-steps li::before { content: counter(s); position: absolute; left: 0; top: 5px;
+    width: 22px; height: 22px; border-radius: 50%; background: var(--black); color: #fff;
+    font-size: 12px; font-weight: 700; display: flex; align-items: center;
+    justify-content: center; }
+  .mb-adv { margin: 4px 0 6px; border: 1px solid var(--line); border-radius: 10px;
+    padding: 0 14px; background: #fafbfc; max-width: 420px; }
+  .mb-adv summary { cursor: pointer; font-weight: 600; font-size: 12.8px;
+    color: var(--muted); padding: 11px 0; list-style: none; }
+  .mb-adv summary::-webkit-details-marker { display: none; }
+  .mb-adv summary::before { content: "⚙  "; }
+  .mb-adv[open] { padding-bottom: 12px; }
+  .mb-conn td .b-green { font-size: 11px; }
+</style>
+{% endblock %}
 {% block content %}
 <h1>{{ t.mb_title }}</h1>
-
-{% if forward_addr %}
-<div class="card" style="border-color:#c3e5d3;background:#f4faf7">
-  <h2>{{ t.mb_fwd_title }}</h2>
-  <p style="font-size:17px"><b>{{ forward_addr }}</b></p>
-  <p class="muted">{{ t.mb_fwd_body }}</p>
-</div>
-{% endif %}
-
-<div class="card">
-  {% if mailboxes %}
-  <table>
-    <tr><th>{{ t.th_name }}</th><th>{{ t.th_server }}</th><th>{{ t.th_login }}</th><th></th></tr>
-    {% for m in mailboxes %}
-    <tr>
-      <td><b>{{ m.name }}</b></td><td>{{ m.host }}</td><td>{{ m.user }}</td>
-      <td style="text-align:right"><form method="post" action="/mailboxes/delete" style="margin:0">
-        <input type="hidden" name="name" value="{{ m.name }}">
-        <button class="small danger"
-                onclick="return confirm({{ t.mb_remove_confirm|tojson }})">{{ t.mb_remove }}</button>
-      </form></td>
-    </tr>
-    {% endfor %}
-  </table>
-  {% else %}
-  <p class="muted">{{ t.mb_none }}</p>
-  {% endif %}
+<p class="mb-lead">{{ t.mb_intro }}</p>
+<div class="mb-trust">
+  <span>🔒 {{ t.mb_trust_read }}</span>
+  <span>🛡 {{ t.mb_trust_enc }}</span>
+  <span>↩ {{ t.mb_trust_revoke }}</span>
 </div>
 
 {% if not verified %}
-<div class="card">
+<div class="card" style="border-color:#eedcb2;background:#fdfaf3">
   <h2>{{ t.mb_verify_title }}</h2>
   <p class="muted">{{ t.mb_verify_body }}</p>
   <form method="post" action="/verify/resend">
@@ -41,18 +66,81 @@
 </div>
 {% endif %}
 
-{% if verified and google_oauth %}
-<div class="card">
-  <h2>{{ t.mb_gmail_title }}</h2>
-  <p class="muted">{{ t.mb_gmail_body }}</p>
-  <a class="btn" href="/oauth/google/start">{{ t.mb_gmail_btn }}</a>
+{% if verified %}
+{% if mailboxes %}
+<div class="card mb-conn">
+  <h2>{{ t.mb_connected }}</h2>
+  <table>
+    <tr><th>{{ t.th_name }}</th><th>{{ t.th_server }}</th><th>{{ t.th_login }}</th>
+        <th></th><th></th></tr>
+    {% for m in mailboxes %}
+    <tr>
+      <td><b>{{ m.name }}</b></td>
+      <td class="muted">{{ m.host }}</td>
+      <td class="muted">{{ m.user }}</td>
+      <td><span class="badge b-green">{{ t.mb_active }}</span></td>
+      <td style="text-align:right">
+        <form method="post" action="/mailboxes/delete" style="margin:0">
+          <input type="hidden" name="name" value="{{ m.name }}">
+          <button class="small danger"
+                  onclick="return confirm({{ t.mb_remove_confirm|tojson }})">{{ t.mb_remove }}</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
 </div>
 {% endif %}
 
-{% if verified %}
-<div class="card">
+<h2 class="mb-h">{{ t.mb_choose }}</h2>
+<div class="mb-options">
+  {% if google_oauth %}
+  <div class="mb-opt feature">
+    <span class="mb-tag">{{ t.mb_easiest }}</span>
+    <div class="mb-opt-ic">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="4.5" width="15" height="11" rx="2"/><path d="M3 6l7 5.5L17 6"/></svg>
+    </div>
+    <h3>{{ t.mb_gmail_title }}</h3>
+    <p>{{ t.mb_gmail_body }}</p>
+    <a class="btn" href="/oauth/google/start">{{ t.mb_gmail_btn }}</a>
+  </div>
+  {% endif %}
+
+  {% if forward_addr %}
+  <div class="mb-opt">
+    <span class="mb-tag">{{ t.mb_nopass }}</span>
+    <div class="mb-opt-ic">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 10h11M10 6l4 4-4 4"/><path d="M14 4h3v12h-3"/></svg>
+    </div>
+    <h3>{{ t.mb_fwd_title }}</h3>
+    <p>{{ t.mb_fwd_body }}</p>
+    <div class="mb-copy">
+      <code id="fwd-addr">{{ forward_addr }}</code>
+      <button type="button" class="small" onclick="copyFwd(this)"
+              data-copy="{{ t.mb_copy }}" data-done="{{ t.mb_copied }}">{{ t.mb_copy }}</button>
+    </div>
+    <p class="mb-warn">{{ t.mb_fwd_warn }}</p>
+  </div>
+  {% endif %}
+
+  <div class="mb-opt">
+    <span class="mb-tag gray">{{ t.mb_any_provider }}</span>
+    <div class="mb-opt-ic">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="14" height="14" rx="3"/><path d="M3 8h14M7 3v14"/></svg>
+    </div>
+    <h3>{{ t.mb_imap_title }}</h3>
+    <p>{{ t.mb_imap_lead }}</p>
+    <a class="btn" href="#connect">{{ t.mb_imap_cta }}</a>
+  </div>
+</div>
+
+<div class="card" id="connect">
   <h2>{{ t.mb_add_title }}</h2>
-  <p class="muted">{{ t.mb_add_lead|safe }}</p>
+  <ol class="mb-steps">
+    <li>{{ t.mb_step_1 }}</li>
+    <li>{{ t.mb_step_2 }}</li>
+    <li>{{ t.mb_step_3 }}</li>
+  </ol>
   <form method="post" action="/mailboxes">
     <label>{{ t.mb_where }}</label>
     <select id="provider" onchange="fillProvider()">
@@ -67,53 +155,50 @@
       <option value="forpsi">Forpsi</option>
       <option value="other">{{ t.mb_other_provider }}</option>
     </select>
-    <div id="provider-hint" class="muted" style="display:none;margin-top:8px;
-         padding:10px 14px;background:#f8f9fb;border:1px solid var(--line);
-         border-radius:8px"></div>
+    <div id="provider-hint" class="mb-hint" style="display:none"></div>
+
+    <label>{{ t.mb_user_label }}</label>
+    <input name="imap_user" type="email" placeholder="meno@mojafirma.sk" required>
+    <label>{{ t.mb_pass_label }}</label>
+    <input name="password" type="password" required>
 
     <label>{{ t.mb_name_label }}</label>
     <input name="name" placeholder="mojafirma">
-    <label>{{ t.mb_host_label }}</label>
-    <input id="f-host" name="host" placeholder="mail.webhouse.sk" required>
-    <label>{{ t.mb_port_label }}</label>
-    <input id="f-port" name="port" type="number" value="993">
-    <label>{{ t.mb_user_label }}</label>
-    <input name="imap_user" type="email" required>
-    <label>{{ t.mb_pass_label }}</label>
-    <input name="password" type="password" required>
-    <label>{{ t.mb_sec_label }}</label>
-    <select id="f-sec" name="security">
-      <option value="ssl">{{ t.mb_sec_ssl }}</option>
-      <option value="starttls">{{ t.mb_sec_starttls }}</option>
-      <option value="plain">{{ t.mb_sec_plain }}</option>
-    </select>
+
+    <details class="mb-adv" id="adv">
+      <summary>{{ t.mb_advanced }}</summary>
+      <label>{{ t.mb_host_label }}</label>
+      <input id="f-host" name="host" placeholder="mail.mojafirma.sk" required>
+      <label>{{ t.mb_port_label }}</label>
+      <input id="f-port" name="port" type="number" value="993">
+      <label>{{ t.mb_sec_label }}</label>
+      <select id="f-sec" name="security">
+        <option value="ssl">{{ t.mb_sec_ssl }}</option>
+        <option value="starttls">{{ t.mb_sec_starttls }}</option>
+        <option value="plain">{{ t.mb_sec_plain }}</option>
+      </select>
+    </details>
+
     <div><button type="submit">{{ t.mb_submit }}</button></div>
+    <p class="muted" style="margin-top:10px">{{ t.mb_add_help|safe }}</p>
   </form>
 </div>
 
 <script>
 const PROVIDERS = {
-  gmail: {host: "imap.gmail.com", port: 993, sec: "ssl",
-    hint: {{ t.hint_gmail|tojson }}},
-  webhouse: {host: "mail.webhouse.sk", port: 993, sec: "ssl",
-    hint: {{ t.hint_webmail|tojson }}},
-  websupport: {host: "imap.websupport.sk", port: 993, sec: "ssl",
-    hint: {{ t.hint_webmail|tojson }}},
-  m365: {host: "outlook.office365.com", port: 993, sec: "ssl",
-    hint: {{ t.hint_m365|tojson }}},
-  icloud: {host: "imap.mail.me.com", port: 993, sec: "ssl",
-    hint: {{ t.hint_icloud|tojson }}},
-  azet: {host: "imap.azet.sk", port: 993, sec: "ssl",
-    hint: {{ t.hint_simple|tojson }}},
-  zoznam: {host: "imap.zoznam.sk", port: 993, sec: "ssl",
-    hint: {{ t.hint_simple|tojson }}},
-  forpsi: {host: "imap.forpsi.com", port: 993, sec: "ssl",
-    hint: {{ t.hint_webmail|tojson }}},
-  other: {host: "", port: 993, sec: "ssl",
-    hint: {{ t.hint_other|tojson }}},
+  gmail: {host: "imap.gmail.com", port: 993, sec: "ssl", hint: {{ t.hint_gmail|tojson }}},
+  webhouse: {host: "mail.webhouse.sk", port: 993, sec: "ssl", hint: {{ t.hint_webmail|tojson }}},
+  websupport: {host: "imap.websupport.sk", port: 993, sec: "ssl", hint: {{ t.hint_webmail|tojson }}},
+  m365: {host: "outlook.office365.com", port: 993, sec: "ssl", hint: {{ t.hint_m365|tojson }}},
+  icloud: {host: "imap.mail.me.com", port: 993, sec: "ssl", hint: {{ t.hint_icloud|tojson }}},
+  azet: {host: "imap.azet.sk", port: 993, sec: "ssl", hint: {{ t.hint_simple|tojson }}},
+  zoznam: {host: "imap.zoznam.sk", port: 993, sec: "ssl", hint: {{ t.hint_simple|tojson }}},
+  forpsi: {host: "imap.forpsi.com", port: 993, sec: "ssl", hint: {{ t.hint_webmail|tojson }}},
+  other: {host: "", port: 993, sec: "ssl", hint: {{ t.hint_other|tojson }}},
 };
 function fillProvider() {
-  const p = PROVIDERS[document.getElementById("provider").value];
+  const val = document.getElementById("provider").value;
+  const p = PROVIDERS[val];
   const hint = document.getElementById("provider-hint");
   if (!p) { hint.style.display = "none"; return; }
   document.getElementById("f-host").value = p.host;
@@ -121,6 +206,15 @@ function fillProvider() {
   document.getElementById("f-sec").value = p.sec;
   hint.innerHTML = p.hint;
   hint.style.display = "block";
+  // vlastnú doménu treba doplniť ručne — otvoríme rozšírené nastavenie
+  if (val === "other" || !p.host) document.getElementById("adv").open = true;
+}
+function copyFwd(btn) {
+  const txt = document.getElementById("fwd-addr").textContent.trim();
+  navigator.clipboard.writeText(txt).then(() => {
+    btn.textContent = btn.dataset.done;
+    setTimeout(() => { btn.textContent = btn.dataset.copy; }, 1800);
+  });
 }
 </script>
 {% endif %}

@@ -67,44 +67,62 @@ APP = {
     "d_tasks_title": "Zadania", "d_task_due": "do {d}", "d_task_done": "Gotowe",
     "d_no_tasks": "Brak otwartych zadań.",
     # skrzynki
-    "mb_title": "Skrzynki e-mail",
-    "mb_fwd_title": "Twój adres do przekazywania",
-    "mb_fwd_body": "Nie chcesz podawać hasła do skrzynki? Wystarczy "
-                   "przekazywać faktury na ten adres (ręcznie albo regułą w "
-                   "Twojej poczcie), a VORU przetworzy je tak samo. Adres "
-                   "jest unikalny dla Twojego konta — nie udostępniaj go "
-                   "publicznie.",
-    "mb_verify_title": "Najpierw potwierdź e-mail",
+    "mb_title": "Podłączenie poczty",
+    "mb_intro": "Podłącz skrzynkę, na którą przychodzą faktury. VORU sam je "
+                "wtedy czyta, wyciąga kwotę, numer konta i termin oraz wysyła "
+                "Ci przegląd z kodem QR do zapłaty. Niczego nie przepisujesz "
+                "ręcznie.",
+    "mb_trust_read": "Tylko do odczytu — nic nie wysyłamy ani nie kasujemy",
+    "mb_trust_enc": "Hasło szyfrowane, dostęp tylko dla Twojego konta",
+    "mb_trust_revoke": "Odłączysz w każdej chwili jednym kliknięciem",
+    "mb_verify_title": "Najpierw potwierdź swój e-mail",
     "mb_verify_body": "Podłączenie skrzynki odblokuje się po potwierdzeniu "
                       "Twojego adresu e-mail — kliknij link w e-mailu "
-                      "powitalnym (sprawdź też spam).",
+                      "powitalnym (sprawdź też folder spam).",
     "mb_verify_btn": "Wyślij e-mail weryfikacyjny ponownie",
+    "mb_connected": "Podłączone skrzynki",
+    "mb_active": "Aktywna",
+    "mb_choose": "Jak podłączysz pocztę",
+    "mb_easiest": "Najprościej",
+    "mb_nopass": "Bez hasła",
+    "mb_any_provider": "Dowolny e-mail",
     "mb_gmail_title": "Gmail jednym kliknięciem",
-    "mb_gmail_body": "Gmaila podłączysz bez hasła aplikacji — logujesz się "
-                     "w Google i pozwalasz VORU czytać skrzynkę. Dostęp "
-                     "możesz w każdej chwili odebrać na myaccount.google.com.",
-    "mb_gmail_btn": "Podłącz Gmail przez Google",
-    "mb_none": "Na razie brak skrzynki — dodaj pierwszą poniżej.",
+    "mb_gmail_body": "Logujesz się w Google i pozwalasz VORU czytać pocztę — "
+                     "bez haseł, bez ustawień. Zalecane.",
+    "mb_gmail_btn": "Podłącz przez Google",
+    "mb_fwd_title": "Przekazywanie faktur",
+    "mb_fwd_body": "Nie chcesz podłączać całej skrzynki? Faktury po prostu "
+                   "przekaż (lub ustaw regułę) na ten adres, a VORU przetworzy "
+                   "je tak samo.",
+    "mb_fwd_warn": "Adres jest unikalny dla Twojego konta — nie udostępniaj go.",
+    "mb_copy": "Kopiuj", "mb_copied": "Skopiowano ✓",
+    "mb_imap_title": "Inna skrzynka",
+    "mb_imap_lead": "Outlook, poczta firmowa czy własna domena — podłączysz "
+                    "przez IMAP w kilka sekund.",
+    "mb_imap_cta": "Podłącz skrzynkę",
     "th_name": "Nazwa", "th_server": "Serwer", "th_login": "Login",
-    "mb_remove": "Usuń", "mb_remove_confirm": "Usunąć skrzynkę?",
-    "mb_add_title": "Dodaj skrzynkę",
-    "mb_add_lead": "Wybierz dostawcę — ustawienia serwera wypełnimy za "
-                   "Ciebie. Logowanie od razu zweryfikujemy. Szczegółowy "
-                   "opis: <a href='/navod' target='_blank'>instrukcja "
-                   "podłączenia</a>.",
+    "mb_remove": "Odłącz", "mb_remove_confirm": "Na pewno odłączyć tę skrzynkę?",
+    "mb_add_title": "Podłącz skrzynkę przez IMAP",
+    "mb_step_1": "Wybierz, gdzie masz e-mail — serwer wypełnimy za Ciebie.",
+    "mb_step_2": "Podaj e-mail do logowania i hasło skrzynki.",
+    "mb_step_3": "Kliknij „Zweryfikuj i podłącz“ — od razu sprawdzimy połączenie.",
     "mb_where": "Gdzie masz e-mail?",
     "mb_pick": "— wybierz dostawcę —",
     "mb_other_provider": "Inny / własna domena",
-    "mb_name_label": "Nazwa (np. „mojafirma”)",
+    "mb_name_label": "Nazwa (opcjonalnie)",
     "mb_host_label": "Serwer IMAP",
     "mb_port_label": "Port",
     "mb_user_label": "E-mail do logowania",
-    "mb_pass_label": "Hasło skrzynki / hasło aplikacji",
+    "mb_pass_label": "Hasło skrzynki (lub hasło aplikacji)",
+    "mb_advanced": "Ustawienia serwera (wypełnimy automatycznie)",
     "mb_sec_label": "Zabezpieczenie",
-    "mb_sec_ssl": "SSL (typowe, port 993)",
+    "mb_sec_ssl": "SSL — bezpieczne połączenie (domyślne)",
     "mb_sec_starttls": "STARTTLS (np. Proton Bridge)",
-    "mb_sec_plain": "bez szyfrowania",
-    "mb_submit": "Zweryfikuj i dodaj",
+    "mb_sec_plain": "bez szyfrowania (niezalecane)",
+    "mb_submit": "Zweryfikuj i podłącz",
+    "mb_add_help": "Nie wiesz jak? Napisz do nas na "
+                   "<a href='mailto:obchod@sorbxt.sk'>obchod@sorbxt.sk</a> "
+                   "i pomożemy Ci się podłączyć.",
     "hint_gmail": "Gmail wymaga <b>hasła aplikacji</b> (nie zwykłego hasła): "
                   "włącz weryfikację dwuetapową i utwórz je na "
                   "<a href='https://myaccount.google.com/apppasswords' "

@@ -401,8 +401,8 @@ def test_verification_gates_mailboxes(client, tmp_path, monkeypatch):
 
     # stránka schránok ukazuje výzvu, formulár na pridanie tam nie je
     r = client.get("/mailboxes", cookies={"session": s})
-    assert "Najprv potvrďte e-mail" in r.text
-    assert "Pridať schránku" not in r.text
+    assert "Najprv potvrďte svoj e-mail" in r.text
+    assert "Pripojiť schránku cez IMAP" not in r.text
 
     # POST aj OAuth štart sú blokované
     r = client.post("/mailboxes", data={"name": "f", "host": "h", "port": "993",
@@ -423,7 +423,7 @@ def test_verification_gates_mailboxes(client, tmp_path, monkeypatch):
     assert r.status_code == 200
     assert not marker.exists()
     r = client.get("/mailboxes", cookies={"session": s})
-    assert "Pridať schránku" in r.text
+    assert "Pripojiť schránku cez IMAP" in r.text
 
 
 def test_expire_disables_stale_unverified(client, tmp_path, monkeypatch):

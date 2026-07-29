@@ -72,47 +72,65 @@ APP = {
     "d_tasks_title": "Aufgaben", "d_task_due": "bis {d}", "d_task_done": "Fertig",
     "d_no_tasks": "Keine offenen Aufgaben.",
     # Postfächer
-    "mb_title": "E-Mail-Postfächer",
-    "mb_fwd_title": "Ihre Weiterleitungsadresse",
-    "mb_fwd_body": "Möchten Sie das Passwort Ihres Postfachs nicht angeben? "
-                   "Leiten Sie Rechnungen einfach an diese Adresse weiter "
-                   "(manuell oder per Regel in Ihrem E-Mail-Programm) und "
-                   "VORU verarbeitet sie genauso. Die Adresse ist für Ihr "
-                   "Konto einzigartig — geben Sie sie nicht weiter.",
+    "mb_title": "E-Mail verbinden",
+    "mb_intro": "Verbinden Sie das Postfach, in dem Ihre Rechnungen ankommen. "
+                "VORU liest sie dann selbst, entnimmt Betrag, Kontonummer und "
+                "Termin und schickt Ihnen eine Übersicht mit QR-Code zur "
+                "Zahlung. Sie tippen nichts mehr ab.",
+    "mb_trust_read": "Nur Lesezugriff — wir senden und löschen nichts",
+    "mb_trust_enc": "Passwort verschlüsselt, Zugriff nur für Ihr Konto",
+    "mb_trust_revoke": "Jederzeit mit einem Klick trennen",
     "mb_verify_title": "Bestätigen Sie zuerst Ihre E-Mail",
     "mb_verify_body": "Das Verbinden eines Postfachs wird nach der "
                       "Bestätigung Ihrer E-Mail-Adresse freigeschaltet — "
                       "klicken Sie auf den Link in der Willkommens-E-Mail "
                       "(prüfen Sie auch den Spam-Ordner).",
     "mb_verify_btn": "Bestätigungs-E-Mail erneut senden",
+    "mb_connected": "Verbundene Postfächer",
+    "mb_active": "Aktiv",
+    "mb_choose": "So verbinden Sie Ihre E-Mail",
+    "mb_easiest": "Am einfachsten",
+    "mb_nopass": "Ohne Passwort",
+    "mb_any_provider": "Jede E-Mail",
     "mb_gmail_title": "Gmail mit einem Klick",
-    "mb_gmail_body": "Gmail verbinden Sie ohne App-Passwort — Sie melden "
-                     "sich bei Google an und erlauben VORU das Lesen des "
-                     "Postfachs. Den Zugriff können Sie jederzeit auf "
-                     "myaccount.google.com widerrufen.",
-    "mb_gmail_btn": "Gmail über Google verbinden",
-    "mb_none": "Noch kein Postfach — fügen Sie unten das erste hinzu.",
+    "mb_gmail_body": "Sie melden sich bei Google an und erlauben VORU das "
+                     "Lesen der Post — keine Passwörter, keine Einrichtung. "
+                     "Empfohlen.",
+    "mb_gmail_btn": "Mit Google verbinden",
+    "mb_fwd_title": "Rechnungen weiterleiten",
+    "mb_fwd_body": "Sie möchten nicht das ganze Postfach verbinden? Leiten Sie "
+                   "Rechnungen einfach an diese Adresse weiter (oder per Regel) "
+                   "und VORU verarbeitet sie genauso.",
+    "mb_fwd_warn": "Die Adresse ist für Ihr Konto einzigartig — geben Sie sie "
+                   "nicht weiter.",
+    "mb_copy": "Kopieren", "mb_copied": "Kopiert ✓",
+    "mb_imap_title": "Anderes Postfach",
+    "mb_imap_lead": "Outlook, Firmen-E-Mail oder eigene Domain — in wenigen "
+                    "Sekunden über IMAP verbunden.",
+    "mb_imap_cta": "Postfach verbinden",
     "th_name": "Name", "th_server": "Server", "th_login": "Anmeldung",
-    "mb_remove": "Entfernen", "mb_remove_confirm": "Postfach entfernen?",
-    "mb_add_title": "Postfach hinzufügen",
-    "mb_add_lead": "Wählen Sie Ihren Anbieter — die Servereinstellungen "
-                   "füllen wir für Sie aus. Die Anmeldung wird sofort "
-                   "überprüft. Ausführliche Schritte: "
-                   "<a href='/navod' target='_blank'>Anleitung zur "
-                   "Verbindung</a>.",
+    "mb_remove": "Trennen", "mb_remove_confirm": "Dieses Postfach wirklich trennen?",
+    "mb_add_title": "Postfach über IMAP verbinden",
+    "mb_step_1": "Wählen Sie Ihren Anbieter — den Server füllen wir aus.",
+    "mb_step_2": "Geben Sie Anmelde-E-Mail und Postfach-Passwort ein.",
+    "mb_step_3": "Klick auf „Prüfen und verbinden“ — wir testen sofort.",
     "mb_where": "Wo haben Sie Ihre E-Mail?",
     "mb_pick": "— Anbieter wählen —",
     "mb_other_provider": "Anderer / eigene Domain",
-    "mb_name_label": "Name (z. B. „meinefirma“)",
+    "mb_name_label": "Bezeichnung (optional)",
     "mb_host_label": "IMAP-Server",
     "mb_port_label": "Port",
     "mb_user_label": "Anmelde-E-Mail",
-    "mb_pass_label": "Postfach-Passwort / App-Passwort",
+    "mb_pass_label": "Postfach-Passwort (oder App-Passwort)",
+    "mb_advanced": "Servereinstellungen (füllen wir automatisch aus)",
     "mb_sec_label": "Sicherheit",
-    "mb_sec_ssl": "SSL (üblich, Port 993)",
+    "mb_sec_ssl": "SSL — sichere Verbindung (Standard)",
     "mb_sec_starttls": "STARTTLS (z. B. Proton Bridge)",
-    "mb_sec_plain": "ohne Verschlüsselung",
-    "mb_submit": "Überprüfen und hinzufügen",
+    "mb_sec_plain": "ohne Verschlüsselung (nicht empfohlen)",
+    "mb_submit": "Prüfen und verbinden",
+    "mb_add_help": "Sie kommen nicht weiter? Schreiben Sie uns an "
+                   "<a href='mailto:obchod@sorbxt.sk'>obchod@sorbxt.sk</a> "
+                   "und wir helfen Ihnen beim Verbinden.",
     "hint_gmail": "Gmail erfordert ein <b>App-Passwort</b> (nicht das "
                   "normale Passwort): Aktivieren Sie die Bestätigung in zwei "
                   "Schritten und erstellen Sie es auf "

@@ -42,7 +42,7 @@ def test_google_oauth_flow(client, tmp_path, monkeypatch):
 
     # tlačidlo je na stránke schránok
     r = client.get("/mailboxes", cookies={"session": s})
-    assert "Pripojiť Gmail cez Google" in r.text
+    assert "Pripojiť cez Google" in r.text
 
     # štart presmeruje na Google s naším state tokenom
     r = client.get("/oauth/google/start", cookies={"session": s})

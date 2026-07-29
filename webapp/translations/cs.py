@@ -64,42 +64,61 @@ APP = {
     "d_tasks_title": "Úkoly", "d_task_due": "do {d}", "d_task_done": "Hotovo",
     "d_no_tasks": "Žádné otevřené úkoly.",
     # schránky
-    "mb_title": "E-mailové schránky",
-    "mb_fwd_title": "Vaše přeposílací adresa",
-    "mb_fwd_body": "Nechcete zadávat heslo ke schránce? Stačí faktury "
-                   "přeposílat na tuto adresu (ručně nebo pravidlem ve "
-                   "vaší poště) a VORU je zpracuje stejně. Adresa je "
-                   "unikátní pro váš účet — nezveřejňujte ji.",
-    "mb_verify_title": "Nejprve potvrďte e-mail",
+    "mb_title": "Připojení pošty",
+    "mb_intro": "Připojte schránku, kam vám chodí faktury. VORU je pak čte "
+                "samo, vytáhne částku, číslo účtu i termín a pošle vám přehled "
+                "s QR kódem k platbě. Nic nepřepisujete ručně.",
+    "mb_trust_read": "Jen ke čtení — nic neposíláme ani nemažeme",
+    "mb_trust_enc": "Heslo šifrované, přístup jen pro váš účet",
+    "mb_trust_revoke": "Odpojíte kdykoli jedním kliknutím",
+    "mb_verify_title": "Nejprve potvrďte svůj e-mail",
     "mb_verify_body": "Připojení schránky se odemkne po potvrzení vaší "
                       "e-mailové adresy — klikněte na odkaz v uvítacím "
-                      "e-mailu (zkontrolujte i spam).",
+                      "e-mailu (zkontrolujte i složku spam).",
     "mb_verify_btn": "Poslat ověřovací e-mail znovu",
+    "mb_connected": "Připojené schránky",
+    "mb_active": "Aktivní",
+    "mb_choose": "Jak připojíte poštu",
+    "mb_easiest": "Nejjednodušší",
+    "mb_nopass": "Bez hesla",
+    "mb_any_provider": "Jakýkoli e-mail",
     "mb_gmail_title": "Gmail jedním kliknutím",
-    "mb_gmail_body": "Gmail připojíte bez hesla aplikace — přihlásíte se "
-                     "u Googlu a povolíte VORU čtení schránky. Přístup "
-                     "můžete kdykoli odebrat na myaccount.google.com.",
-    "mb_gmail_btn": "Připojit Gmail přes Google",
-    "mb_none": "Zatím žádná schránka — přidejte první níže.",
+    "mb_gmail_body": "Přihlásíte se u Googlu a povolíte VORU číst poštu — "
+                     "žádná hesla, žádné nastavování. Doporučeno.",
+    "mb_gmail_btn": "Připojit přes Google",
+    "mb_fwd_title": "Přeposílání faktur",
+    "mb_fwd_body": "Nechcete připojovat celou schránku? Faktury jen přepošlete "
+                   "(nebo si nastavte pravidlo) na tuto adresu a VORU je "
+                   "zpracuje stejně.",
+    "mb_fwd_warn": "Adresa je unikátní pro váš účet — nezveřejňujte ji.",
+    "mb_copy": "Kopírovat", "mb_copied": "Zkopírováno ✓",
+    "mb_imap_title": "Jiná schránka",
+    "mb_imap_lead": "Webhouse, Outlook, firemní e-mail či vlastní doména — "
+                    "připojíte přes IMAP během pár sekund.",
+    "mb_imap_cta": "Připojit schránku",
     "th_name": "Název", "th_server": "Server", "th_login": "Přihlášení",
-    "mb_remove": "Odebrat", "mb_remove_confirm": "Odebrat schránku?",
-    "mb_add_title": "Přidat schránku",
-    "mb_add_lead": "Vyberte poskytovatele — nastavení serveru vyplníme za "
-                   "vás. Přihlášení se hned ověří. Podrobný postup: "
-                   "<a href='/navod' target='_blank'>návod na připojení</a>.",
+    "mb_remove": "Odpojit", "mb_remove_confirm": "Opravdu odpojit tuto schránku?",
+    "mb_add_title": "Připojit schránku přes IMAP",
+    "mb_step_1": "Vyberte, kde máte e-mail — server vyplníme za vás.",
+    "mb_step_2": "Zadejte přihlašovací e-mail a heslo schránky.",
+    "mb_step_3": "Klik na „Ověřit a připojit“ — hned ověříme, že lze připojit.",
     "mb_where": "Kde máte e-mail?",
     "mb_pick": "— vyberte poskytovatele —",
     "mb_other_provider": "Jiný / vlastní doména",
-    "mb_name_label": "Název (např. „mojefirma“)",
+    "mb_name_label": "Pojmenování (nepovinné)",
     "mb_host_label": "IMAP server",
     "mb_port_label": "Port",
     "mb_user_label": "Přihlašovací e-mail",
-    "mb_pass_label": "Heslo schránky / heslo aplikace",
+    "mb_pass_label": "Heslo schránky (nebo heslo aplikace)",
+    "mb_advanced": "Nastavení serveru (vyplníme automaticky)",
     "mb_sec_label": "Zabezpečení",
-    "mb_sec_ssl": "SSL (běžné, port 993)",
+    "mb_sec_ssl": "SSL — bezpečné připojení (výchozí)",
     "mb_sec_starttls": "STARTTLS (např. Proton Bridge)",
-    "mb_sec_plain": "bez šifrování",
-    "mb_submit": "Ověřit a přidat",
+    "mb_sec_plain": "bez šifrování (nedoporučujeme)",
+    "mb_submit": "Ověřit a připojit",
+    "mb_add_help": "Nevíte si rady? Napište nám na "
+                   "<a href='mailto:obchod@sorbxt.sk'>obchod@sorbxt.sk</a> "
+                   "a pomůžeme vám s připojením.",
     "hint_gmail": "Gmail vyžaduje <b>heslo aplikace</b> (ne běžné heslo): "
                   "zapněte dvoufázové ověření a vytvořte si ho na "
                   "<a href='https://myaccount.google.com/apppasswords' "

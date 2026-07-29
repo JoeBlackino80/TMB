@@ -73,49 +73,65 @@ APP = {
     "d_task_done": "Kész",
     "d_no_tasks": "Nincs nyitott feladat.",
     # postafiókok
-    "mb_title": "E-mail-postafiókok",
-    "mb_fwd_title": "Az Ön továbbítási címe",
-    "mb_fwd_body": "Nem szeretné megadni a postafiókja jelszavát? Elég a "
-                   "számlákat erre a címre továbbítani (kézzel vagy a "
-                   "levelezőjében beállított szabállyal), és a VORU "
-                   "ugyanúgy feldolgozza őket. A cím az Ön fiókjához "
-                   "egyedi — ne tegye közzé.",
+    "mb_title": "E-mail csatlakoztatása",
+    "mb_intro": "Csatlakoztassa a postafiókot, ahova a számlái érkeznek. A "
+                "VORU ezután magától olvassa őket, kiszedi az összeget, a "
+                "számlaszámot és a határidőt, és küld egy áttekintést QR-kóddal "
+                "a fizetéshez. Semmit sem kell kézzel átírnia.",
+    "mb_trust_read": "Csak olvasásra — nem küldünk és nem törlünk semmit",
+    "mb_trust_enc": "A jelszó titkosítva, hozzáférés csak az Ön fiókjához",
+    "mb_trust_revoke": "Bármikor lecsatlakoztatja egy kattintással",
     "mb_verify_title": "Először erősítse meg az e-mail-címét",
     "mb_verify_body": "A postafiók csatlakoztatása az e-mail-címe "
                       "megerősítése után válik elérhetővé — kattintson az "
                       "üdvözlő e-mailben található linkre (ellenőrizze a "
                       "spam mappát is).",
     "mb_verify_btn": "Megerősítő e-mail újraküldése",
+    "mb_connected": "Csatlakoztatott postafiókok",
+    "mb_active": "Aktív",
+    "mb_choose": "Hogyan csatlakoztatja az e-mailt",
+    "mb_easiest": "A legegyszerűbb",
+    "mb_nopass": "Jelszó nélkül",
+    "mb_any_provider": "Bármely e-mail",
     "mb_gmail_title": "Gmail egy kattintással",
-    "mb_gmail_body": "A Gmailt alkalmazásjelszó nélkül csatlakoztathatja — "
-                     "bejelentkezik a Google-nál, és engedélyezi a "
-                     "VORU-nak a postafiók olvasását. A hozzáférést "
-                     "bármikor visszavonhatja a myaccount.google.com "
-                     "oldalon.",
-    "mb_gmail_btn": "Gmail csatlakoztatása Google-fiókkal",
-    "mb_none": "Még nincs postafiók — adja hozzá az elsőt lent.",
+    "mb_gmail_body": "Bejelentkezik a Google-nál, és engedélyezi a VORU-nak a "
+                     "levelek olvasását — jelszavak és beállítás nélkül. "
+                     "Ajánlott.",
+    "mb_gmail_btn": "Csatlakozás Google-fiókkal",
+    "mb_fwd_title": "Számlák továbbítása",
+    "mb_fwd_body": "Nem szeretné az egész postafiókot csatlakoztatni? Csak "
+                   "továbbítsa a számlákat (vagy állítson be szabályt) erre a "
+                   "címre, és a VORU ugyanúgy feldolgozza őket.",
+    "mb_fwd_warn": "A cím az Ön fiókjához egyedi — ne tegye közzé.",
+    "mb_copy": "Másolás", "mb_copied": "Másolva ✓",
+    "mb_imap_title": "Más postafiók",
+    "mb_imap_lead": "Outlook, céges e-mail vagy saját domain — pár másodperc "
+                    "alatt csatlakoztatja IMAP-on keresztül.",
+    "mb_imap_cta": "Postafiók csatlakoztatása",
     "th_name": "Név", "th_server": "Szerver", "th_login": "Bejelentkezés",
-    "mb_remove": "Eltávolítás",
-    "mb_remove_confirm": "Eltávolítja a postafiókot?",
-    "mb_add_title": "Postafiók hozzáadása",
-    "mb_add_lead": "Válassza ki a szolgáltatót — a szerverbeállításokat "
-                   "kitöltjük Ön helyett. A bejelentkezést azonnal "
-                   "ellenőrizzük. Részletes útmutató: "
-                   "<a href='/navod' target='_blank'>csatlakozási "
-                   "útmutató</a>.",
+    "mb_remove": "Lecsatlakoztatás",
+    "mb_remove_confirm": "Biztosan lecsatlakoztatja ezt a postafiókot?",
+    "mb_add_title": "Postafiók csatlakoztatása IMAP-on",
+    "mb_step_1": "Válassza ki, hol van az e-mailje — a szervert kitöltjük.",
+    "mb_step_2": "Adja meg a bejelentkezési e-mailt és a postafiók jelszavát.",
+    "mb_step_3": "Kattintson az „Ellenőrzés és csatlakoztatás“ gombra — azonnal ellenőrizzük.",
     "mb_where": "Hol van az e-mail-fiókja?",
     "mb_pick": "— válasszon szolgáltatót —",
     "mb_other_provider": "Egyéb / saját domain",
-    "mb_name_label": "Név (pl. „cégem”)",
+    "mb_name_label": "Elnevezés (nem kötelező)",
     "mb_host_label": "IMAP-szerver",
     "mb_port_label": "Port",
     "mb_user_label": "Bejelentkezési e-mail",
-    "mb_pass_label": "Postafiók jelszava / alkalmazásjelszó",
+    "mb_pass_label": "Postafiók jelszava (vagy alkalmazásjelszó)",
+    "mb_advanced": "Szerverbeállítások (automatikusan kitöltjük)",
     "mb_sec_label": "Biztonság",
-    "mb_sec_ssl": "SSL (általános, 993-as port)",
+    "mb_sec_ssl": "SSL — biztonságos kapcsolat (alapértelmezett)",
     "mb_sec_starttls": "STARTTLS (pl. Proton Bridge)",
-    "mb_sec_plain": "titkosítás nélkül",
-    "mb_submit": "Ellenőrzés és hozzáadás",
+    "mb_sec_plain": "titkosítás nélkül (nem ajánlott)",
+    "mb_submit": "Ellenőrzés és csatlakoztatás",
+    "mb_add_help": "Nem boldogul? Írjon nekünk az "
+                   "<a href='mailto:obchod@sorbxt.sk'>obchod@sorbxt.sk</a> "
+                   "címre, és segítünk a csatlakozásban.",
     "hint_gmail": "A Gmailhez <b>alkalmazásjelszó</b> szükséges (nem a "
                   "szokásos jelszó): kapcsolja be a kétlépcsős azonosítást, "
                   "és hozza létre a jelszót itt: "

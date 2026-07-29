@@ -66,44 +66,62 @@ APP = {
     "d_tasks_title": "Tasks", "d_task_due": "by {d}", "d_task_done": "Done",
     "d_no_tasks": "No open tasks.",
     # mailboxes
-    "mb_title": "Email mailboxes",
-    "mb_fwd_title": "Your forwarding address",
-    "mb_fwd_body": "Don't want to enter your mailbox password? Just forward "
-                   "invoices to this address (manually or with a rule in "
-                   "your email client) and VORU will process them the same "
-                   "way. The address is unique to your account — don't "
-                   "share it publicly.",
+    "mb_title": "Connect your email",
+    "mb_intro": "Connect the mailbox where your invoices arrive. VORU then "
+                "reads them for you, pulls out the amount, account number and "
+                "due date, and sends you an overview with a QR code to pay. "
+                "You never retype anything.",
+    "mb_trust_read": "Read-only — we never send or delete anything",
+    "mb_trust_enc": "Password encrypted, access only for your account",
+    "mb_trust_revoke": "Disconnect any time in one click",
     "mb_verify_title": "Confirm your email first",
     "mb_verify_body": "Connecting a mailbox unlocks once you confirm your "
                       "email address — click the link in the welcome email "
-                      "(check spam too).",
+                      "(check the spam folder too).",
     "mb_verify_btn": "Resend verification email",
+    "mb_connected": "Connected mailboxes",
+    "mb_active": "Active",
+    "mb_choose": "How to connect your email",
+    "mb_easiest": "Easiest",
+    "mb_nopass": "No password",
+    "mb_any_provider": "Any email",
     "mb_gmail_title": "Gmail in one click",
-    "mb_gmail_body": "Connect Gmail without an app password — sign in with "
-                     "Google and allow VORU to read your mailbox. You can "
-                     "revoke access at any time at myaccount.google.com.",
-    "mb_gmail_btn": "Connect Gmail with Google",
-    "mb_none": "No mailbox yet — add your first one below.",
+    "mb_gmail_body": "Sign in with Google and allow VORU to read your mail — "
+                     "no passwords, no setup. Recommended.",
+    "mb_gmail_btn": "Connect with Google",
+    "mb_fwd_title": "Forward your invoices",
+    "mb_fwd_body": "Don't want to connect your whole mailbox? Just forward "
+                   "invoices (or set up a rule) to this address and VORU "
+                   "processes them the same way.",
+    "mb_fwd_warn": "This address is unique to your account — don't share it.",
+    "mb_copy": "Copy", "mb_copied": "Copied ✓",
+    "mb_imap_title": "Another mailbox",
+    "mb_imap_lead": "Outlook, a company email or your own domain — connect via "
+                    "IMAP in a few seconds.",
+    "mb_imap_cta": "Connect a mailbox",
     "th_name": "Name", "th_server": "Server", "th_login": "Login",
-    "mb_remove": "Remove", "mb_remove_confirm": "Remove this mailbox?",
-    "mb_add_title": "Add a mailbox",
-    "mb_add_lead": "Pick your provider — we'll fill in the server settings "
-                   "for you. The login is verified right away. Step-by-step "
-                   "guide: <a href='/navod' target='_blank'>connection "
-                   "guide</a>.",
+    "mb_remove": "Disconnect", "mb_remove_confirm": "Really disconnect this mailbox?",
+    "mb_add_title": "Connect a mailbox via IMAP",
+    "mb_step_1": "Pick where your email is hosted — we fill in the server.",
+    "mb_step_2": "Enter your login email and mailbox password.",
+    "mb_step_3": "Click “Verify and connect” — we test the connection instantly.",
     "mb_where": "Where is your email hosted?",
     "mb_pick": "— pick a provider —",
     "mb_other_provider": "Other / custom domain",
-    "mb_name_label": "Name (e.g. “mycompany”)",
+    "mb_name_label": "Label (optional)",
     "mb_host_label": "IMAP server",
     "mb_port_label": "Port",
     "mb_user_label": "Login email",
-    "mb_pass_label": "Mailbox password / app password",
+    "mb_pass_label": "Mailbox password (or app password)",
+    "mb_advanced": "Server settings (filled in automatically)",
     "mb_sec_label": "Security",
-    "mb_sec_ssl": "SSL (standard, port 993)",
+    "mb_sec_ssl": "SSL — secure connection (default)",
     "mb_sec_starttls": "STARTTLS (e.g. Proton Bridge)",
-    "mb_sec_plain": "no encryption",
-    "mb_submit": "Verify and add",
+    "mb_sec_plain": "no encryption (not recommended)",
+    "mb_submit": "Verify and connect",
+    "mb_add_help": "Not sure? Email us at "
+                   "<a href='mailto:obchod@sorbxt.sk'>obchod@sorbxt.sk</a> "
+                   "and we'll help you connect.",
     "hint_gmail": "Gmail requires an <b>app password</b> (not your regular "
                   "password): turn on two-step verification and create one at "
                   "<a href='https://myaccount.google.com/apppasswords' "
