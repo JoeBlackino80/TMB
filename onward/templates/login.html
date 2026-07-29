@@ -8,6 +8,10 @@
     <input type="email" name="email" required>
     <label>{{ t['password_lbl'] }}</label>
     <input type="password" name="password" required>
+    <div class="hp" aria-hidden="true"><input type="text" name="website"
+         tabindex="-1" autocomplete="off"></div>
+    {% if turnstile_key %}<div class="cf-turnstile" data-sitekey="{{ turnstile_key }}"
+         style="margin-top:14px"></div>{% endif %}
     <button type="submit">{{ t['login_btn'] }}</button>
   </form>
   <p class="note" style="margin-top:14px">{{ t['no_account'] }}

@@ -357,3 +357,38 @@ def test_saved_passenger_crud(client, monkeypatch):
         "passport": "AB123456", "passport_expiry": "2030-01-01"})
     page = client.get("/account")
     assert "Novak" in page.text and "AB123456" not in page.text  # pas sa nezobrazuje
+
+
+def test_honeypot_blocks_registration(client):
+    r = client.post("/register",
+                    data={"email": "bot@x.sk", "password": "heslo1234",
+                          "website": "http://spam.example"},
+                    follow_redirects=False)
+    assert r.status_code == 303 and r.headers["location"] == "/register"
+    # účet nevznikol
+    r2 = client.post("/login", data={"email": "bot@x.sk", "password": "heslo1234"})
+    assert "Wrong e-mail or password" in r2.text
+
+
+def test_login_rate_limit(client):
+    from onward import security
+    security._hits.clear()
+    last = None
+    for _ in range(10):
+        last = client.post("/login", data={"email": "none@x.sk", "password": "x"})
+    assert "Too many attempts" in last.text
+
+
+def test_order_honeypot(client, monkeypatch):
+    _mock_duffel(monkeypatch)
+    _mock_mailer(monkeypatch)
+    from onward import security
+    security._hits.clear()
+    r = client.post("/order", data=_form_data(website="bot"), follow_redirects=False)
+    assert r.status_code == 303 and r.headers["location"] == "/"
+
+
+def test_turnstile_disabled_passes(monkeypatch):
+    from onward import security
+    monkeypatch.delenv("TURNSTILE_SECRET_KEY", raising=False)
+    assert security.turnstile_ok("", "1.2.3.4") is True

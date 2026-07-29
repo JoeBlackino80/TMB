@@ -90,7 +90,9 @@
         stroke:currentColor; stroke-width:2; stroke-linecap:round;
         stroke-linejoin:round; }
   .ic-lg { width:20px; height:20px; vertical-align:-4px; }
+  .hp { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
 </style>
+{% if turnstile_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
 </head>
 <body>
 <header><div class="wrap"><b><svg class="ic ic-lg" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> {{ brand }}</b>

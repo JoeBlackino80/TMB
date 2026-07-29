@@ -80,6 +80,7 @@ uvicorn onward.app:app --port 8100
 | `ONWARD_ADMIN_KEY` | kľúč pre /admin?key=... |
 | `ONWARD_SECRET` | podpis prihlasovacích cookies klientskych účtov (dlhý náhodný reťazec) |
 | `ONWARD_DATA_KEY` | Fernet kľúč na šifrovanie čísla pasu uložených pasažierov; bez neho sa pasové polia neukladajú |
+| `TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | voliteľná Cloudflare Turnstile CAPTCHA pri registrácii/prihlásení (zadarmo) |
 | `ONWARD_SMTP_HOST/PORT/USER/PASSWORD` | SMTP; ak chýba, použije sa `SMTP_*` |
 
 ## Férovosť a právne poznámky

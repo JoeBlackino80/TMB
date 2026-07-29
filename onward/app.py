@@ -27,7 +27,7 @@ from fastapi import FastAPI, Form, Request
 from fastapi.responses import FileResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from . import auth, booking, crypto, i18n, pdf
+from . import auth, booking, crypto, i18n, pdf, security
 from .store import Orders
 
 BRAND = os.environ.get("ONWARD_BRAND", "ValidFlight")
@@ -90,6 +90,7 @@ def _render(request: Request, name: str, **ctx):
     resp = templates.TemplateResponse(
         request, name, {"brand": BRAND, "prices": _prices(), "max_pax": MAX_PAX,
                         "crypto_enabled": crypto.enabled(),
+                        "turnstile_key": security.turnstile_site_key(),
                         "t": i18n.STRINGS[lang], "lang": lang, **ctx})
     if query_lang in i18n.STRINGS:
         resp.set_cookie("lang", query_lang, max_age=31536000)
@@ -125,7 +126,17 @@ def register_form(request: Request):
 
 
 @app.post("/register")
-def register(request: Request, email: str = Form(...), password: str = Form(...)):
+def register(request: Request, email: str = Form(...), password: str = Form(...),
+             website: str = Form(""), cf_turnstile_response: str = Form("")):
+    ip = security.client_ip(request)
+    if security.honeypot_tripped(website):
+        return _redirect("/register")
+    if security.rate_limited(f"register:{ip}", limit=5, window_s=3600):
+        return _render(request, "register.html",
+                       err="Too many attempts. Please try again later.")
+    if not security.turnstile_ok(cf_turnstile_response, ip):
+        return _render(request, "register.html",
+                       err="Anti-bot check failed. Please try again.")
     if "@" not in email or len(password) < 8:
         return _render(request, "register.html",
                        err="Enter a valid e-mail and a password of at least 8 characters.")
@@ -151,7 +162,17 @@ def login_form(request: Request):
 
 
 @app.post("/login")
-def login(request: Request, email: str = Form(...), password: str = Form(...)):
+def login(request: Request, email: str = Form(...), password: str = Form(...),
+          website: str = Form(""), cf_turnstile_response: str = Form("")):
+    ip = security.client_ip(request)
+    if security.honeypot_tripped(website):
+        return _redirect("/login")
+    if security.rate_limited(f"login:{ip}", limit=8, window_s=900):
+        return _render(request, "login.html",
+                       err="Too many attempts. Please try again in a few minutes.")
+    if not security.turnstile_ok(cf_turnstile_response, ip):
+        return _render(request, "login.html",
+                       err="Anti-bot check failed. Please try again.")
     store = Orders()
     try:
         user = store.user_by_email(email)
@@ -252,7 +273,14 @@ def order(request: Request,
           email: str = Form(...), phone: str = Form(...),
           title: list[str] = Form(...), given_name: list[str] = Form(...),
           family_name: list[str] = Form(...), born_on: list[str] = Form(...),
-          gender: list[str] = Form(...)):
+          gender: list[str] = Form(...), website: str = Form("")):
+    ip = security.client_ip(request)
+    if security.honeypot_tripped(website):
+        return _redirect("/")
+    if security.rate_limited(f"order:{ip}", limit=12, window_s=3600):
+        return _render(request, "message.html", heading="Slow down",
+                       lines=["Too many orders from this connection."
+                              " Please try again later."], back="/")
     problems = []
     slices = [{"origin": origin, "destination": destination, "date": depart_date}]
     if trip_type == "return":
