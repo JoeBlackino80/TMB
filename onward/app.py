@@ -27,7 +27,7 @@ from fastapi import FastAPI, Form, Request
 from fastapi.responses import FileResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from . import booking, pdf
+from . import booking, crypto, pdf
 from .store import Orders
 
 BRAND = os.environ.get("ONWARD_BRAND", "ValidFlight")
@@ -59,7 +59,8 @@ def _stripe_link(plan: str) -> str:
 
 def _render(request: Request, name: str, **ctx):
     return templates.TemplateResponse(
-        request, name, {"brand": BRAND, "prices": _prices(), "max_pax": MAX_PAX, **ctx})
+        request, name, {"brand": BRAND, "prices": _prices(), "max_pax": MAX_PAX,
+                        "crypto_enabled": crypto.enabled(), **ctx})
 
 
 @app.get("/")
@@ -106,7 +107,7 @@ def order(request: Request,
           depart_date: str = Form(...), return_date: str = Form(""),
           origin2: str = Form(""), destination2: str = Form(""), date2: str = Form(""),
           origin3: str = Form(""), destination3: str = Form(""), date3: str = Form(""),
-          plan: str = Form("basic"),
+          plan: str = Form("basic"), pay: str = Form("card"),
           email: str = Form(...), phone: str = Form(...),
           title: list[str] = Form(...), given_name: list[str] = Form(...),
           family_name: list[str] = Form(...), born_on: list[str] = Form(...),
@@ -174,6 +175,11 @@ def order(request: Request,
         token = store.create(email=email, phone=phone, slices=slices,
                              passengers=passengers, plan=plan,
                              valid_until=valid_until)
+        if pay == "crypto" and crypto.enabled():
+            url = crypto.create_charge(token, _prices()[plan],
+                                       f"{BRAND} — flight reservation ({plan})",
+                                       booking.status_url(token))
+            return RedirectResponse(url, status_code=303)
         link = _stripe_link(plan)
         if link:
             return RedirectResponse(
@@ -218,6 +224,25 @@ async def stripe_webhook(request: Request):
     return Response(status_code=200)
 
 
+@app.post("/crypto/webhook")
+async def crypto_webhook(request: Request):
+    payload = await request.body()
+    if not crypto.verify_signature(
+            payload, request.headers.get("x-cc-webhook-signature", ""),
+            os.environ.get("ONWARD_COINBASE_WEBHOOK_SECRET", "")):
+        return Response(status_code=400)
+    token = crypto.confirmed_token(json.loads(payload))
+    if token:
+        store = Orders()
+        try:
+            if (row := store.by_token(token)) and row["status"] == "new":
+                store.set_status(token, "paid")
+                booking.book(store, token)
+        finally:
+            store.close()
+    return Response(status_code=200)
+
+
 @app.get("/status/{token}")
 def status(request: Request, token: str):
     store = Orders()
@@ -241,7 +266,8 @@ def itinerary_pdf(token: str):
         if not row or row["status"] != "booked":
             return Response(status_code=404)
         data = pdf.build_itinerary(row, store.passengers(row),
-                                   store.segments(row), BRAND)
+                                   store.segments(row), BRAND,
+                                   booking.status_url(token))
         return Response(data, media_type="application/pdf", headers={
             "Content-Disposition": f'attachment; filename="itinerary-{row["pnr"]}.pdf"'})
     finally:

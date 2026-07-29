@@ -105,6 +105,16 @@ minutes — with a printable <b>PDF itinerary</b>. Perfect for
     {% endfor %}
     <button type="button" class="linklike" id="addpax">+ Add passenger</button>
 
+    {% if crypto_enabled %}
+    <label style="margin-top:16px">Payment method</label>
+    <div class="plans" style="grid-template-columns:1fr 1fr">
+      <label class="plan"><input type="radio" name="pay" value="card" checked>
+        <b>💳 Card</b><small>Visa, Mastercard — via Stripe</small></label>
+      <label class="plan"><input type="radio" name="pay" value="crypto">
+        <b>₿ Crypto</b><small>BTC, ETH, USDC, USDT — via Coinbase</small></label>
+    </div>
+    {% endif %}
+
     <button type="submit">Get my reservation</button>
     <p class="note">You pay only our service fee. We never charge you the
     price of the flight and the airline is never paid.</p>

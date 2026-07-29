@@ -261,3 +261,39 @@ def test_airports_json(client):
     assert len(data) > 3000
     assert any(a[0] == "VIE" for a in data)
     assert any(a[0] == "BKK" and "Bangkok" in (a[2] or "") for a in data)
+
+
+def test_pdf_with_qr(tmp_path):
+    store = Orders(str(tmp_path / "o.db"))
+    token = store.create(**_store_kwargs())
+    store.set_booking(token, pnr="ABC123", airline="Duffel Airways",
+                      duffel_order_id="ord_1", hold_expires_at="2099-01-01T00:00:00Z",
+                      segments=duffel.segments(SAMPLE_ORDER))
+    data = pdf.build_itinerary(store.by_token(token), PAX, duffel.segments(SAMPLE_ORDER),
+                               "ValidFlight", "https://validflight.com/status/x")
+    assert data.startswith(b"%PDF")
+    store.close()
+
+
+def test_crypto_signature_and_token():
+    from onward import crypto
+    payload = b'{"event":{"type":"charge:confirmed","data":{"metadata":{"token":"tok1"}}}}'
+    import hashlib, hmac as hm
+    sig = hm.new(b"tajne", payload, hashlib.sha256).hexdigest()
+    assert crypto.verify_signature(payload, sig, "tajne")
+    assert not crypto.verify_signature(payload, sig, "ine")
+    import json as j
+    assert crypto.confirmed_token(j.loads(payload)) == "tok1"
+    assert crypto.confirmed_token({"event": {"type": "charge:created"}}) == ""
+
+
+def test_order_crypto_redirect(client, monkeypatch):
+    from onward import app as onward_app
+    monkeypatch.setattr(onward_app.crypto, "enabled", lambda: True)
+    monkeypatch.setattr(onward_app.crypto, "create_charge",
+                        lambda token, amount, name, redirect_url="":
+                        f"https://commerce.coinbase.com/charges/X?a={amount}")
+    resp = client.post("/order", data=_form_data(pay="crypto"),
+                       follow_redirects=False)
+    assert resp.status_code == 303
+    assert resp.headers["location"].startswith("https://commerce.coinbase.com/")

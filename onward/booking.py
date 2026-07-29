@@ -47,7 +47,8 @@ def book(store: Orders, token: str, renewed: bool = False) -> bool:
         subject, text, html = emails.itinerary(row, passengers, segs, BRAND,
                                                status_url(token), renewed=renewed)
         attachment = ("itinerary.pdf",
-                      pdf.build_itinerary(row, passengers, segs, BRAND),
+                      pdf.build_itinerary(row, passengers, segs, BRAND,
+                                          status_url(token)),
                       "application/pdf")
         mailer.send(row["email"], subject, text, html, attachments=[attachment])
         return True

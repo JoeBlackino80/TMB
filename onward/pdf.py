@@ -5,7 +5,9 @@ so skutočným PNR a časom platnosti — nie je to napodobenina letenky.
 """
 
 import unicodedata
+from io import BytesIO
 
+import qrcode
 from fpdf import FPDF
 
 INK = (22, 33, 58)
@@ -28,7 +30,7 @@ def _fmt_time(iso: str) -> str:
 
 
 def build_itinerary(order, passengers: list[dict], segments: list[dict],
-                    brand: str) -> bytes:
+                    brand: str, status_url: str = "") -> bytes:
     pdf = FPDF(format="A4")
     pdf.set_auto_page_break(auto=True, margin=18)
     pdf.add_page()
@@ -101,6 +103,16 @@ def build_itinerary(order, passengers: list[dict], segments: list[dict],
     pdf.set_font("helvetica", "B", 11)
     pdf.cell(0, 6, f"Valid until {_fmt_time(order['hold_expires_at'] or '')}",
              new_x="LMARGIN", new_y="NEXT")
+    if status_url:
+        buf = BytesIO()
+        qrcode.make(status_url).get_image().save(buf, format="PNG")
+        y = pdf.get_y() + 2
+        pdf.image(buf, x=pdf.l_margin, y=y, w=26)
+        pdf.set_xy(pdf.l_margin + 30, y + 8)
+        pdf.set_font("helvetica", "", 9)
+        pdf.set_text_color(*MUTED)
+        pdf.cell(0, 5, "Scan to verify this reservation and its live status online.")
+        pdf.set_y(y + 30)
     pdf.set_font("helvetica", "", 9)
     pdf.set_text_color(*MUTED)
     pdf.multi_cell(0, 5,
