@@ -310,7 +310,7 @@ def test_spanish_translation(client):
 
 def test_register_login_account_flow(client):
     # registrácia → prihlásený, panel dostupný
-    r = client.post("/register", data={"email": "u@x.sk", "password": "heslo1234"},
+    r = client.post("/register", data={"email": "u@x.sk", "password": "Heslo123!"},
                     follow_redirects=False)
     assert r.status_code == 303 and r.headers["location"] == "/account"
     assert client.get("/account").status_code == 200
@@ -350,7 +350,7 @@ def test_passport_encryption(monkeypatch):
 def test_saved_passenger_crud(client, monkeypatch):
     from cryptography.fernet import Fernet
     monkeypatch.setenv("ONWARD_DATA_KEY", Fernet.generate_key().decode())
-    client.post("/register", data={"email": "p@x.sk", "password": "heslo1234"})
+    client.post("/register", data={"email": "p@x.sk", "password": "Heslo123!"})
     client.post("/account/passenger", data={
         "title": "mr", "given_name": "Jan", "family_name": "Novak",
         "born_on": "1990-01-01", "gender": "m", "nationality": "sk",
@@ -361,12 +361,12 @@ def test_saved_passenger_crud(client, monkeypatch):
 
 def test_honeypot_blocks_registration(client):
     r = client.post("/register",
-                    data={"email": "bot@x.sk", "password": "heslo1234",
+                    data={"email": "bot@x.sk", "password": "Heslo123!",
                           "website": "http://spam.example"},
                     follow_redirects=False)
     assert r.status_code == 303 and r.headers["location"] == "/register"
     # účet nevznikol
-    r2 = client.post("/login", data={"email": "bot@x.sk", "password": "heslo1234"})
+    r2 = client.post("/login", data={"email": "bot@x.sk", "password": "Heslo123!"})
     assert "Wrong e-mail or password" in r2.text
 
 
@@ -392,3 +392,19 @@ def test_turnstile_disabled_passes(monkeypatch):
     from onward import security
     monkeypatch.delenv("TURNSTILE_SECRET_KEY", raising=False)
     assert security.turnstile_ok("", "1.2.3.4") is True
+
+
+def test_password_policy():
+    from onward import auth
+    assert auth.password_problem("Shorty1!") == ""  # 8 znakov, spĺňa všetko
+    assert "8 characters" in auth.password_problem("Ab1!")
+    assert "uppercase" in auth.password_problem("abcdef1!")
+    assert "lowercase" in auth.password_problem("ABCDEF1!")
+    assert "digit" in auth.password_problem("Abcdefg!")
+    assert "special" in auth.password_problem("Abcdefg1")
+    assert auth.password_problem("Abcdef1!") == ""
+
+
+def test_register_rejects_weak_password(client):
+    r = client.post("/register", data={"email": "w@x.sk", "password": "weakpass"})
+    assert "uppercase" in r.text or "special" in r.text or "digit" in r.text

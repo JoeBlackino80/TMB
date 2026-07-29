@@ -138,9 +138,10 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
     if not security.turnstile_ok(cf_turnstile_response, ip):
         return _render(request, "register.html",
                        err="Anti-bot check failed. Please try again.")
-    if "@" not in email or len(password) < 8:
-        return _render(request, "register.html",
-                       err="Enter a valid e-mail and a password of at least 8 characters.")
+    if "@" not in email:
+        return _render(request, "register.html", err="Enter a valid e-mail address.")
+    if problem := auth.password_problem(password):
+        return _render(request, "register.html", err=problem)
     store = Orders()
     try:
         if store.user_by_email(email):

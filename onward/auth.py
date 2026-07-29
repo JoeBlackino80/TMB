@@ -9,9 +9,25 @@ import base64
 import hashlib
 import hmac
 import os
+import re
 import secrets
 
 _PBKDF2_ROUNDS = 200_000
+
+
+def password_problem(password: str) -> str:
+    """Vráti chybovú správu, alebo '' ak heslo spĺňa pravidlá."""
+    if len(password) < 8:
+        return "Password must be at least 8 characters long."
+    if not re.search(r"[A-Z]", password):
+        return "Password must contain an uppercase letter."
+    if not re.search(r"[a-z]", password):
+        return "Password must contain a lowercase letter."
+    if not re.search(r"[0-9]", password):
+        return "Password must contain a digit."
+    if not re.search(r"[^A-Za-z0-9]", password):
+        return "Password must contain a special character (e.g. ! ? # $)."
+    return ""
 
 
 def hash_password(password: str) -> str:

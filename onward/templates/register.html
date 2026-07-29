@@ -6,8 +6,15 @@
   <form method="post" action="/register">
     <label>{{ t['email_lbl'] }}</label>
     <input type="email" name="email" required>
-    <label>{{ t['password_lbl'] }} ({{ t['min8'] }})</label>
-    <input type="password" name="password" minlength="8" required>
+    <label>{{ t['password_lbl'] }}</label>
+    <input type="password" name="password" id="pw" minlength="8" required>
+    <ul id="pwrules" style="list-style:none;padding:0;margin:8px 0 0;font-size:13px">
+      <li data-rule="len">{{ t['pw_len'] }}</li>
+      <li data-rule="upper">{{ t['pw_upper'] }}</li>
+      <li data-rule="lower">{{ t['pw_lower'] }}</li>
+      <li data-rule="digit">{{ t['pw_digit'] }}</li>
+      <li data-rule="special">{{ t['pw_special'] }}</li>
+    </ul>
     <div class="hp" aria-hidden="true"><input type="text" name="website"
          tabindex="-1" autocomplete="off"></div>
     {% if turnstile_key %}<div class="cf-turnstile" data-sitekey="{{ turnstile_key }}"
@@ -17,4 +24,18 @@
   <p class="note" style="margin-top:14px">{{ t['have_account'] }}
     <a href="/login">{{ t['login_btn'] }}</a></p>
 </div>
+<script>
+  const pw = document.getElementById('pw');
+  const rules = {
+    len: v => v.length >= 8, upper: v => /[A-Z]/.test(v), lower: v => /[a-z]/.test(v),
+    digit: v => /[0-9]/.test(v), special: v => /[^A-Za-z0-9]/.test(v),
+  };
+  pw.addEventListener('input', () => {
+    for (const li of document.querySelectorAll('#pwrules li')) {
+      const ok = rules[li.dataset.rule](pw.value);
+      li.style.color = ok ? '#0a7d38' : '#8090a8';
+      li.textContent = (ok ? '✓ ' : '• ') + li.textContent.replace(/^[✓•] /, '');
+    }
+  });
+</script>
 {% endblock %}

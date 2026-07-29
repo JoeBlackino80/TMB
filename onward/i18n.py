@@ -25,6 +25,9 @@ STRINGS = {
             " international reservations.",
         "delete": "Delete", "save": "Save",
         "new_order_btn": "New reservation", "traveller_saved": "Traveller saved.",
+        "pw_len": "At least 8 characters", "pw_upper": "One uppercase letter",
+        "pw_lower": "One lowercase letter", "pw_digit": "One digit",
+        "pw_special": "One special character (! ? # $ ...)",
         "hero_title": "A real flight reservation in minutes",
         "hero_sub": "A <b>genuine airline reservation (PNR)</b> without buying"
                     " the ticket — verifiable on the airline's website, delivered"
@@ -166,6 +169,9 @@ a verifiable reservation, you get a full refund — no questions asked. See
             " reservas internacionales.",
         "delete": "Eliminar", "save": "Guardar",
         "new_order_btn": "Nueva reserva", "traveller_saved": "Viajero guardado.",
+        "pw_len": "Al menos 8 caracteres", "pw_upper": "Una mayúscula",
+        "pw_lower": "Una minúscula", "pw_digit": "Un número",
+        "pw_special": "Un carácter especial (! ? # $ ...)",
         "hero_title": "Una reserva de vuelo real en minutos",
         "hero_sub": "Una <b>reserva aérea genuina (PNR)</b> sin comprar el"
                     " billete — verificable en la web de la aerolínea, enviada"
