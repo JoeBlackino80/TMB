@@ -35,6 +35,10 @@
     <label>{{ t.s_name }}</label>
     <input name="own_name" value="{{ settings['OWN_NAME'] }}"
            placeholder="{{ t.s_name_ph }}">
+    <label style="margin-top:14px">{{ t.s_accountant }}</label>
+    <input type="email" name="accountant_email" value="{{ settings['ACCOUNTANT_EMAIL'] }}"
+           placeholder="{{ t.s_accountant_ph }}">
+    <p class="muted">{{ t.s_accountant_note }}</p>
     </div>
 
     <label style="margin-top:18px">{{ t.s_remind }}</label>

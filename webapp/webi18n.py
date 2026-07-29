@@ -479,6 +479,11 @@ _SK_APP = {
     "s_iban": "IBAN vášho účtu (pre hromadný príkaz na úhradu)",
     "s_name": "Názov firmy / meno (objaví sa v príkaze)",
     "s_name_ph": "Moja firma s.r.o.",
+    "s_accountant": "E-mail účtovníčky (automatické mesačné podklady)",
+    "s_accountant_ph": "uctovnicka@example.com",
+    "s_accountant_note": "1. deň v mesiaci pošleme účtovníčke ZIP s faktúrami "
+                         "(PDF) a CSV prehľadom platieb za predošlý mesiac. "
+                         "Nechajte prázdne, ak to nechcete.",
     "s_remind": "Ranný prehľad platieb (s QR kódmi)",
     "s_workdays": "pracovné dni", "s_daily": "každý deň",
     "s_weekly": "raz týždenne (v piatok, za celý týždeň)", "s_off": "neposielať",

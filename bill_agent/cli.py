@@ -348,6 +348,18 @@ def run_notify(cfg: Config, store: Store, now) -> list[str]:
         if digest_mod.send_monthly_report(cfg, store):
             actions.append("mesačný report odoslaný")
 
+    # 1. dňa v mesiaci: automatické podklady účtovníčke za predošlý mesiac
+    if (getattr(cfg, "accountant_email", "") and now.day == 1 and now.hour >= 8
+            and store.get_meta("last_accountant") != month):
+        from . import accountant
+
+        store.set_meta("last_accountant", month)
+        try:
+            if accountant.send_to_accountant(cfg, store, accountant.previous_month(now.date())):
+                actions.append("podklady účtovníčke odoslané")
+        except Exception as exc:  # zlyhanie SMTP nesmie zhodiť celý beh notify
+            print(f"⚠ Podklady účtovníčke sa nepodarilo odoslať: {exc}", file=sys.stderr)
+
     return actions
 
 

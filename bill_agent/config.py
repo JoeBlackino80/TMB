@@ -59,6 +59,9 @@ class Config:
         os.environ.get("SMTP_FROM", "") or os.environ.get("SMTP_USER", "")))
 
     reminder_to: str = field(default_factory=lambda: os.environ.get("REMINDER_TO", ""))
+    # e-mail účtovníčky — na 1. dňa v mesiaci sa sem automaticky pošle ZIP
+    # s faktúrami (PDF) a CSV prehľadom platieb za predošlý mesiac (prázdne = vypnuté)
+    accountant_email: str = field(default_factory=lambda: os.environ.get("ACCOUNTANT_EMAIL", ""))
     reminder_days_ahead: int = field(default_factory=lambda: _int_env("REMINDER_DAYS_AHEAD", 7))
     email_lookback_days: int = field(default_factory=lambda: _int_env("EMAIL_LOOKBACK_DAYS", 7))
 

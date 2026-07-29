@@ -18,6 +18,11 @@
 # Denná záloha dát (clients/, webapp.db, .env.master) do /root/backups
 45 3 * * *    /root/TMB/scripts/backup.sh >> /root/TMB/agent.log 2>&1
 
+# Sebakontrola servera — web beží? cron je čerstvý? disk má miesto?
+# (Zapisuje do selfcheck.log, NIE do agent.log — inak by si sama „omladzovala“
+#  agent.log a kontrola čerstvosti cronu by nikdy nezlyhala.)
+*/15 * * * *  cd /root/TMB && .venv/bin/python -m webapp.selfcheck >> selfcheck.log 2>&1
+
 # --- Jednoduchý režim bez SaaS (jeden používateľ, bez clients/) ---
 # 30 7 * * 1-5  cd /cesta/k/TMB && .venv/bin/python -m bill_agent run >> agent.log 2>&1
 # 30 17 * * 1-5 cd /cesta/k/TMB && .venv/bin/python -m bill_agent digest --days 1 >> agent.log 2>&1

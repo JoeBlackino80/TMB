@@ -122,6 +122,11 @@ APP = {
     "s_iban": "IBAN vašeho účtu (pro hromadný příkaz k úhradě)",
     "s_name": "Název firmy / jméno (objeví se v příkazu)",
     "s_name_ph": "Moje firma s.r.o.",
+    "s_accountant": "E-mail účetní (automatické měsíční podklady)",
+    "s_accountant_ph": "ucetni@example.com",
+    "s_accountant_note": "1. den v měsíci pošleme účetní ZIP s fakturami (PDF) "
+                         "a CSV přehledem plateb za předchozí měsíc. Nechte "
+                         "prázdné, pokud to nechcete.",
     "s_remind": "Ranní přehled plateb (s QR kódy)",
     "s_workdays": "pracovní dny", "s_daily": "každý den",
     "s_weekly": "jen v pátek (souhrn za celý týden)", "s_off": "neposílat",

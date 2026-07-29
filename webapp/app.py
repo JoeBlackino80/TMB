@@ -931,43 +931,34 @@ def task_done(request: Request, user=Depends(current_user),
 @app.get("/bundle")
 def bundle(request: Request, month: str = "", user=Depends(current_user)):
     """ZIP s faktúrami (PDF prílohy) a CSV prehľadom platieb za mesiac."""
-    import csv
-    import io
     import re as re_mod
-    import zipfile
+
+    from bill_agent import accountant
 
     if not user:
         return _redirect("/login")
     if not re_mod.fullmatch(r"\d{4}-\d{2}", month):
         return _redirect("/")
 
-    buf = io.BytesIO()
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
-        att_dir = os.path.join(clientfs.client_path(user["client_dir"]),
-                               "attachments", month)
-        if os.path.isdir(att_dir):
-            for name in sorted(os.listdir(att_dir)):
-                zf.write(os.path.join(att_dir, name), arcname=f"faktury/{name}")
-        rows = []
-        if os.path.exists(_client_db(user)):
-            store = Store(_client_db(user))
-            try:
-                rows = store.payments_in_month(month)
-            finally:
-                store.close()
-        out = io.StringIO()
-        writer = csv.writer(out, delimiter=";")
-        writer.writerow(["dodávateľ", "suma", "mena", "IBAN", "VS",
-                         "splatnosť", "stav", "zaplatené", "poznámka"])
-        for r in rows:
-            writer.writerow([r["supplier"], f"{r['amount']:.2f}".replace(".", ","),
-                             r["currency"], r["iban"], r["variable_symbol"],
-                             r["due_date"] or "", r["status"], r["paid_at"] or "",
-                             r["note"]])
-        zf.writestr(f"platby-{month}.csv", "﻿" + out.getvalue())
+    lang = clientfs.read_settings(user["client_dir"])["APP_LANG"] or "sk"
+    if os.path.exists(_client_db(user)):
+        store = Store(_client_db(user))
+        try:
+            data = accountant.build_month_zip(
+                store, clientfs.client_path(user["client_dir"]), month, lang)
+        finally:
+            store.close()
+    else:
+        # bez databázy poskladáme aspoň prázdny ZIP (žiadne faktúry, prázdne CSV)
+        class _Empty:
+            def payments_in_month(self, _m):
+                return []
+
+        data = accountant.build_month_zip(
+            _Empty(), clientfs.client_path(user["client_dir"]), month, lang)
 
     return Response(
-        content=buf.getvalue(), media_type="application/zip",
+        content=data, media_type="application/zip",
         headers={"Content-Disposition":
                  f'attachment; filename="voru-{month}.zip"'},
     )
@@ -1717,6 +1708,9 @@ async def save_settings(request: Request, user=Depends(current_user),
         "DIGEST_HOUR": pick("digest_hour", hours, "17"),
         "REPORT_ENABLED": "1" if form.get("report_enabled") else "0",
     }
+    accountant_email = str(form.get("accountant_email", "")).strip()
+    if accountant_email and "@" not in accountant_email:
+        accountant_email = ""  # neplatná adresa → radšej vypnúť než posielať nikam
     clientfs.write_env(user["client_dir"],
                        reminder_to=reminder_to.strip() or user["email"],
                        pdf_passwords=pdf_passwords.strip(),
@@ -1725,6 +1719,7 @@ async def save_settings(request: Request, user=Depends(current_user),
                        tax_profile=profile,
                        schedule=schedule,
                        account_type=account_type,
+                       accountant_email=accountant_email,
                        lang=lang)
     return _redirect("/settings")
 

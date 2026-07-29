@@ -106,6 +106,11 @@ _SK = {
     "report_by_supplier": "Podľa dodávateľov",
     "report_footer": "Kompletné podklady (faktúry + CSV) si stiahnete v prehľade "
                      "v aplikácii — Podklady pre účtovníctvo.",
+    "acc_month_label": "podklady pre účtovníctvo",
+    "acc_body": "Dobrý deň,\n\nv prílohe posielame podklady pre účtovníctvo za "
+                "mesiac {month} — faktúry v PDF a CSV prehľad platieb.\n\n"
+                "Prípadné otázky adresujte prosím priamo klientovi (odpoveď na "
+                "tento e-mail).\n\nAutomaticky odoslané službou VORU (voru.sk).",
 }
 
 _CS = {
@@ -186,6 +191,11 @@ _CS = {
     "report_by_supplier": "Podle dodavatelů",
     "report_footer": "Kompletní podklady (faktury + CSV) si stáhnete v přehledu "
                      "v aplikaci — Podklady pro účetnictví.",
+    "acc_month_label": "podklady pro účetnictví",
+    "acc_body": "Dobrý den,\n\nv příloze posíláme podklady pro účetnictví za "
+                "měsíc {month} — faktury v PDF a CSV přehled plateb.\n\n"
+                "Případné dotazy adresujte prosím přímo klientovi (odpověď na "
+                "tento e-mail).\n\nAutomaticky odesláno službou VORU (voru.sk).",
 }
 
 _PL = {
@@ -271,6 +281,12 @@ _PL = {
     "report_by_supplier": "Według dostawców",
     "report_footer": "Komplet dokumentów (faktury + CSV) pobierzesz w aplikacji "
                      "— Dokumenty dla księgowości.",
+    "acc_month_label": "dokumenty dla księgowości",
+    "acc_body": "Dzień dobry,\n\nw załączniku przesyłamy dokumenty dla "
+                "księgowości za miesiąc {month} — faktury w PDF i zestawienie "
+                "CSV płatności.\n\nEwentualne pytania prosimy kierować "
+                "bezpośrednio do klienta (odpowiedź na ten e-mail).\n\n"
+                "Automatycznie wysłane przez VORU (voru.sk).",
 }
 
 _DE = {
@@ -353,6 +369,12 @@ _DE = {
     "report_by_supplier": "Nach Lieferanten",
     "report_footer": "Die vollständigen Unterlagen (Rechnungen + CSV) laden Sie "
                      "in der App herunter — Unterlagen für die Buchhaltung.",
+    "acc_month_label": "Unterlagen für die Buchhaltung",
+    "acc_body": "Guten Tag,\n\nim Anhang senden wir die Unterlagen für die "
+                "Buchhaltung für den Monat {month} — Rechnungen als PDF und eine "
+                "CSV-Zahlungsübersicht.\n\nBei Fragen wenden Sie sich bitte "
+                "direkt an den Mandanten (Antwort auf diese E-Mail).\n\n"
+                "Automatisch gesendet von VORU (voru.sk).",
 }
 
 _HU = {
@@ -434,6 +456,12 @@ _HU = {
     "report_by_supplier": "Szállítók szerint",
     "report_footer": "A teljes dokumentációt (számlák + CSV) az alkalmazásban "
                      "töltheti le — Könyvelési dokumentumok.",
+    "acc_month_label": "könyvelési dokumentumok",
+    "acc_body": "Jó napot,\n\nmellékelten küldjük a könyvelési dokumentumokat a "
+                "{month} hónapra — számlák PDF-ben és CSV fizetési kimutatás.\n\n"
+                "Esetleges kérdéseit kérjük közvetlenül az ügyfélnek címezze "
+                "(válasz erre az e-mailre).\n\nAutomatikusan küldve a VORU "
+                "szolgáltatással (voru.sk).",
 }
 
 _EN = {
@@ -513,6 +541,11 @@ _EN = {
     "report_by_supplier": "By supplier",
     "report_footer": "Download the complete records (invoices + CSV) in the app "
                      "— Accounting documents.",
+    "acc_month_label": "accounting documents",
+    "acc_body": "Hello,\n\nplease find attached the accounting documents for "
+                "{month} — invoices as PDF and a CSV payment summary.\n\nFor any "
+                "questions please contact the client directly (reply to this "
+                "e-mail).\n\nSent automatically by VORU (voru.sk).",
 }
 
 _TABLES = {"sk": _SK, "cs": _CS, "pl": _PL, "de": _DE, "hu": _HU, "en": _EN}

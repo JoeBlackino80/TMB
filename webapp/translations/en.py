@@ -128,6 +128,11 @@ APP = {
     "s_iban": "Your account IBAN (for the bulk payment order)",
     "s_name": "Company name / your name (appears on the order)",
     "s_name_ph": "My Company Ltd.",
+    "s_accountant": "Accountant's e-mail (automatic monthly documents)",
+    "s_accountant_ph": "accountant@example.com",
+    "s_accountant_note": "On the 1st of the month we send the accountant a ZIP "
+                         "with invoices (PDF) and a CSV payment summary for the "
+                         "previous month. Leave empty if you don't want this.",
     "s_remind": "Morning payment digest (with QR codes)",
     "s_workdays": "weekdays", "s_daily": "every day",
     "s_weekly": "Fridays only (weekly summary)", "s_off": "don't send",

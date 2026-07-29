@@ -140,6 +140,11 @@ APP = {
     "s_iban": "IBAN Ihres Kontos (für die Sammelüberweisung)",
     "s_name": "Firmenname / Name (erscheint im Zahlungsauftrag)",
     "s_name_ph": "Meine Firma GmbH",
+    "s_accountant": "E-Mail der Buchhaltung (automatische Monatsunterlagen)",
+    "s_accountant_ph": "buchhaltung@example.com",
+    "s_accountant_note": "Am 1. des Monats senden wir der Buchhaltung ein ZIP "
+                         "mit Rechnungen (PDF) und einer CSV-Zahlungsübersicht "
+                         "des Vormonats. Leer lassen, wenn nicht gewünscht.",
     "s_remind": "Morgendliche Zahlungsübersicht (mit QR-Codes)",
     "s_workdays": "Werktage", "s_daily": "jeden Tag",
     "s_weekly": "nur freitags (für die Woche)", "s_off": "nicht senden",

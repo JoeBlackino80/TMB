@@ -96,8 +96,21 @@ Kým webhook nie je nastavený, klientov aktivujete ručne na `/admin`.
 ## 6. Cron
 
 Kompletný odporúčaný crontab je v `crontab.example` — ranný beh, kontrola
-odpovedí každých 30 minút, zhrnutia, vypínanie vypršaných trialov a denná
-záloha. (`run-all` automaticky preskakuje klientov so súborom DISABLED.)
+odpovedí každých 30 minút, zhrnutia, vypínanie vypršaných trialov, denná
+záloha a sebakontrola servera. (`run-all` automaticky preskakuje klientov
+so súborom DISABLED.)
+
+**Podklady účtovníčke (automaticky).** Ak si klient v Nastaveniach vyplní
+e-mail účtovníčky, príkaz `notify` mu na 1. dňa v mesiaci (o 8:00+) pošle
+účtovníčke ZIP s faktúrami (PDF) a CSV prehľadom platieb za predošlý mesiac.
+Beží v rámci existujúceho `run-all notify` — netreba samostatný cron.
+
+**Sebakontrola servera.** `python -m webapp.selfcheck` (v crontab.example
+každých 15 min) overí, či beží web (`/healthz`), či je cron čerstvý
+(mtime `agent.log`) a či je miesto na disku; pri probléme pošle jeden e-mail
+na `ADMIN_EMAIL`. Voliteľné premenné: `SELFCHECK_URL`,
+`SELFCHECK_MAX_AGE_HOURS` (predvolene 26), `SELFCHECK_MIN_FREE_GB`.
+Zapisuje do `selfcheck.log`, nie do `agent.log`.
 
 ## 6b. Šifrovanie hesiel schránok
 

@@ -129,6 +129,11 @@ APP = {
     "s_iban": "IBAN Twojego konta (do zbiorczego polecenia przelewu)",
     "s_name": "Nazwa firmy / imię i nazwisko (pojawi się w poleceniu)",
     "s_name_ph": "Moja firma sp. z o.o.",
+    "s_accountant": "E-mail księgowej (automatyczne miesięczne dokumenty)",
+    "s_accountant_ph": "ksiegowa@example.com",
+    "s_accountant_note": "1. dnia miesiąca wyślemy księgowej ZIP z fakturami "
+                         "(PDF) i zestawieniem CSV płatności za poprzedni "
+                         "miesiąc. Zostaw puste, jeśli tego nie chcesz.",
     "s_remind": "Poranne zestawienie płatności (z danymi do przelewu)",
     "s_workdays": "dni robocze", "s_daily": "codziennie",
     "s_weekly": "tylko w piątek (podsumowanie tygodnia)", "s_off": "nie wysyłaj",

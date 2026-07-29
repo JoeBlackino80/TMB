@@ -143,6 +143,11 @@ APP = {
               "megbízáshoz)",
     "s_name": "Cégnév / név (a megbízásban jelenik meg)",
     "s_name_ph": "Az Én Cégem Kft.",
+    "s_accountant": "Könyvelő e-mailje (automatikus havi dokumentumok)",
+    "s_accountant_ph": "konyvelo@example.com",
+    "s_accountant_note": "A hónap 1. napján elküldjük a könyvelőnek a ZIP-et a "
+                         "számlákkal (PDF) és az előző havi fizetések CSV "
+                         "kimutatásával. Hagyja üresen, ha nem szeretné.",
     "s_remind": "Reggeli fizetési összefoglaló (QR-kódokkal)",
     "s_workdays": "munkanapokon", "s_daily": "minden nap",
     "s_weekly": "csak pénteken (az egész hétről)", "s_off": "ne küldje",

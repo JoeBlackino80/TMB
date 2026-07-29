@@ -40,6 +40,7 @@ def write_env(client_dir: str, *, reminder_to: str, pdf_passwords: str,
               tax_profile: str | None = None,
               schedule: dict | None = None,
               account_type: str | None = None,
+              accountant_email: str | None = None,
               lang: str | None = None) -> None:
     current = read_settings(client_dir)
     sched = {**{k: current[k] for k in _SCHEDULE_KEYS}, **(schedule or {})}
@@ -51,6 +52,8 @@ def write_env(client_dir: str, *, reminder_to: str, pdf_passwords: str,
         f"APP_LANG={lang or current['APP_LANG'] or 'sk'}",
         f"OWN_IBAN={own_iban or current['OWN_IBAN']}",
         f"OWN_NAME={own_name or current['OWN_NAME']}",
+        # None = ponechať doterajšiu hodnotu, "" = zámerne vypnúť (klient vymazal pole)
+        f"ACCOUNTANT_EMAIL={current['ACCOUNTANT_EMAIL'] if accountant_email is None else accountant_email}",
         f"TAX_PROFILE={current['TAX_PROFILE'] if tax_profile is None else tax_profile}",
         f"FORWARD_TOKEN={current['FORWARD_TOKEN']}",
     ]
@@ -72,6 +75,7 @@ def read_settings(client_dir: str) -> dict:
     settings = {"REMINDER_TO": "", "PDF_PASSWORDS": "",
                 "OWN_IBAN": "", "OWN_NAME": "", "TAX_PROFILE": "",
                 "ACCOUNT_TYPE": "", "APP_LANG": "", "FORWARD_TOKEN": "",
+                "ACCOUNTANT_EMAIL": "",
                 **{k: "" for k in _SCHEDULE_KEYS}}
     env_file = os.path.join(client_path(client_dir), ".env")
     if os.path.exists(env_file):
