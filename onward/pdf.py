@@ -68,20 +68,28 @@ def build_itinerary(order, passengers: list[dict], segments: list[dict],
 
     pdf.set_font("helvetica", "B", 12)
     pdf.cell(0, 7, "Flights", new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font("helvetica", "B", 9)
-    pdf.set_fill_color(232, 237, 245)
-    widths = (28, 40, 56, 56)
-    for w, head in zip(widths, ("Flight", "Route", "Departure", "Arrival")):
-        pdf.cell(w, 7, head, fill=True)
-    pdf.ln()
-    pdf.set_font("helvetica", "", 9)
     for s in segments:
-        pdf.cell(widths[0], 7, _latin(s["flight"]))
-        pdf.cell(widths[1], 7, f"{s['origin']} -> {s['destination']}")
-        pdf.cell(widths[2], 7, _fmt_time(s["departing_at"]))
-        pdf.cell(widths[3], 7, _fmt_time(s["arriving_at"]))
-        pdf.ln()
-    pdf.ln(4)
+        pdf.set_fill_color(232, 237, 245)
+        pdf.set_font("helvetica", "B", 10)
+        header = f"  {s['flight']}  ·  {s['airline']}"
+        if s.get("cabin"):
+            header += f"  ·  {s['cabin']}"
+        pdf.cell(0, 7, _latin(header), fill=True, new_x="LMARGIN", new_y="NEXT")
+        pdf.set_font("helvetica", "", 10)
+        origin = f"{s['origin']} {s.get('origin_name', '')}".strip()
+        dest = f"{s['destination']} {s.get('destination_name', '')}".strip()
+        pdf.cell(0, 6, _latin(f"  {origin}  ->  {dest}"),
+                 new_x="LMARGIN", new_y="NEXT")
+        pdf.set_font("helvetica", "", 9)
+        pdf.set_text_color(*MUTED)
+        line = (f"  Departure {_fmt_time(s['departing_at'])}"
+                f"    Arrival {_fmt_time(s['arriving_at'])}")
+        if s.get("duration"):
+            line += f"    Duration {s['duration']}"
+        pdf.cell(0, 6, _latin(line), new_x="LMARGIN", new_y="NEXT")
+        pdf.set_text_color(*INK)
+        pdf.ln(2)
+    pdf.ln(2)
 
     pdf.set_font("helvetica", "B", 11)
     pdf.cell(0, 6, f"Valid until {_fmt_time(order['hold_expires_at'] or '')}",

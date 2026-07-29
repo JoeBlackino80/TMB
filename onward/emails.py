@@ -23,8 +23,11 @@ def itinerary(order: sqlite3.Row, passengers: list[dict], segments: list[dict],
     pax_lines = [f"  {p['title'].capitalize()} {p['given_name']} {p['family_name']}"
                  for p in passengers]
     seg_lines = [
-        f"  {s['flight']}  {s['origin']} → {s['destination']}"
+        f"  {s['flight']} ({s['airline']}{', ' + s['cabin'] if s.get('cabin') else ''})"
+        f"  {s['origin']} {s.get('origin_name', '')} → "
+        f"{s['destination']} {s.get('destination_name', '')}"
         f"  dep {_fmt_time(s['departing_at'])}  arr {_fmt_time(s['arriving_at'])}"
+        + (f"  ({s['duration']})" if s.get("duration") else "")
         for s in segments
     ]
     intro = ("Your reservation has been renewed with a fresh booking —"
@@ -54,10 +57,15 @@ def itinerary(order: sqlite3.Row, passengers: list[dict], segments: list[dict],
     pax_html = "".join(f"<li>{p['title'].capitalize()} {p['given_name']}"
                        f" {p['family_name']}</li>" for p in passengers)
     rows = "".join(
-        f"<tr><td style='padding:6px 12px'><b>{s['flight']}</b></td>"
-        f"<td style='padding:6px 12px'>{s['origin']} → {s['destination']}</td>"
+        f"<tr><td style='padding:6px 12px'><b>{s['flight']}</b><br>"
+        f"<span style='font-size:12px;color:#667'>{s['airline']}"
+        f"{' · ' + s['cabin'] if s.get('cabin') else ''}</span></td>"
+        f"<td style='padding:6px 12px'>{s['origin']} → {s['destination']}<br>"
+        f"<span style='font-size:12px;color:#667'>{s.get('origin_name', '')} →"
+        f" {s.get('destination_name', '')}</span></td>"
         f"<td style='padding:6px 12px'>{_fmt_time(s['departing_at'])}</td>"
-        f"<td style='padding:6px 12px'>{_fmt_time(s['arriving_at'])}</td></tr>"
+        f"<td style='padding:6px 12px'>{_fmt_time(s['arriving_at'])}"
+        f"{'<br><span style=&quot;font-size:12px;color:#667&quot;>' + s['duration'] + '</span>' if s.get('duration') else ''}</td></tr>"
         for s in segments
     )
     renew_html = ("" if order["plan"] == "basic" else

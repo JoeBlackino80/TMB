@@ -12,6 +12,7 @@ ideálne na vývoj bez rizika skutočných rezervácií.
 
 import json
 import os
+import re
 import urllib.error
 import urllib.request
 
@@ -47,17 +48,17 @@ def _request(method: str, path: str, payload: dict | None = None) -> dict:
         raise DuffelError(f"Duffel nedostupný: {e.reason}") from e
 
 
-def search_offers(origin: str, destination: str, departure_date: str,
-                  return_date: str = "", passengers: int = 1,
+def search_offers(slices: list[dict], passengers: int = 1,
                   cabin_class: str = "economy") -> list[dict]:
-    """Vráti ponuky zoradené od najlacnejšej; s `return_date` spiatočný let."""
-    slices = [{"origin": origin.upper(), "destination": destination.upper(),
-               "departure_date": departure_date}]
-    if return_date:
-        slices.append({"origin": destination.upper(), "destination": origin.upper(),
-                       "departure_date": return_date})
+    """Vráti ponuky zoradené od najlacnejšej.
+
+    `slices`: [{"origin": "VIE", "destination": "BKK", "date": "2026-08-01"}, ...]
+    — jeden slice = jednosmerný let, dva = spiatočný, viac = multi-city.
+    """
     result = _request("POST", "/air/offer_requests", {
-        "slices": slices,
+        "slices": [{"origin": s["origin"].upper(),
+                    "destination": s["destination"].upper(),
+                    "departure_date": s["date"]} for s in slices],
         "passengers": [{"type": "adult"}] * passengers,
         "cabin_class": cabin_class,
     })
@@ -106,18 +107,34 @@ def cancel_order(order_id: str) -> dict:
                     f"/air/order_cancellations/{cancellation['id']}/actions/confirm")["data"]
 
 
+def _fmt_duration(iso: str) -> str:
+    """ISO-8601 trvanie (PT11H20M) → \"11h 20m\"."""
+    m = re.match(r"^PT(?:(\d+)H)?(?:(\d+)M)?", iso or "")
+    if not m or not (m.group(1) or m.group(2)):
+        return ""
+    hours, minutes = m.group(1), m.group(2)
+    return " ".join(p for p in (f"{hours}h" if hours else "",
+                                f"{minutes}m" if minutes else "") if p)
+
+
 def segments(order_or_offer: dict) -> list[dict]:
-    """Zjednodušený rozpis letov z objednávky alebo ponuky."""
+    """Rozpis letov z objednávky alebo ponuky (celé názvy letísk, trieda...)."""
     out = []
     for slice_ in order_or_offer.get("slices", []):
         for seg in slice_.get("segments", []):
             carrier = seg.get("marketing_carrier") or {}
+            pax = (seg.get("passengers") or [{}])[0]
             out.append({
                 "flight": f"{carrier.get('iata_code', '')}{seg.get('marketing_carrier_flight_number', '')}",
                 "airline": carrier.get("name", ""),
                 "origin": (seg.get("origin") or {}).get("iata_code", ""),
+                "origin_name": (seg.get("origin") or {}).get("name", ""),
                 "destination": (seg.get("destination") or {}).get("iata_code", ""),
+                "destination_name": (seg.get("destination") or {}).get("name", ""),
                 "departing_at": seg.get("departing_at", ""),
                 "arriving_at": seg.get("arriving_at", ""),
+                "duration": _fmt_duration(seg.get("duration", "")),
+                "cabin": pax.get("cabin_class_marketing_name", "")
+                         or (pax.get("cabin_class") or "").replace("_", " ").title(),
             })
     return out

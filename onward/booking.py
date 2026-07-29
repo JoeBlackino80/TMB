@@ -26,9 +26,7 @@ def book(store: Orders, token: str, renewed: bool = False) -> bool:
         return False
     passengers = store.passengers(row)
     try:
-        offers = duffel.search_offers(row["origin"], row["destination"],
-                                      row["depart_date"], row["return_date"],
-                                      passengers=len(passengers))
+        offers = duffel.search_offers(store.slices(row), passengers=len(passengers))
         offer = duffel.pick_hold_offer(offers)
         if not offer:
             store.set_status(token, "failed",

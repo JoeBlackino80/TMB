@@ -92,23 +92,45 @@ def _valid_date(value: str, *, future: bool) -> bool:
 
 @app.post("/order")
 def order(request: Request,
+          trip_type: str = Form("oneway"),
           origin: str = Form(...), destination: str = Form(...),
           depart_date: str = Form(...), return_date: str = Form(""),
+          origin2: str = Form(""), destination2: str = Form(""), date2: str = Form(""),
+          origin3: str = Form(""), destination3: str = Form(""), date3: str = Form(""),
           plan: str = Form("basic"),
           email: str = Form(...), phone: str = Form(...),
           title: list[str] = Form(...), given_name: list[str] = Form(...),
           family_name: list[str] = Form(...), born_on: list[str] = Form(...),
           gender: list[str] = Form(...)):
     problems = []
-    if not _IATA.match(origin or ""):
-        problems.append("Origin must be a 3-letter airport code (e.g. VIE).")
-    if not _IATA.match(destination or ""):
-        problems.append("Destination must be a 3-letter airport code (e.g. BKK).")
-    if not _valid_date(depart_date, future=True):
-        problems.append("Departure date must be today or later.")
-    if return_date and (not _valid_date(return_date, future=True)
-                        or return_date < depart_date):
-        problems.append("Return date must be on or after the departure date.")
+    slices = [{"origin": origin, "destination": destination, "date": depart_date}]
+    if trip_type == "return":
+        if not return_date:
+            problems.append("Return date is required for a round trip.")
+        else:
+            slices.append({"origin": destination, "destination": origin,
+                           "date": return_date})
+    elif trip_type == "multi":
+        if not (origin2 and destination2 and date2):
+            problems.append("Multi-city needs at least a complete second flight.")
+        else:
+            slices.append({"origin": origin2, "destination": destination2, "date": date2})
+        if origin3 or destination3 or date3:
+            if origin3 and destination3 and date3:
+                slices.append({"origin": origin3, "destination": destination3,
+                               "date": date3})
+            else:
+                problems.append("Third flight is incomplete — fill all its fields"
+                                " or leave them empty.")
+    prev_date = ""
+    for i, s in enumerate(slices, start=1):
+        if not (_IATA.match(s["origin"] or "") and _IATA.match(s["destination"] or "")):
+            problems.append(f"Flight {i}: airports must be 3-letter codes (e.g. VIE).")
+        if not _valid_date(s["date"], future=True):
+            problems.append(f"Flight {i}: date must be today or later.")
+        elif prev_date and s["date"] < prev_date:
+            problems.append(f"Flight {i}: date must not be before the previous flight.")
+        prev_date = s["date"]
     if "@" not in email:
         problems.append("Invalid e-mail address.")
     if plan not in PLANS:
@@ -140,10 +162,9 @@ def order(request: Request,
 
     store = Orders()
     try:
-        token = store.create(email=email, phone=phone, origin=origin,
-                             destination=destination, depart_date=depart_date,
-                             return_date=return_date, passengers=passengers,
-                             plan=plan, valid_until=valid_until)
+        token = store.create(email=email, phone=phone, slices=slices,
+                             passengers=passengers, plan=plan,
+                             valid_until=valid_until)
         link = _stripe_link(plan)
         if link:
             return RedirectResponse(

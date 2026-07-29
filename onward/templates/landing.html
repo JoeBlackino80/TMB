@@ -24,6 +24,16 @@ minutes — with a printable <b>PDF itinerary</b>. Perfect for
         processing</small></label>
     </div>
 
+    <label style="margin-top:16px">Trip type</label>
+    <div class="plans" style="grid-template-columns:1fr 1fr 1fr">
+      <label class="plan"><input type="radio" name="trip_type" value="oneway" checked>
+        <b>One way</b><small>Single flight</small></label>
+      <label class="plan"><input type="radio" name="trip_type" value="return">
+        <b>Round trip</b><small>There and back</small></label>
+      <label class="plan"><input type="radio" name="trip_type" value="multi">
+        <b>Multi-city</b><small>2–3 flights</small></label>
+    </div>
+
     <div class="row">
       <div><label>From (airport code)</label>
         <input name="origin" placeholder="VIE" maxlength="3" required></div>
@@ -33,9 +43,28 @@ minutes — with a printable <b>PDF itinerary</b>. Perfect for
     <div class="row">
       <div><label>Departure date</label>
         <input type="date" name="depart_date" min="{{ min_date }}" required></div>
-      <div><label>Return date (optional — leave empty for one-way)</label>
+      <div id="returnbox" hidden><label>Return date</label>
         <input type="date" name="return_date" min="{{ min_date }}"></div>
     </div>
+
+    <fieldset class="pax" id="leg2" hidden disabled>
+      <h3>Flight 2</h3>
+      <div class="row3">
+        <div><label>From</label><input name="origin2" maxlength="3" required></div>
+        <div><label>To</label><input name="destination2" maxlength="3" required></div>
+        <div><label>Date</label>
+          <input type="date" name="date2" min="{{ min_date }}" required></div>
+      </div>
+    </fieldset>
+    <fieldset class="pax" id="leg3" hidden disabled>
+      <h3>Flight 3 (optional)</h3>
+      <div class="row3">
+        <div><label>From</label><input name="origin3" maxlength="3"></div>
+        <div><label>To</label><input name="destination3" maxlength="3"></div>
+        <div><label>Date</label>
+          <input type="date" name="date3" min="{{ min_date }}"></div>
+      </div>
+    </fieldset>
     <div class="row">
       <div><label>E-mail (itinerary is sent here)</label>
         <input type="email" name="email" required></div>
@@ -104,12 +133,27 @@ minutes — with a printable <b>PDF itinerary</b>. Perfect for
 </div>
 
 <script>
-  const boxes = [...document.querySelectorAll('.pax')];
+  const paxBoxes = [...document.querySelectorAll('fieldset.pax')]
+    .filter(b => b.id.startsWith('pax'));
   const btn = document.getElementById('addpax');
   btn.addEventListener('click', () => {
-    const next = boxes.find(b => b.hidden);
+    const next = paxBoxes.find(b => b.hidden);
     if (next) { next.hidden = false; next.disabled = false; }
-    if (!boxes.some(b => b.hidden)) btn.hidden = true;
+    if (!paxBoxes.some(b => b.hidden)) btn.hidden = true;
   });
+
+  const returnBox = document.getElementById('returnbox');
+  const leg2 = document.getElementById('leg2');
+  const leg3 = document.getElementById('leg3');
+  document.querySelectorAll('input[name=trip_type]').forEach(r =>
+    r.addEventListener('change', () => {
+      const t = document.querySelector('input[name=trip_type]:checked').value;
+      returnBox.hidden = (t !== 'return');
+      returnBox.querySelector('input').required = (t === 'return');
+      for (const leg of [leg2, leg3]) {
+        leg.hidden = (t !== 'multi');
+        leg.disabled = (t !== 'multi');
+      }
+    }));
 </script>
 {% endblock %}

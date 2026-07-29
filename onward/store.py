@@ -32,7 +32,8 @@ CREATE TABLE IF NOT EXISTS orders (
     hold_expires_at TEXT,
     segments_json TEXT,
     renew_count INTEGER NOT NULL DEFAULT 0,
-    error TEXT
+    error TEXT,
+    slices_json TEXT NOT NULL DEFAULT ''
 );
 """
 
@@ -47,24 +48,47 @@ class Orders:
         self.conn = sqlite3.connect(path or os.environ.get("ONWARD_DB_PATH", "onward.db"))
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
+        try:  # migrácia starších databáz (pred multi-city)
+            self.conn.execute("ALTER TABLE orders ADD COLUMN slices_json TEXT NOT NULL DEFAULT ''")
+            self.conn.commit()
+        except sqlite3.OperationalError:
+            pass
 
     def close(self):
         self.conn.close()
 
-    def create(self, *, email: str, phone: str, origin: str, destination: str,
-               depart_date: str, return_date: str, passengers: list[dict],
-               plan: str, valid_until: str) -> str:
-        """`passengers`: [{title, given_name, family_name, born_on, gender}, ...]"""
+    def create(self, *, email: str, phone: str, slices: list[dict],
+               passengers: list[dict], plan: str, valid_until: str) -> str:
+        """`slices`: [{origin, destination, date}, ...] (1 = one-way,
+        2 = spiatočný/multi, 3+ = multi-city);
+        `passengers`: [{title, given_name, family_name, born_on, gender}, ...]"""
         token = secrets.token_urlsafe(16)
+        first = slices[0]
+        return_date = slices[1]["date"] if (
+            len(slices) == 2
+            and slices[1]["origin"].upper() == first["destination"].upper()
+            and slices[1]["destination"].upper() == first["origin"].upper()) else ""
         self.conn.execute(
             "INSERT INTO orders (token, created_at, plan, valid_until, email, phone,"
-            " origin, destination, depart_date, return_date, passengers_json)"
-            " VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            " origin, destination, depart_date, return_date, passengers_json, slices_json)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
             (token, utcnow(), plan, valid_until, email.strip(), phone.strip(),
-             origin.upper(), destination.upper(), depart_date, return_date,
-             json.dumps(passengers, ensure_ascii=False)))
+             first["origin"].upper(), first["destination"].upper(), first["date"],
+             return_date, json.dumps(passengers, ensure_ascii=False),
+             json.dumps(slices, ensure_ascii=False)))
         self.conn.commit()
         return token
+
+    def slices(self, row: sqlite3.Row) -> list[dict]:
+        if row["slices_json"]:
+            return json.loads(row["slices_json"])
+        # staré objednávky spred multi-city
+        out = [{"origin": row["origin"], "destination": row["destination"],
+                "date": row["depart_date"]}]
+        if row["return_date"]:
+            out.append({"origin": row["destination"], "destination": row["origin"],
+                        "date": row["return_date"]})
+        return out
 
     def by_token(self, token: str) -> sqlite3.Row | None:
         return self.conn.execute("SELECT * FROM orders WHERE token=?", (token,)).fetchone()

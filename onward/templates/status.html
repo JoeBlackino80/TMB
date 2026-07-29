@@ -11,10 +11,13 @@
     <table>
       <tr><th>Flight</th><th>Route</th><th>Departure</th><th>Arrival</th></tr>
       {% for s in segments %}
-      <tr><td><b>{{ s['flight'] }}</b></td>
-          <td>{{ s['origin'] }} → {{ s['destination'] }}</td>
+      <tr><td><b>{{ s['flight'] }}</b><br>
+            <span class="note">{{ s['airline'] }}{% if s.get('cabin') %} · {{ s['cabin'] }}{% endif %}</span></td>
+          <td>{{ s['origin'] }} → {{ s['destination'] }}<br>
+            <span class="note">{{ s.get('origin_name', '') }} → {{ s.get('destination_name', '') }}</span></td>
           <td>{{ s['departing_at'].replace('T',' ')[:16] }}</td>
-          <td>{{ s['arriving_at'].replace('T',' ')[:16] }}</td></tr>
+          <td>{{ s['arriving_at'].replace('T',' ')[:16] }}
+            {% if s.get('duration') %}<br><span class="note">{{ s['duration'] }}</span>{% endif %}</td></tr>
       {% endfor %}
     </table>
     <p><b>Valid until {{ order['hold_expires_at'].replace('T',' ').replace('Z',' UTC') }}.</b>
