@@ -85,9 +85,9 @@ STRINGS = {
         "st_autorenew": "Auto-renew is on: whenever the airline releases this"
                         " hold, we create a fresh reservation and e-mail you"
                         " the new PNR — until",
-        "st_renewed": "Renewed", "st_renewed_sofar": "× so far.",
+        "st_renewed": "Renewed", "st_renewed_sofar": "x so far.",
         "st_download": "Download PDF itinerary",
-        "st_working": "Working on it…",
+        "st_working": "Working on it...",
         "st_working_text": "Your reservation is being created. This page"
                            " refreshes automatically; the itinerary will also"
                            " arrive by e-mail.",
@@ -98,7 +98,7 @@ STRINGS = {
         "st_failed": "We could not complete this reservation",
         "st_failed_text": "If you already paid, reply to your confirmation"
                           " e-mail and we will make it right or refund you.",
-        "back": "← Back",
+        "back": "Back",
         "faq_title": "Frequently asked questions",
         "faq_html": """
 <div class="card"><h2>Is the reservation real?</h2><p>Yes. We create an actual
@@ -208,9 +208,9 @@ a verifiable reservation, you get a full refund — no questions asked. See
         "st_autorenew": "Renovación automática activada: cada vez que la"
                         " aerolínea libere esta reserva, crearemos una nueva y"
                         " te enviaremos el nuevo PNR — hasta el",
-        "st_renewed": "Renovada", "st_renewed_sofar": "× hasta ahora.",
+        "st_renewed": "Renovada", "st_renewed_sofar": "x hasta ahora.",
         "st_download": "Descargar itinerario PDF",
-        "st_working": "Procesando…",
+        "st_working": "Procesando...",
         "st_working_text": "Tu reserva se está creando. Esta página se"
                            " actualiza sola; el itinerario también llegará por"
                            " e-mail.",
@@ -221,7 +221,7 @@ a verifiable reservation, you get a full refund — no questions asked. See
         "st_failed": "No pudimos completar esta reserva",
         "st_failed_text": "Si ya pagaste, responde al e-mail de confirmación y"
                           " lo solucionaremos o te devolveremos el dinero.",
-        "back": "← Volver",
+        "back": "Volver",
         "faq_title": "Preguntas frecuentes",
         "faq_html": """
 <div class="card"><h2>¿La reserva es real?</h2><p>Sí. Creamos una reserva real
