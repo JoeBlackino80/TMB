@@ -47,6 +47,16 @@ APP = {
     "d_renewals_note": "Pojistky, technické kontroly, domény a předplatná, "
                        "která VORU našlo ve vaší poště. Vyřízené odškrtněte, "
                        "ať vám je nepřipomínáme.",
+    "d_recv_title": "Pohledávky — faktury, které vám mají zaplatit",
+    "d_recv_customer": "Odběratel",
+    "d_recv_paid_btn": "Zaplaceno", "d_recv_ignore_btn": "Odstranit",
+    "d_recv_ignore_confirm": "Opravdu odstranit tuto pohledávku?",
+    "d_recv_note": "Faktury, které jste vystavili a čekáte na úhradu. "
+                   "Po splatnosti je zvýrazníme a připomeneme v ranním přehledu.",
+    "d_recv_add": "Přidat pohledávku",
+    "d_recv_amount": "Částka (€)", "d_recv_save": "Uložit",
+    "d_recv_hint": "Ručně pro faktury, které nepřijdou e-mailem. Vydané faktury "
+                   "z pošty (např. z účetního softwaru) zachytí VORU i samo.",
     "d_tax_title": "Daňové termíny (nejbližších 30 dní)",
     "d_bundle_title": "Podklady pro účetnictví",
     "d_bundle_note": "ZIP s fakturami (PDF) a přehledem plateb za měsíc — "

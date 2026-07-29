@@ -48,6 +48,17 @@ APP = {
     "d_renewals_note": "Insurance policies, vehicle inspections, domains and "
                        "subscriptions VORU found in your mail. Tick off "
                        "what's handled so we stop reminding you.",
+    "d_recv_title": "Receivables — invoices others owe you",
+    "d_recv_customer": "Customer",
+    "d_recv_paid_btn": "Paid", "d_recv_ignore_btn": "Remove",
+    "d_recv_ignore_confirm": "Really remove this receivable?",
+    "d_recv_note": "Invoices you issued and are waiting to be paid. Overdue ones "
+                   "are highlighted and reminded in the morning overview.",
+    "d_recv_add": "Add receivable",
+    "d_recv_amount": "Amount (€)", "d_recv_save": "Save",
+    "d_recv_hint": "Manually for invoices that don't arrive by e-mail. Issued "
+                   "invoices in your mail (e.g. from accounting software) are "
+                   "detected automatically too.",
     "d_tax_title": "Tax deadlines (next 30 days)",
     "d_bundle_title": "Documents for your accountant",
     "d_bundle_note": "A ZIP with invoices (PDF) and a monthly payment "

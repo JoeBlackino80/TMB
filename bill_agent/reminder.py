@@ -130,12 +130,13 @@ def build_reminder(
     groups = store.payments_due(days_ahead)
     tasks = store.active_tasks()
     total_payments = sum(len(v) for v in groups.values())
+    overdue_recv = store.overdue_receivables()
     tax_deadlines = []
     if cfg is not None and getattr(cfg, "tax_profile", None):
         from . import taxcal
 
         tax_deadlines = taxcal.upcoming(cfg.tax_profile, days_ahead)
-    if total_payments == 0 and not tasks and not tax_deadlines:
+    if total_payments == 0 and not tasks and not tax_deadlines and not overdue_recv:
         return None
 
     lang = _lang(cfg)
@@ -266,6 +267,26 @@ def build_reminder(
                 + (f" <span style='font-size:12px;color:{ly.FAINT}'>"
                    f"({escape(r['note'])})</span>" if r["note"] else ""),
                 last=(i == len(renewals) - 1)))
+
+    # pohľadávky po splatnosti — faktúry, ktoré klientovi majú zaplatiť
+    # (len upozornenie; VORU odberateľom nič neposiela)
+    if overdue_recv:
+        text_lines.append(f"\n{tr['recv_overdue']}")
+        html_parts.append(ly.section(tr["recv_overdue"], len(overdue_recv), "danger"))
+        for i, r in enumerate(overdue_recv):
+            amount = f"{r['amount']:.2f}".replace(".", ",")
+            cur = "€" if r["currency"] == "EUR" else r["currency"]
+            who = r["customer"] or tr["unknown_supplier_short"]
+            line = f"{r['due_date']}: {who} — {amount} {cur}" + (
+                f" ({tr['vs']} {r['variable_symbol']})" if r["variable_symbol"] else "")
+            text_lines.append(f"  {line}")
+            html_parts.append(ly.item_row(
+                f"<b style='color:{ly.RED}'>{escape(r['due_date'])}</b> — "
+                f"{escape(who)} &nbsp;<b>{escape(amount)}&nbsp;{escape(cur)}</b>"
+                + (f" <span style='font-size:12px;color:{ly.FAINT}'>"
+                   f"{tr['vs']} {escape(r['variable_symbol'])}</span>"
+                   if r["variable_symbol"] else ""),
+                last=(i == len(overdue_recv) - 1)))
 
     # daňové termíny podľa profilu klienta (daňový kalendár je slovenský,
     # popisky termínov ostávajú v slovenčine)

@@ -53,6 +53,17 @@ APP = {
                        "die VORU in Ihrer Post gefunden hat. Haken Sie "
                        "Erledigtes ab, damit wir Sie nicht mehr daran "
                        "erinnern.",
+    "d_recv_title": "Forderungen — Rechnungen, die man Ihnen schuldet",
+    "d_recv_customer": "Kunde",
+    "d_recv_paid_btn": "Bezahlt", "d_recv_ignore_btn": "Entfernen",
+    "d_recv_ignore_confirm": "Diese Forderung wirklich entfernen?",
+    "d_recv_note": "Rechnungen, die Sie gestellt haben und auf Zahlung warten. "
+                   "Überfällige heben wir hervor und erinnern im Morgenüberblick.",
+    "d_recv_add": "Forderung hinzufügen",
+    "d_recv_amount": "Betrag (€)", "d_recv_save": "Speichern",
+    "d_recv_hint": "Manuell für Rechnungen, die nicht per E-Mail kommen. "
+                   "Ausgestellte Rechnungen aus der Post (z. B. aus der "
+                   "Buchhaltungssoftware) erkennt VORU auch selbst.",
     "d_tax_title": "Steuertermine (nächste 30 Tage)",
     "d_bundle_title": "Unterlagen für die Buchhaltung",
     "d_bundle_note": "ZIP mit Rechnungen (PDF) und der Zahlungsübersicht des "

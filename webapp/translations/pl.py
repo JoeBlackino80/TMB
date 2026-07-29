@@ -50,6 +50,16 @@ APP = {
     "d_renewals_note": "Polisy, przeglądy techniczne, domeny i subskrypcje, "
                        "które VORU znalazło w Twojej poczcie. Załatwione "
                        "odhacz, żebyśmy Ci o nich nie przypominali.",
+    "d_recv_title": "Należności — faktury, które mają Ci zapłacić",
+    "d_recv_customer": "Odbiorca",
+    "d_recv_paid_btn": "Zapłacone", "d_recv_ignore_btn": "Usuń",
+    "d_recv_ignore_confirm": "Na pewno usunąć tę należność?",
+    "d_recv_note": "Faktury, które wystawiłeś i czekasz na zapłatę. Po terminie "
+                   "wyróżnimy je i przypomnimy w porannym przeglądzie.",
+    "d_recv_add": "Dodaj należność",
+    "d_recv_amount": "Kwota (€)", "d_recv_save": "Zapisz",
+    "d_recv_hint": "Ręcznie dla faktur, które nie przyjdą e-mailem. Wystawione "
+                   "faktury z poczty (np. z programu księgowego) VORU wychwyci samo.",
     "d_tax_title": "Terminy podatkowe (najbliższe 30 dni)",
     "d_bundle_title": "Dokumenty dla księgowości",
     "d_bundle_note": "ZIP z fakturami (PDF) i zestawieniem płatności za "

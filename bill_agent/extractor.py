@@ -15,7 +15,8 @@ _SUMMARY_LANGS = {"sk": "slovenčine", "cs": "češtine", "pl": "poľštine",
                   "de": "nemčine", "hu": "maďarčine"}
 
 
-def system_prompt(account_type: str = "business", lang: str = "sk") -> str:
+def system_prompt(account_type: str = "business", lang: str = "sk",
+                  own_name: str = "", own_iban: str = "") -> str:
     if account_type == "personal":
         persona = ("Si asistent slovenskej domácnosti (súkromnej osoby). Typická "
                    "pošta: vyúčtovania energií a telekomunikácií, nájom, poistky, "
@@ -26,6 +27,32 @@ def system_prompt(account_type: str = "business", lang: str = "sk") -> str:
                    "splátky, školy) — spracúvaj firemné aj súkromné položky.")
     else:
         persona = "Si asistent slovenského podnikateľa."
+
+    # pohľadávky (vydané faktúry) rieši len firma/podnikateľ, nie domácnosť
+    receivables = ""
+    if account_type != "personal":
+        identity = ""
+        if own_name or own_iban:
+            parts = []
+            if own_name:
+                parts.append(f"názov „{own_name}“")
+            if own_iban:
+                parts.append(f"IBAN {own_iban}")
+            identity = (" Firma používateľa je " + " / ".join(parts)
+                        + " — ak je dodávateľom/vystaviteľom faktúry práve táto "
+                        "firma (jej názov alebo IBAN), ide o VYDANÚ faktúru "
+                        "(pohľadávku), nie o platbu na úhradu.")
+        receivables = ("""
+
+6. POHĽADÁVKY (receivables): faktúry, ktoré používateľ SÁM VYSTAVIL svojmu
+   odberateľovi a čaká na ich úhradu (napr. kópia vydanej faktúry z účtovného
+   softvéru, potvrdenie o vystavení). Extrahuj: odberateľ (kto má zaplatiť),
+   suma, mena, variabilný symbol, dátum vystavenia, dátum splatnosti, krátka
+   poznámka (číslo faktúry).""" + identity + """
+   - Sem patria LEN faktúry vystavené používateľom. Bežné prijaté faktúry na
+     úhradu patria do PLATIEB (bod 1). Ak si nie si istý, či faktúru používateľ
+     vystavil alebo prijal, NEuvádzaj ju medzi pohľadávkami.""")
+
     return persona + """ Analyzuješ prijaté e-maily
 (vrátane PDF príloh — faktúry, upomienky, výzvy na platbu, zálohové faktúry) a
 extrahuješ z nich:
@@ -59,7 +86,7 @@ extrahuješ z nich:
 
 5. SÚHRN (summary + category): 1–2 vety po slovensky, o čom e-mail je a či
    vyžaduje pozornosť. Kategória: faktura | banka | objednavka | uloha |
-   marketing | ine.
+   marketing | ine.""" + receivables + """
 
 Ak e-mail neobsahuje nič relevantné (newsletter, spam, bežná konverzácia),
 vráť prázdne zoznamy (summary a category vyplň vždy).""" + (
@@ -142,6 +169,26 @@ OUTPUT_SCHEMA = {
                     "additionalProperties": False,
                 },
             },
+            "receivables": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "customer": {"type": "string", "description": "Odberateľ — kto má používateľovi zaplatiť"},
+                        "amount": {"type": "number"},
+                        "currency": {"type": "string", "description": "ISO kód meny, napr. EUR"},
+                        "variable_symbol": {"type": "string"},
+                        "issued_on": {"type": "string", "description": "YYYY-MM-DD alebo prázdny reťazec"},
+                        "due_date": {"type": "string", "description": "YYYY-MM-DD alebo prázdny reťazec"},
+                        "note": {"type": "string", "description": "Krátky popis, napr. číslo faktúry"},
+                    },
+                    "required": [
+                        "customer", "amount", "currency", "variable_symbol",
+                        "issued_on", "due_date", "note",
+                    ],
+                    "additionalProperties": False,
+                },
+            },
             "summary": {"type": "string", "description": "1-2 vety po slovensky"},
             "category": {
                 "type": "string",
@@ -149,7 +196,7 @@ OUTPUT_SCHEMA = {
             },
         },
         "required": ["payments", "tasks", "paid_transactions", "expirations",
-                     "summary", "category"],
+                     "receivables", "summary", "category"],
         "additionalProperties": False,
     },
 }
@@ -196,11 +243,23 @@ class ExtractedExpiration:
 
 
 @dataclass
+class ExtractedReceivable:
+    customer: str
+    amount: float
+    currency: str = "EUR"
+    variable_symbol: str = ""
+    issued_on: str = ""
+    due_date: str = ""
+    note: str = ""
+
+
+@dataclass
 class Extraction:
     payments: list[ExtractedPayment] = field(default_factory=list)
     tasks: list[ExtractedTask] = field(default_factory=list)
     paid_transactions: list[ExtractedPaid] = field(default_factory=list)
     expirations: list[ExtractedExpiration] = field(default_factory=list)
+    receivables: list[ExtractedReceivable] = field(default_factory=list)
     summary: str = ""
     category: str = "ine"
     # prílohy, ktoré sa nepodarilo odomknúť žiadnym heslom z PDF_PASSWORDS
@@ -316,7 +375,9 @@ def extract(cfg: Config, mail: Email, client: Optional[anthropic.Anthropic] = No
             model=cfg.claude_model,
             max_tokens=16000,
             system=system_prompt(getattr(cfg, "account_type", "business"),
-                                 getattr(cfg, "lang", "sk")),
+                                 getattr(cfg, "lang", "sk"),
+                                 getattr(cfg, "own_name", ""),
+                                 getattr(cfg, "own_iban", "")),
             output_config={"format": OUTPUT_SCHEMA},
             messages=[{"role": "user", "content": content}],
         )
@@ -396,11 +457,30 @@ def parse_extraction(data: dict) -> Extraction:
             expires_on=e.get("expires_on", "").strip(),
             note=e.get("note", "").strip(),
         ))
+    receivables = []
+    for r in data.get("receivables", []):
+        try:
+            amount = float(r.get("amount", 0))
+        except (TypeError, ValueError):
+            continue
+        if amount <= 0:
+            continue
+        if not (r.get("customer", "").strip() or r.get("variable_symbol", "").strip()):
+            continue
+        receivables.append(ExtractedReceivable(
+            customer=r.get("customer", "").strip(),
+            amount=round(amount, 2),
+            currency=(r.get("currency") or "EUR").strip().upper(),
+            variable_symbol=r.get("variable_symbol", "").strip(),
+            issued_on=r.get("issued_on", "").strip(),
+            due_date=r.get("due_date", "").strip(),
+            note=r.get("note", "").strip(),
+        ))
     category = data.get("category", "ine")
     if category not in CATEGORIES:
         category = "ine"
     return Extraction(
         payments=payments, tasks=tasks, paid_transactions=paid,
-        expirations=expirations,
+        expirations=expirations, receivables=receivables,
         summary=data.get("summary", "").strip(), category=category,
     )

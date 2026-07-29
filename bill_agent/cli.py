@@ -108,6 +108,17 @@ def _handle_new_mail(cfg: Config, store: Store, mail, account_name: str,
             from .store import RENEWAL_LABELS
             print(f"  ⏳ [{rid}] {RENEWAL_LABELS.get(e.kind, e.kind)}: "
                   f"{e.subject or '—'} končí {e.expires_on or '—'}")
+    for r in result.receivables:
+        rid = store.add_receivable(
+            customer=r.customer, amount=r.amount, currency=r.currency,
+            variable_symbol=r.variable_symbol, issued_on=r.issued_on or None,
+            due_date=r.due_date or None, note=r.note,
+            source_message_id=mail.message_id, source_account=account_name,
+        )
+        if rid:
+            counters["receivables"] = counters.get("receivables", 0) + 1
+            print(f"  📥 [{rid}] pohľadávka: {r.customer or '—'} {r.amount:.2f} "
+                  f"{r.currency}, splatnosť {r.due_date or '—'}")
     for t in result.tasks:
         tid = store.add_task(
             description=t.description, due_date=t.due_date or None,
@@ -169,7 +180,7 @@ def cmd_fetch(cfg: Config, store: Store, args: argparse.Namespace) -> None:
                      [a.user.lower() for a in accounts] + [cfg.reminder_to.lower()]
                      if addr]
 
-    counters = {"payments": 0, "tasks": 0}
+    counters = {"payments": 0, "tasks": 0, "receivables": 0}
     _process_intake(cfg, store, own_addresses, counters)
     for account in accounts:
         try:
@@ -181,7 +192,9 @@ def cmd_fetch(cfg: Config, store: Store, args: argparse.Namespace) -> None:
         print(f"📬 {account.name}: {len(mails)} e-mailov, nových na spracovanie: {len(new)}")
         for mail in new:
             _handle_new_mail(cfg, store, mail, account.name, own_addresses, counters)
-    print(f"Hotovo: {counters['payments']} platieb, {counters['tasks']} úloh.")
+    print(f"Hotovo: {counters['payments']} platieb, {counters['tasks']} úloh"
+          + (f", {counters['receivables']} pohľadávok." if counters.get("receivables")
+             else "."))
 
 
 def cmd_remind(cfg: Config, store: Store, args: argparse.Namespace) -> None:

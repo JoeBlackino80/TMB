@@ -782,7 +782,7 @@ def dashboard(request: Request, user=Depends(current_user)):
     if not user:
         return _landing(request, _landing_for_host(request))
     db_path = _client_db(user)
-    payments, tasks, missing, renewals = [], [], [], []
+    payments, tasks, missing, renewals, receivables = [], [], [], [], []
     stats = {"overdue": 0, "pending": 0, "total": 0.0}
     if os.path.exists(db_path):
         store = Store(db_path)
@@ -795,6 +795,11 @@ def dashboard(request: Request, user=Depends(current_user)):
             missing = store.missing_recurring()
             all_pending = store.pending_payments()
             renewals = store.upcoming_renewals(60)
+            today_iso = date.today().isoformat()
+            receivables = [
+                {**dict(r), "overdue": bool(r["due_date"] and r["due_date"] < today_iso)}
+                for r in store.pending_receivables()
+            ]
         finally:
             store.close()
         stats["overdue"] = len(groups["overdue"])
@@ -838,7 +843,7 @@ def dashboard(request: Request, user=Depends(current_user)):
                    months=months, tax_deadlines=tax_deadlines, has_demo=has_demo,
                    renewals=renewals, lang=lang,
                    renewal_labels=agent_i18n.t(lang)["renewal_labels"],
-                   account_type=account_type,
+                   account_type=account_type, receivables=receivables,
                    mailboxes=clientfs.list_mailboxes(user["client_dir"]))
 
 
@@ -882,6 +887,57 @@ def renewal_add(request: Request, user=Depends(current_user),
                           expires_on=expires_on)
     finally:
         store.close()
+    return _redirect("/")
+
+
+# -- pohľadávky (faktúry, ktoré vám majú zaplatiť) --------------------------------
+
+@app.post("/receivables/add")
+def receivable_add(request: Request, user=Depends(current_user),
+                   customer: str = Form(""), amount: str = Form(...),
+                   variable_symbol: str = Form(""), due_date: str = Form("")):
+    """Ručne pridaná pohľadávka — vydaná faktúra, ktorú čakáte uhradiť."""
+    if not user:
+        return _redirect("/login")
+    try:
+        amount_val = round(float(amount.replace(",", ".").replace(" ", "")), 2)
+    except ValueError:
+        return _redirect("/")
+    if amount_val <= 0:
+        return _redirect("/")
+    due = ""
+    if due_date:
+        try:
+            due = date.fromisoformat(due_date).isoformat()
+        except ValueError:
+            return _redirect("/")
+    if not (customer.strip() or variable_symbol.strip()):
+        return _redirect("/")
+    db = _client_db(user)
+    os.makedirs(os.path.dirname(db), exist_ok=True)
+    store = Store(db)
+    try:
+        store.add_receivable(customer=customer.strip()[:120], amount=amount_val,
+                             variable_symbol=variable_symbol.strip()[:20],
+                             due_date=due or None)
+    finally:
+        store.close()
+    return _redirect("/")
+
+
+@app.post("/receivables/set-status")
+def receivable_set_status(request: Request, user=Depends(current_user),
+                          receivable_id: int = Form(...), status: str = Form(...)):
+    if not user:
+        return _redirect("/login")
+    if status not in ("paid", "ignored"):
+        return _redirect("/")
+    if os.path.exists(_client_db(user)):
+        store = Store(_client_db(user))
+        try:
+            store.set_receivable_status(receivable_id, status)
+        finally:
+            store.close()
     return _redirect("/")
 
 

@@ -395,6 +395,17 @@ _SK_APP = {
     "d_renewals_note": "Poistky, STK, domény a predplatné, ktoré VORU našlo "
                        "vo vašej pošte. Vybavené odškrtnite, aby sme vám ich "
                        "nepripomínali.",
+    # pohľadávky (vydané faktúry)
+    "d_recv_title": "Pohľadávky — faktúry, ktoré vám majú zaplatiť",
+    "d_recv_customer": "Odberateľ",
+    "d_recv_paid_btn": "Zaplatené", "d_recv_ignore_btn": "Odstrániť",
+    "d_recv_ignore_confirm": "Naozaj odstrániť túto pohľadávku?",
+    "d_recv_note": "Faktúry, ktoré ste vystavili a čakáte na úhradu. "
+                   "Po splatnosti ich zvýrazníme a pripomenieme v rannom prehľade.",
+    "d_recv_add": "Pridať pohľadávku",
+    "d_recv_amount": "Suma (€)", "d_recv_save": "Uložiť",
+    "d_recv_hint": "Ručne pre faktúry, ktoré neprídu e-mailom. Vydané faktúry "
+                   "z pošty (napr. z účtovného softvéru) zachytí VORU aj samo.",
     "d_tax_title": "Daňové termíny (najbližších 30 dní)",
     "d_bundle_title": "Podklady pre účtovníctvo",
     "d_bundle_note": "ZIP s faktúrami (PDF) a prehľadom platieb za mesiac — "

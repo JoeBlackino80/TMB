@@ -61,6 +61,7 @@ _SK = {
     "task_due": "(do {d})",
     "task_hint": "Hotovo? Odpovedzte: <b>hotovo {id}</b>",
     "renewals": "Končí platnosť",
+    "recv_overdue": "Po splatnosti — dlžia vám",
     "tax": "Daňové termíny",
     "footer_commands": "Ovládanie odpoveďou na tento e-mail: <b>zaplatené 3</b> "
                        "(číslo platby), <b>zaplatené všetko</b>, <b>ignoruj 5</b>, "
@@ -148,6 +149,7 @@ _CS = {
     "task_due": "(do {d})",
     "task_hint": "Hotovo? Odpovězte: <b>hotovo {id}</b>",
     "renewals": "Končí platnost",
+    "recv_overdue": "Po splatnosti — dluží vám",
     "tax": "Daňové termíny",
     "footer_commands": "Ovládání odpovědí na tento e-mail: <b>zaplaceno 3</b> "
                        "(číslo platby), <b>zaplaceno vše</b>, <b>ignoruj 5</b>, "
@@ -235,6 +237,7 @@ _PL = {
     "task_due": "(do {d})",
     "task_hint": "Gotowe? Odpowiedz: <b>gotowe {id}</b>",
     "renewals": "Kończy się ważność",
+    "recv_overdue": "Po terminie — są Ci winni",
     "tax": "Terminy podatkowe",
     "footer_commands": "Możesz sterować VORU, odpowiadając na ten e-mail: <b>zapłacone 3</b> "
                        "(numer płatności), <b>zapłacone wszystko</b>, "
@@ -323,6 +326,7 @@ _DE = {
     "task_due": "(bis {d})",
     "task_hint": "erledigt? Antworten Sie: <b>erledigt {id}</b>",
     "renewals": "Läuft bald ab",
+    "recv_overdue": "Überfällig — man schuldet Ihnen",
     "tax": "Steuertermine",
     "footer_commands": "Steuerung per Antwort auf diese E-Mail: <b>bezahlt 3</b> "
                        "(Zahlungsnummer), <b>bezahlt alles</b>, <b>ignoriere 5</b>, "
@@ -409,6 +413,7 @@ _HU = {
     "task_due": "({d}-ig)",
     "task_hint": "kész? válaszoljon: <b>kész {id}</b>",
     "renewals": "Hamarosan lejár",
+    "recv_overdue": "Lejárt — tartoznak Önnek",
     "tax": "Adóhatáridők",
     "footer_commands": "Vezérlés az e-mailre adott válasszal: <b>fizetve 3</b> "
                        "(fizetés száma), <b>fizetve mind</b>, <b>ignoráld 5</b>, "
@@ -497,6 +502,7 @@ _EN = {
     "task_due": "(by {d})",
     "task_hint": "Done? Reply: <b>done {id}</b>",
     "renewals": "Expiring soon",
+    "recv_overdue": "Overdue — owed to you",
     "tax": "Tax deadlines",
     "footer_commands": "You can control VORU by replying to this email: "
                        "<b>paid 3</b> (payment number), <b>paid all</b>, "

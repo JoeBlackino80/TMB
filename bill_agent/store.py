@@ -60,6 +60,22 @@ CREATE TABLE IF NOT EXISTS renewals (
     created_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS receivables (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer TEXT NOT NULL DEFAULT '',   -- odberateľ (kto vám má zaplatiť)
+    amount REAL NOT NULL,
+    currency TEXT NOT NULL DEFAULT 'EUR',
+    variable_symbol TEXT NOT NULL DEFAULT '',
+    issued_on TEXT,                      -- dátum vystavenia YYYY-MM-DD alebo NULL
+    due_date TEXT,                       -- splatnosť YYYY-MM-DD alebo NULL
+    note TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'pending',  -- pending | paid | ignored
+    source_message_id TEXT NOT NULL DEFAULT '',
+    source_account TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL,
+    paid_at TEXT
+);
+
 CREATE TABLE IF NOT EXISTS email_log (
     message_id TEXT PRIMARY KEY,
     account TEXT NOT NULL DEFAULT '',
@@ -189,8 +205,9 @@ class Store:
         row = self.conn.execute(
             "SELECT 1 FROM payments WHERE source_message_id = ? "
             "UNION SELECT 1 FROM tasks WHERE source_message_id = ? "
-            "UNION SELECT 1 FROM renewals WHERE source_message_id = ? LIMIT 1",
-            (message_id, message_id, message_id),
+            "UNION SELECT 1 FROM renewals WHERE source_message_id = ? "
+            "UNION SELECT 1 FROM receivables WHERE source_message_id = ? LIMIT 1",
+            (message_id, message_id, message_id, message_id),
         ).fetchone()
         return row is not None
 
@@ -358,6 +375,59 @@ class Store:
     def set_renewal_status(self, renewal_id: int, status: str) -> bool:
         cur = self.conn.execute(
             "UPDATE renewals SET status = ? WHERE id = ?", (status, renewal_id))
+        self.conn.commit()
+        return cur.rowcount > 0
+
+    # -- pohľadávky (vydané faktúry — kto vám má zaplatiť) ----------------------
+
+    def add_receivable(self, *, customer: str, amount: float, currency: str = "EUR",
+                       variable_symbol: str = "", issued_on: Optional[str] = None,
+                       due_date: Optional[str] = None, note: str = "",
+                       source_message_id: str = "",
+                       source_account: str = "") -> Optional[int]:
+        """Uloží pohľadávku; duplicitu (rovnaký odberateľ+VS+suma, nezaplatené) preskočí."""
+        key = normalize_supplier(customer)
+        rows = self.conn.execute(
+            "SELECT id, customer FROM receivables WHERE status = 'pending' "
+            "AND variable_symbol = ? AND ABS(amount - ?) < 0.005",
+            (variable_symbol, amount),
+        ).fetchall()
+        for r in rows:
+            if variable_symbol or (key and normalize_supplier(r["customer"]) == key):
+                return None
+        cur = self.conn.execute(
+            "INSERT INTO receivables (customer, amount, currency, variable_symbol, "
+            "issued_on, due_date, note, source_message_id, source_account, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (customer, amount, currency, variable_symbol, issued_on, due_date, note,
+             source_message_id, source_account, datetime.now().isoformat(timespec="seconds")),
+        )
+        self.conn.commit()
+        return cur.lastrowid
+
+    def pending_receivables(self) -> list[sqlite3.Row]:
+        """Všetky neuhradené pohľadávky, po splatnosti najprv."""
+        return self.conn.execute(
+            "SELECT * FROM receivables WHERE status = 'pending' "
+            "ORDER BY COALESCE(due_date, '9999-12-31'), id"
+        ).fetchall()
+
+    def overdue_receivables(self, today: Optional[date] = None) -> list[sqlite3.Row]:
+        """Neuhradené pohľadávky, ktorým už uplynula splatnosť."""
+        ref = (today or date.today()).isoformat()
+        return self.conn.execute(
+            "SELECT * FROM receivables WHERE status = 'pending' "
+            "AND due_date IS NOT NULL AND due_date != '' AND due_date < ? "
+            "ORDER BY due_date, id",
+            (ref,),
+        ).fetchall()
+
+    def set_receivable_status(self, receivable_id: int, status: str) -> bool:
+        paid_at = (datetime.now().isoformat(timespec="seconds")
+                   if status == "paid" else None)
+        cur = self.conn.execute(
+            "UPDATE receivables SET status = ?, paid_at = ? WHERE id = ?",
+            (status, paid_at, receivable_id))
         self.conn.commit()
         return cur.rowcount > 0
 

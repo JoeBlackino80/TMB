@@ -53,6 +53,17 @@ APP = {
                        "előfizetések, amelyeket a VORU a levelezésében "
                        "talált. Az elintézetteket pipálja ki, hogy ne "
                        "emlékeztessük rájuk.",
+    "d_recv_title": "Követelések — számlák, amelyeket Önnek kell fizetni",
+    "d_recv_customer": "Vevő",
+    "d_recv_paid_btn": "Kifizetve", "d_recv_ignore_btn": "Törlés",
+    "d_recv_ignore_confirm": "Biztosan törli ezt a követelést?",
+    "d_recv_note": "Számlák, amelyeket kiállított és fizetésre vár. A lejárt "
+                   "határidejűeket kiemeljük és emlékeztetjük a reggeli áttekintésben.",
+    "d_recv_add": "Követelés hozzáadása",
+    "d_recv_amount": "Összeg (€)", "d_recv_save": "Mentés",
+    "d_recv_hint": "Kézzel azokhoz a számlákhoz, amelyek nem e-mailben jönnek. "
+                   "A postából érkező kiállított számlákat (pl. könyvelő "
+                   "programból) a VORU magától is felismeri.",
     "d_tax_title": "Adóhatáridők (a következő 30 nap)",
     "d_bundle_title": "Könyvelési anyagok",
     "d_bundle_note": "ZIP a számlákkal (PDF) és a havi fizetési "

@@ -139,6 +139,64 @@ function toggleQr(btn) {
   {% endif %}
 </div>
 
+{% if account_type != 'personal' %}
+<div class="card"{% if receivables|selectattr('overdue')|list %} style="border-color:#e6b9b0"{% endif %}>
+  <h2>{{ t.d_recv_title }}</h2>
+  {% if receivables %}
+  <div style="overflow-x:auto">
+  <table>
+    <tr><th>{{ t.d_recv_customer }}</th><th>{{ t.th_amount }}</th>
+        <th>{{ t.th_due }}</th><th>VS</th><th></th></tr>
+    {% for r in receivables %}
+    <tr>
+      <td><b>{{ r.customer or '—' }}</b>
+        {% if r.note %}<br><span class="muted">{{ r.note }}</span>{% endif %}</td>
+      <td><b>{{ ('%.2f'|format(r.amount)).replace('.', ',') }}
+          {{ '€' if r.currency == 'EUR' else r.currency }}</b></td>
+      <td>{% if r.overdue %}<span class="badge b-red">{{ r.due_date }}</span>
+          {% elif r.due_date %}{{ r.due_date }}
+          {% else %}<span class="muted">—</span>{% endif %}</td>
+      <td>{{ r.variable_symbol or '—' }}</td>
+      <td class="actions" style="white-space:nowrap">
+        <form method="post" action="/receivables/set-status">
+          <input type="hidden" name="receivable_id" value="{{ r.id }}">
+          <input type="hidden" name="status" value="paid">
+          <button class="small">{{ t.d_recv_paid_btn }}</button>
+        </form>
+        <form method="post" action="/receivables/set-status">
+          <input type="hidden" name="receivable_id" value="{{ r.id }}">
+          <input type="hidden" name="status" value="ignored">
+          <button class="small danger"
+                  onclick="return confirm({{ t.d_recv_ignore_confirm|tojson }})">{{ t.d_recv_ignore_btn }}</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+  <p class="muted">{{ t.d_recv_note }}</p>
+  {% endif %}
+  <details style="margin-top:10px">
+    <summary style="cursor:pointer;font-weight:600;font-size:13.5px;color:var(--accent)">
+      + {{ t.d_recv_add }}</summary>
+    <form method="post" action="/receivables/add"
+          style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:10px">
+      <div><label style="margin:0 0 3px">{{ t.d_recv_customer }}</label>
+        <input name="customer" style="max-width:200px"></div>
+      <div><label style="margin:0 0 3px">{{ t.d_recv_amount }}</label>
+        <input name="amount" required inputmode="decimal" placeholder="0,00"
+               style="max-width:110px"></div>
+      <div><label style="margin:0 0 3px">VS</label>
+        <input name="variable_symbol" style="max-width:120px"></div>
+      <div><label style="margin:0 0 3px">{{ t.th_due }}</label>
+        <input type="date" name="due_date" style="max-width:170px"></div>
+      <button type="submit" style="margin-bottom:1px">{{ t.d_recv_save }}</button>
+    </form>
+    <p class="muted" style="margin-top:8px">{{ t.d_recv_hint }}</p>
+  </details>
+</div>
+{% endif %}
+
 <div class="card"{% if renewals %} style="border-color:#ecd9a8"{% endif %}>
   <h2>{{ t.d_renewals_title }}</h2>
   {% if renewals %}

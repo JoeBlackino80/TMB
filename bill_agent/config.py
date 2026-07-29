@@ -87,6 +87,11 @@ class Config:
     # typ účtu: business (firma/živnostník) | personal (súkromná osoba)
     account_type: str = field(default_factory=lambda: os.environ.get("ACCOUNT_TYPE", "business"))
 
+    # vlastná identita firmy — podľa nej AI rozozná faktúry, ktoré klient sám
+    # VYSTAVIL (pohľadávky), od tých, ktoré má zaplatiť (záväzky)
+    own_name: str = field(default_factory=lambda: os.environ.get("OWN_NAME", ""))
+    own_iban: str = field(default_factory=lambda: os.environ.get("OWN_IBAN", ""))
+
     # rozvrh e-mailov (per klient; vyhodnocuje príkaz notify raz za hodinu):
     # *_SCHEDULE: workdays | daily | weekly (len digest) | off
     remind_schedule: str = field(default_factory=lambda: os.environ.get("REMIND_SCHEDULE", "workdays"))
