@@ -103,7 +103,7 @@ APP = {
                    "továbbítsa a számlákat (vagy állítson be szabályt) erre a "
                    "címre, és a VORU ugyanúgy feldolgozza őket.",
     "mb_fwd_warn": "A cím az Ön fiókjához egyedi — ne tegye közzé.",
-    "mb_copy": "Másolás", "mb_copied": "Másolva ✓",
+    "mb_copy": "Másolás", "mb_copied": "Másolva",
     "mb_imap_title": "Más postafiók",
     "mb_imap_lead": "Outlook, céges e-mail vagy saját domain — pár másodperc "
                     "alatt csatlakoztatja IMAP-on keresztül.",

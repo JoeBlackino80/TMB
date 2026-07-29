@@ -95,7 +95,7 @@ APP = {
                    "przekaż (lub ustaw regułę) na ten adres, a VORU przetworzy "
                    "je tak samo.",
     "mb_fwd_warn": "Adres jest unikalny dla Twojego konta — nie udostępniaj go.",
-    "mb_copy": "Kopiuj", "mb_copied": "Skopiowano ✓",
+    "mb_copy": "Kopiuj", "mb_copied": "Skopiowano",
     "mb_imap_title": "Inna skrzynka",
     "mb_imap_lead": "Outlook, poczta firmowa czy własna domena — podłączysz "
                     "przez IMAP w kilka sekund.",

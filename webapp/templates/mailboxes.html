@@ -51,9 +51,9 @@
 <h1>{{ t.mb_title }}</h1>
 <p class="mb-lead">{{ t.mb_intro }}</p>
 <div class="mb-trust">
-  <span>🔒 {{ t.mb_trust_read }}</span>
-  <span>🛡 {{ t.mb_trust_enc }}</span>
-  <span>↩ {{ t.mb_trust_revoke }}</span>
+  <span>{{ t.mb_trust_read }}</span>
+  <span>{{ t.mb_trust_enc }}</span>
+  <span>{{ t.mb_trust_revoke }}</span>
 </div>
 
 {% if not verified %}

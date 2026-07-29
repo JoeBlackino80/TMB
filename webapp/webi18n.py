@@ -440,7 +440,7 @@ _SK_APP = {
                    "(alebo si nastavte pravidlo) na túto adresu a VORU ich "
                    "spracuje rovnako.",
     "mb_fwd_warn": "Adresa je unikátna pre váš účet — nezverejňujte ju.",
-    "mb_copy": "Kopírovať", "mb_copied": "Skopírované ✓",
+    "mb_copy": "Kopírovať", "mb_copied": "Skopírované",
     "mb_imap_title": "Iná schránka",
     "mb_imap_lead": "Webhouse, Websupport, Outlook, firemný e-mail či vlastná "
                     "doména — pripojíte cez IMAP za pár sekúnd.",

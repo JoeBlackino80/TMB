@@ -103,7 +103,7 @@ APP = {
                    "und VORU verarbeitet sie genauso.",
     "mb_fwd_warn": "Die Adresse ist für Ihr Konto einzigartig — geben Sie sie "
                    "nicht weiter.",
-    "mb_copy": "Kopieren", "mb_copied": "Kopiert ✓",
+    "mb_copy": "Kopieren", "mb_copied": "Kopiert",
     "mb_imap_title": "Anderes Postfach",
     "mb_imap_lead": "Outlook, Firmen-E-Mail oder eigene Domain — in wenigen "
                     "Sekunden über IMAP verbunden.",

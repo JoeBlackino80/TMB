@@ -94,7 +94,7 @@ APP = {
                    "invoices (or set up a rule) to this address and VORU "
                    "processes them the same way.",
     "mb_fwd_warn": "This address is unique to your account — don't share it.",
-    "mb_copy": "Copy", "mb_copied": "Copied ✓",
+    "mb_copy": "Copy", "mb_copied": "Copied",
     "mb_imap_title": "Another mailbox",
     "mb_imap_lead": "Outlook, a company email or your own domain — connect via "
                     "IMAP in a few seconds.",

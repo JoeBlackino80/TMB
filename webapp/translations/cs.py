@@ -91,7 +91,7 @@ APP = {
                    "(nebo si nastavte pravidlo) na tuto adresu a VORU je "
                    "zpracuje stejně.",
     "mb_fwd_warn": "Adresa je unikátní pro váš účet — nezveřejňujte ji.",
-    "mb_copy": "Kopírovat", "mb_copied": "Zkopírováno ✓",
+    "mb_copy": "Kopírovat", "mb_copied": "Zkopírováno",
     "mb_imap_title": "Jiná schránka",
     "mb_imap_lead": "Webhouse, Outlook, firemní e-mail či vlastní doména — "
                     "připojíte přes IMAP během pár sekund.",
