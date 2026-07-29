@@ -142,7 +142,14 @@
     <li>{{ t.mb_step_3 }}</li>
   </ol>
   <form method="post" action="/mailboxes">
-    <label>{{ t.mb_where }}</label>
+    <label>{{ t.mb_user_label }}</label>
+    <input id="f-user" name="imap_user" type="email" placeholder="meno@mojafirma.sk"
+           required onblur="autofillFromEmail()">
+    <label>{{ t.mb_pass_label }}</label>
+    <input name="password" type="password" required>
+    <div id="provider-hint" class="mb-hint" style="display:none"></div>
+
+    <label style="margin-top:16px">{{ t.mb_where }}</label>
     <select id="provider" onchange="fillProvider()">
       <option value="">{{ t.mb_pick }}</option>
       <option value="gmail">Gmail (Google)</option>
@@ -155,15 +162,7 @@
       <option value="forpsi">Forpsi</option>
       <option value="other">{{ t.mb_other_provider }}</option>
     </select>
-    <div id="provider-hint" class="mb-hint" style="display:none"></div>
-
-    <label>{{ t.mb_user_label }}</label>
-    <input name="imap_user" type="email" placeholder="meno@mojafirma.sk" required>
-    <label>{{ t.mb_pass_label }}</label>
-    <input name="password" type="password" required>
-
-    <label>{{ t.mb_name_label }}</label>
-    <input name="name" placeholder="mojafirma">
+    <p class="muted" style="margin-top:6px">{{ t.mb_where_hint }}</p>
 
     <details class="mb-adv" id="adv">
       <summary>{{ t.mb_advanced }}</summary>
@@ -177,6 +176,8 @@
         <option value="starttls">{{ t.mb_sec_starttls }}</option>
         <option value="plain">{{ t.mb_sec_plain }}</option>
       </select>
+      <label>{{ t.mb_name_label }}</label>
+      <input name="name" placeholder="mojafirma">
     </details>
 
     <div><button type="submit">{{ t.mb_submit }}</button></div>
@@ -196,18 +197,57 @@ const PROVIDERS = {
   forpsi: {host: "imap.forpsi.com", port: 993, sec: "ssl", hint: {{ t.hint_webmail|tojson }}},
   other: {host: "", port: 993, sec: "ssl", hint: {{ t.hint_other|tojson }}},
 };
+// domény, ktoré vieme rozoznať priamo z e-mailovej adresy
+const DOMAIN_MAP = {
+  "gmail.com": "gmail", "googlemail.com": "gmail",
+  "outlook.com": "m365", "hotmail.com": "m365", "hotmail.sk": "m365",
+  "live.com": "m365", "live.sk": "m365", "outlook.sk": "m365", "msn.com": "m365",
+  "icloud.com": "icloud", "me.com": "icloud", "mac.com": "icloud",
+  "azet.sk": "azet", "post.sk": "azet", "inmail.sk": "azet",
+  "zoznam.sk": "zoznam",
+};
+function applyProvider(p, hintHtml) {
+  document.getElementById("f-host").value = p.host;
+  document.getElementById("f-port").value = p.port;
+  document.getElementById("f-sec").value = p.sec;
+  const hint = document.getElementById("provider-hint");
+  hint.innerHTML = hintHtml || p.hint;
+  hint.style.display = "block";
+}
 function fillProvider() {
   const val = document.getElementById("provider").value;
   const p = PROVIDERS[val];
   const hint = document.getElementById("provider-hint");
   if (!p) { hint.style.display = "none"; return; }
-  document.getElementById("f-host").value = p.host;
-  document.getElementById("f-port").value = p.port;
-  document.getElementById("f-sec").value = p.sec;
-  hint.innerHTML = p.hint;
-  hint.style.display = "block";
+  applyProvider(p);
   // vlastnú doménu treba doplniť ručne — otvoríme rozšírené nastavenie
   if (val === "other" || !p.host) document.getElementById("adv").open = true;
+}
+// z napísaného e-mailu odhadneme poskytovateľa a server sami — klient
+// tak väčšinou zadá len e-mail a heslo
+function autofillFromEmail() {
+  if (document.getElementById("provider").value) return;  // vybral ručne
+  const email = document.getElementById("f-user").value.trim().toLowerCase();
+  const at = email.indexOf("@");
+  if (at < 0) return;
+  const domain = email.slice(at + 1);
+  if (!domain.includes(".")) return;
+  const known = DOMAIN_MAP[domain];
+  if (known) {
+    document.getElementById("provider").value = known;
+    applyProvider(PROVIDERS[known]);
+  } else if (!document.getElementById("f-host").value) {
+    // najčastejšia konvencia mail.<doména>; pri uložení sa pripojenie overí
+    applyProvider({host: "mail." + domain, port: 993, sec: "ssl"},
+                  {{ t.mb_guess_hint|tojson }});
+  }
+}
+function copyFwd(btn) {
+  const txt = document.getElementById("fwd-addr").textContent.trim();
+  navigator.clipboard.writeText(txt).then(() => {
+    btn.textContent = btn.dataset.done;
+    setTimeout(() => { btn.textContent = btn.dataset.copy; }, 1800);
+  });
 }
 function copyFwd(btn) {
   const txt = document.getElementById("fwd-addr").textContent.trim();

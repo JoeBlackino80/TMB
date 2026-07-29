@@ -112,10 +112,13 @@ APP = {
     "mb_remove": "Lecsatlakoztatás",
     "mb_remove_confirm": "Biztosan lecsatlakoztatja ezt a postafiókot?",
     "mb_add_title": "Postafiók csatlakoztatása IMAP-on",
-    "mb_step_1": "Válassza ki, hol van az e-mailje — a szervert kitöltjük.",
-    "mb_step_2": "Adja meg a bejelentkezési e-mailt és a postafiók jelszavát.",
+    "mb_step_1": "Adja meg a bejelentkezési e-mailt és a postafiók jelszavát.",
+    "mb_step_2": "A szervert a címe alapján magunk kitöltjük — semmi technikait "
+                 "nem kell beállítania.",
     "mb_step_3": "Kattintson az „Ellenőrzés és csatlakoztatás“ gombra — azonnal ellenőrizzük.",
-    "mb_where": "Hol van az e-mail-fiókja?",
+    "mb_where": "Szolgáltató (nem kötelező)",
+    "mb_where_hint": "Csak akkor válassza, ha nem töltöttük ki magunk a szervert, "
+                     "vagy ha a csatlakozás nem sikerül.",
     "mb_pick": "— válasszon szolgáltatót —",
     "mb_other_provider": "Egyéb / saját domain",
     "mb_name_label": "Elnevezés (nem kötelező)",
@@ -124,6 +127,8 @@ APP = {
     "mb_user_label": "Bejelentkezési e-mail",
     "mb_pass_label": "Postafiók jelszava (vagy alkalmazásjelszó)",
     "mb_advanced": "Szerverbeállítások (automatikusan kitöltjük)",
+    "mb_guess_hint": "A szervert a domainje alapján megbecsültük. Ha nem "
+                     "csatlakozik, módosítsa a „Szerverbeállítások“ résznél.",
     "mb_sec_label": "Biztonság",
     "mb_sec_ssl": "SSL — biztonságos kapcsolat (alapértelmezett)",
     "mb_sec_starttls": "STARTTLS (pl. Proton Bridge)",

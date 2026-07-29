@@ -111,10 +111,13 @@ APP = {
     "th_name": "Name", "th_server": "Server", "th_login": "Anmeldung",
     "mb_remove": "Trennen", "mb_remove_confirm": "Dieses Postfach wirklich trennen?",
     "mb_add_title": "Postfach über IMAP verbinden",
-    "mb_step_1": "Wählen Sie Ihren Anbieter — den Server füllen wir aus.",
-    "mb_step_2": "Geben Sie Anmelde-E-Mail und Postfach-Passwort ein.",
+    "mb_step_1": "Geben Sie Anmelde-E-Mail und Postfach-Passwort ein.",
+    "mb_step_2": "Den Server füllen wir anhand Ihrer Adresse selbst aus — nichts "
+                 "Technisches einzustellen.",
     "mb_step_3": "Klick auf „Prüfen und verbinden“ — wir testen sofort.",
-    "mb_where": "Wo haben Sie Ihre E-Mail?",
+    "mb_where": "Anbieter (optional)",
+    "mb_where_hint": "Nur wählen, wenn wir den Server nicht selbst ausgefüllt "
+                     "haben oder die Verbindung nicht klappt.",
     "mb_pick": "— Anbieter wählen —",
     "mb_other_provider": "Anderer / eigene Domain",
     "mb_name_label": "Bezeichnung (optional)",
@@ -123,6 +126,9 @@ APP = {
     "mb_user_label": "Anmelde-E-Mail",
     "mb_pass_label": "Postfach-Passwort (oder App-Passwort)",
     "mb_advanced": "Servereinstellungen (füllen wir automatisch aus)",
+    "mb_guess_hint": "Wir haben den Server anhand Ihrer Domain geschätzt. Klappt "
+                     "die Verbindung nicht, passen Sie ihn unter "
+                     "„Servereinstellungen“ an.",
     "mb_sec_label": "Sicherheit",
     "mb_sec_ssl": "SSL — sichere Verbindung (Standard)",
     "mb_sec_starttls": "STARTTLS (z. B. Proton Bridge)",

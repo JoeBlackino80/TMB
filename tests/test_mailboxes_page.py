@@ -76,6 +76,18 @@ def test_forwarding_option_shown_when_configured(client, monkeypatch):
     assert "prijem+" in html and "copyFwd" in html
 
 
+def test_email_first_with_autofill(client):
+    """E-mail + heslo idú navrchu; server sa dopĺňa z domény (autofill)."""
+    session = _session(client, "sk", 0)
+    html = client.get("/mailboxes", cookies={"session": session}).text
+    # e-mail je pred výberom poskytovateľa (poskytovateľ je až nepovinný pomocník)
+    assert html.index('name="imap_user"') < html.index('id="provider"')
+    # JS na odhad servera z e-mailovej domény je prítomný
+    assert "autofillFromEmail" in html and "DOMAIN_MAP" in html
+    # poskytovateľ je označený ako nepovinný
+    assert "Poskytovateľ (nepovinné)" in html
+
+
 def test_imap_submit_still_works(client, tmp_path):
     """Nový formulár musí ukladať rovnako ako predtým."""
     session = _session(client, "sk", 0)

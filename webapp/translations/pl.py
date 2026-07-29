@@ -103,10 +103,13 @@ APP = {
     "th_name": "Nazwa", "th_server": "Serwer", "th_login": "Login",
     "mb_remove": "Odłącz", "mb_remove_confirm": "Na pewno odłączyć tę skrzynkę?",
     "mb_add_title": "Podłącz skrzynkę przez IMAP",
-    "mb_step_1": "Wybierz, gdzie masz e-mail — serwer wypełnimy za Ciebie.",
-    "mb_step_2": "Podaj e-mail do logowania i hasło skrzynki.",
+    "mb_step_1": "Podaj e-mail do logowania i hasło skrzynki.",
+    "mb_step_2": "Serwer uzupełnimy sami na podstawie Twojego adresu — nic "
+                 "technicznego nie ustawiasz.",
     "mb_step_3": "Kliknij „Zweryfikuj i podłącz“ — od razu sprawdzimy połączenie.",
-    "mb_where": "Gdzie masz e-mail?",
+    "mb_where": "Dostawca (opcjonalnie)",
+    "mb_where_hint": "Wybierz tylko, jeśli nie uzupełniliśmy serwera sami lub "
+                     "jeśli połączenie się nie uda.",
     "mb_pick": "— wybierz dostawcę —",
     "mb_other_provider": "Inny / własna domena",
     "mb_name_label": "Nazwa (opcjonalnie)",
@@ -115,6 +118,8 @@ APP = {
     "mb_user_label": "E-mail do logowania",
     "mb_pass_label": "Hasło skrzynki (lub hasło aplikacji)",
     "mb_advanced": "Ustawienia serwera (wypełnimy automatycznie)",
+    "mb_guess_hint": "Serwer odgadliśmy na podstawie Twojej domeny. Jeśli się nie "
+                     "połączy, popraw go w sekcji „Ustawienia serwera“.",
     "mb_sec_label": "Zabezpieczenie",
     "mb_sec_ssl": "SSL — bezpieczne połączenie (domyślne)",
     "mb_sec_starttls": "STARTTLS (np. Proton Bridge)",
