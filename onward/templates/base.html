@@ -86,10 +86,14 @@
   .ac-list li:hover, .ac-list li.sel { background:#eef3fe; }
   .ac-list b { font-weight:800; }
   .ac-list small { color:#5a6880; display:block; }
+  .ic { width:16px; height:16px; vertical-align:-2px; fill:none;
+        stroke:currentColor; stroke-width:2; stroke-linecap:round;
+        stroke-linejoin:round; }
+  .ic-lg { width:20px; height:20px; vertical-align:-4px; }
 </style>
 </head>
 <body>
-<header><div class="wrap"><b>✈ {{ brand }}</b>
+<header><div class="wrap"><b><svg class="ic ic-lg" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> {{ brand }}</b>
   <nav style="display:flex;align-items:center">
     <a href="/">{{ t['nav_order'] }}</a><a href="/faq">{{ t['nav_faq'] }}</a>
     <a href="/terms">{{ t['nav_terms'] }}</a>

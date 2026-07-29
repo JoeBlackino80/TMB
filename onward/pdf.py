@@ -41,7 +41,7 @@ def build_itinerary(order, passengers: list[dict], segments: list[dict],
     pdf.set_xy(pdf.l_margin, 6)
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("helvetica", "B", 20)
-    pdf.cell(90, 9, _latin(f"✈ {brand}"))
+    pdf.cell(90, 9, _latin(brand))
     pdf.set_font("helvetica", "", 10)
     pdf.set_text_color(199, 212, 242)
     pdf.cell(0, 9, "Flight reservation / itinerary", align="R")

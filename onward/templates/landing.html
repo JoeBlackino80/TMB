@@ -4,9 +4,9 @@
   <h1>{{ t['hero_title'] }}</h1>
   <p>{{ t['hero_sub'] | safe }}</p>
   <div class="badges">
-    <span>✅ {{ t['badge1'] }}</span>
-    <span>⚡ {{ t['badge2'] }}</span>
-    <span>📄 {{ t['badge3'] }}</span>
+    <span><svg class="ic" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> {{ t['badge1'] }}</span>
+    <span><svg class="ic" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> {{ t['badge2'] }}</span>
+    <span><svg class="ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> {{ t['badge3'] }}</span>
   </div>
 </div></div>
 {% endblock %}
@@ -113,9 +113,9 @@
     <label style="margin-top:16px">{{ t['pay_method'] }}</label>
     <div class="plans" style="grid-template-columns:1fr 1fr">
       <label class="plan"><input type="radio" name="pay" value="card" checked>
-        <b>{{ t['pay_card'] }}</b><small>{{ t['pay_card_desc'] }}</small></label>
+        <b><svg class="ic" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> {{ t['pay_card'] }}</b><small>{{ t['pay_card_desc'] }}</small></label>
       <label class="plan"><input type="radio" name="pay" value="crypto">
-        <b>{{ t['pay_crypto'] }}</b><small>{{ t['pay_crypto_desc'] }}</small></label>
+        <b><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 8h4a2 2 0 0 1 0 4h-4m0 0h4.5a2 2 0 0 1 0 4H9.5M12 6v2m0 10v-2"/></svg> {{ t['pay_crypto'] }}</b><small>{{ t['pay_crypto_desc'] }}</small></label>
     </div>
     {% endif %}
 

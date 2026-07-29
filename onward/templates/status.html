@@ -28,7 +28,7 @@
     <p class="note">{{ t['st_autorenew'] }} {{ order['valid_until'] }}.
     {% if order['renew_count'] %}({{ t['st_renewed'] }} {{ order['renew_count'] }}{{ t['st_renewed_sofar'] }}){% endif %}</p>
     {% endif %}
-    <p><a href="/itinerary/{{ order['token'] }}.pdf"><b>{{ t['st_download'] }}</b></a></p>
+    <p><a href="/itinerary/{{ order['token'] }}.pdf"><b><svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> {{ t['st_download'] }}</b></a></p>
   {% elif order['status'] in ('new', 'paid') %}
     <h2>{{ t['st_working'] }}</h2>
     <p>{{ t['st_working_text'] }}</p>

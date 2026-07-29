@@ -42,8 +42,8 @@ STRINGS = {
         "male": "Male", "female": "Female",
         "add_passenger": "+ Add passenger",
         "pay_method": "Payment method",
-        "pay_card": "💳 Card", "pay_card_desc": "Visa, Mastercard — via Stripe",
-        "pay_crypto": "₿ Crypto",
+        "pay_card": "Card", "pay_card_desc": "Visa, Mastercard — via Stripe",
+        "pay_crypto": "Crypto",
         "pay_crypto_desc": "BTC, ETH, USDC, USDT — via Coinbase",
         "submit": "Get my reservation",
         "fee_note": "You pay only our service fee. We never charge you the price"
@@ -86,7 +86,7 @@ STRINGS = {
                         " hold, we create a fresh reservation and e-mail you"
                         " the new PNR — until",
         "st_renewed": "Renewed", "st_renewed_sofar": "× so far.",
-        "st_download": "⬇ Download PDF itinerary",
+        "st_download": "Download PDF itinerary",
         "st_working": "Working on it…",
         "st_working_text": "Your reservation is being created. This page"
                            " refreshes automatically; the itinerary will also"
@@ -165,8 +165,8 @@ a verifiable reservation, you get a full refund — no questions asked. See
         "male": "Hombre", "female": "Mujer",
         "add_passenger": "+ Añadir pasajero",
         "pay_method": "Método de pago",
-        "pay_card": "💳 Tarjeta", "pay_card_desc": "Visa, Mastercard — vía Stripe",
-        "pay_crypto": "₿ Cripto",
+        "pay_card": "Tarjeta", "pay_card_desc": "Visa, Mastercard — vía Stripe",
+        "pay_crypto": "Cripto",
         "pay_crypto_desc": "BTC, ETH, USDC, USDT — vía Coinbase",
         "submit": "Obtener mi reserva",
         "fee_note": "Solo pagas nuestra tarifa de servicio. Nunca te cobramos"
@@ -209,7 +209,7 @@ a verifiable reservation, you get a full refund — no questions asked. See
                         " aerolínea libere esta reserva, crearemos una nueva y"
                         " te enviaremos el nuevo PNR — hasta el",
         "st_renewed": "Renovada", "st_renewed_sofar": "× hasta ahora.",
-        "st_download": "⬇ Descargar itinerario PDF",
+        "st_download": "Descargar itinerario PDF",
         "st_working": "Procesando…",
         "st_working_text": "Tu reserva se está creando. Esta página se"
                            " actualiza sola; el itinerario también llegará por"
