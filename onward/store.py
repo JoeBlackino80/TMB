@@ -119,6 +119,11 @@ class Orders:
     def user_by_id(self, user_id: int) -> sqlite3.Row | None:
         return self.conn.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
 
+    def set_user_password(self, user_id: int, password_hash: str):
+        self.conn.execute("UPDATE users SET password_hash=? WHERE id=?",
+                          (password_hash, user_id))
+        self.conn.commit()
+
     def orders_for_user(self, user_id: int) -> list[sqlite3.Row]:
         return self.conn.execute(
             "SELECT * FROM orders WHERE user_id=? ORDER BY id DESC", (user_id,)).fetchall()

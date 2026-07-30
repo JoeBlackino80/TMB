@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width:440px;margin:20px auto">
+  <h2>{{ t['forgot_title'] }}</h2>
+  {% if sent %}
+    <p class="ok">{{ t['forgot_sent'] }}</p>
+    <p class="note"><a href="/login">{{ t['login_btn'] }}</a></p>
+  {% else %}
+    <p class="note">{{ t['forgot_text'] }}</p>
+    <form method="post" action="/forgot">
+      <label>{{ t['email_lbl'] }}</label>
+      <input type="email" name="email" required>
+      <div class="hp" aria-hidden="true"><input type="text" name="website"
+           tabindex="-1" autocomplete="off"></div>
+      <button type="submit">{{ t['forgot_btn'] }}</button>
+    </form>
+    <p class="note" style="margin-top:14px"><a href="/login">{{ t['back'] }}</a></p>
+  {% endif %}
+</div>
+{% endblock %}

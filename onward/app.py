@@ -14,6 +14,7 @@ Bez STRIPE_LINK_ONWARD (vývoj/test) sa objednávka rezervuje hneď po
 odoslaní formulára — s Duffel test kľúčom vznikajú fiktívne rezervácie.
 """
 
+import base64
 import hashlib
 import hmac
 import json
@@ -27,7 +28,7 @@ from fastapi import FastAPI, Form, Request
 from fastapi.responses import FileResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from . import auth, booking, crypto, i18n, pdf, security
+from . import auth, booking, crypto, i18n, mailer, pdf, security
 from .store import Orders
 
 BRAND = os.environ.get("ONWARD_BRAND", "ValidFlight")
@@ -85,6 +86,33 @@ def _sign(value: str) -> str:
 
 def _session_cookie(user_id: int) -> str:
     return f"{user_id}.{_sign(str(user_id))}"
+
+
+def _make_token(purpose: str, user_id: int, hours: int = 2) -> str:
+    payload = f"{purpose}|{user_id}|{int(time.time()) + hours * 3600}"
+    sig = hmac.new(SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()[:40]
+    return base64.urlsafe_b64encode(f"{payload}|{sig}".encode()).decode()
+
+
+def _check_token(purpose: str, token: str):
+    """Vráti user_id, alebo None (zlý podpis / iný účel / vypršané)."""
+    try:
+        payload = base64.urlsafe_b64decode(token.encode()).decode()
+        p, uid, exp, sig = payload.split("|")
+        expected = hmac.new(SECRET.encode(), f"{p}|{uid}|{exp}".encode(),
+                            hashlib.sha256).hexdigest()[:40]
+        if p != purpose or not hmac.compare_digest(expected, sig):
+            return None
+        if int(exp) < time.time():
+            return None
+        return int(uid)
+    except Exception:
+        return None
+
+
+def _base_url(request: Request) -> str:
+    return (os.environ.get("ONWARD_BASE_URL", "").rstrip("/")
+            or str(request.base_url).rstrip("/"))
 
 
 def current_user(request: Request):
@@ -217,6 +245,62 @@ def logout():
     resp = _redirect("/")
     resp.delete_cookie("session")
     return resp
+
+
+@app.get("/forgot")
+def forgot_form(request: Request):
+    return _render(request, "forgot.html")
+
+
+@app.post("/forgot")
+def forgot(request: Request, email: str = Form(...), website: str = Form("")):
+    ip = security.client_ip(request)
+    if security.honeypot_tripped(website):
+        return _redirect("/forgot")
+    if not security.rate_limited(f"forgot:{ip}", limit=5, window_s=3600):
+        store = Orders()
+        try:
+            user = store.user_by_email(email)
+        finally:
+            store.close()
+        if user:
+            token = _make_token("reset", user["id"])
+            link = f"{_base_url(request)}/reset?token={token}"
+            mailer.send(
+                user["email"], f"{BRAND}: password reset",
+                f"To reset your {BRAND} password, open this link (valid 2 hours):\n\n"
+                f"{link}\n\nIf you didn't request this, ignore this e-mail.",
+                f"<p>To reset your {BRAND} password, click below (valid 2 hours):</p>"
+                f"<p><a href='{link}'>Reset my password</a></p>"
+                f"<p style='font-size:12px;color:#667'>If you didn't request this,"
+                f" ignore this e-mail.</p>")
+    # vždy rovnaká odpoveď — nezradíme, či e-mail existuje (proti enumerácii)
+    return _render(request, "forgot.html", sent=True)
+
+
+@app.get("/reset")
+def reset_form(request: Request, token: str = ""):
+    if not _check_token("reset", token):
+        return _render(request, "message.html", heading="Invalid or expired link",
+                       lines=["Please request a new password reset."], back="/forgot")
+    return _render(request, "reset.html", token=token)
+
+
+@app.post("/reset")
+def reset(request: Request, token: str = Form(...), password: str = Form(...)):
+    uid = _check_token("reset", token)
+    if not uid:
+        return _render(request, "message.html", heading="Invalid or expired link",
+                       lines=["Please request a new password reset."], back="/forgot")
+    if problem := auth.password_problem(password):
+        return _render(request, "reset.html", token=token, err=problem)
+    store = Orders()
+    try:
+        store.set_user_password(uid, auth.hash_password(password))
+    finally:
+        store.close()
+    return _render(request, "message.html", heading="Password changed",
+                   lines=["You can now sign in with your new password."], back="/login")
 
 
 @app.get("/account")

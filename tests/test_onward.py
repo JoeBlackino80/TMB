@@ -484,3 +484,43 @@ def test_delete_passenger_is_user_scoped(client, monkeypatch):
     store = Orders(os.environ["ONWARD_DB_PATH"])
     assert len(store.saved_passengers(uid_a)) == 1  # pasažier A ostal
     store.close()
+
+
+def test_password_reset_flow(client, monkeypatch):
+    # založ účet
+    client.post("/register", data={"email": "reset@x.sk", "password": "Heslo123!"})
+    client.get("/logout")
+    # zachyť reset e-mail
+    sent = {}
+    from onward import app as A
+    monkeypatch.setattr(A.mailer, "send",
+                        lambda to, subject, text, html="": sent.update(to=to, text=text) or True)
+    r = client.post("/forgot", data={"email": "reset@x.sk"})
+    assert "reset link" in r.text.lower() or "on its way" in r.text.lower()
+    assert sent["to"] == "reset@x.sk"
+    # vytiahni token z odkazu v e-maili
+    import re as _re
+    token = _re.search(r"/reset\?token=([\w=\-]+)", sent["text"]).group(1)
+    # slabé nové heslo odmietne
+    bad = client.post("/reset", data={"token": token, "password": "weak"})
+    assert "uppercase" in bad.text or "special" in bad.text or "8 characters" in bad.text
+    # silné nové heslo prejde
+    ok = client.post("/reset", data={"token": token, "password": "NoveHeslo1!"})
+    assert "Password changed" in ok.text
+    # prihlásenie novým heslom funguje
+    login = client.post("/login", data={"email": "reset@x.sk", "password": "NoveHeslo1!"},
+                        follow_redirects=False)
+    assert login.status_code == 303 and login.headers["location"] == "/account"
+
+
+def test_reset_rejects_bad_token(client):
+    r = client.get("/reset", params={"token": "garbage"})
+    assert "Invalid or expired" in r.text
+
+
+def test_forgot_no_user_enumeration(client, monkeypatch):
+    from onward import app as A
+    monkeypatch.setattr(A.mailer, "send", lambda *a, **k: True)
+    r = client.post("/forgot", data={"email": "nobody@nowhere.sk"})
+    # rovnaká odpoveď aj pre neexistujúci účet
+    assert "on its way" in r.text.lower() or "if an account" in r.text.lower()

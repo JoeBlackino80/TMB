@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width:440px;margin:20px auto">
+  <h2>{{ t['reset_title'] }}</h2>
+  {% if err %}<p class="bad">{{ err }}</p>{% endif %}
+  <form method="post" action="/reset">
+    <input type="hidden" name="token" value="{{ token }}">
+    <label>{{ t['new_password'] }}</label>
+    <input type="password" name="password" id="pw" minlength="8" required>
+    <ul id="pwrules" style="list-style:none;padding:0;margin:8px 0 0;font-size:13px">
+      <li data-rule="len">{{ t['pw_len'] }}</li>
+      <li data-rule="upper">{{ t['pw_upper'] }}</li>
+      <li data-rule="lower">{{ t['pw_lower'] }}</li>
+      <li data-rule="digit">{{ t['pw_digit'] }}</li>
+      <li data-rule="special">{{ t['pw_special'] }}</li>
+    </ul>
+    <button type="submit">{{ t['reset_btn'] }}</button>
+  </form>
+</div>
+<script>
+  const pw = document.getElementById('pw');
+  const rules = {
+    len: v => v.length >= 8, upper: v => /[A-Z]/.test(v), lower: v => /[a-z]/.test(v),
+    digit: v => /[0-9]/.test(v), special: v => /[^A-Za-z0-9]/.test(v),
+  };
+  pw.addEventListener('input', () => {
+    for (const li of document.querySelectorAll('#pwrules li')) {
+      const ok = rules[li.dataset.rule](pw.value);
+      li.style.color = ok ? '#0a7d38' : '#8090a8';
+      li.textContent = (ok ? '✓ ' : '• ') + li.textContent.replace(/^[✓•] /, '');
+    }
+  });
+</script>
+{% endblock %}
