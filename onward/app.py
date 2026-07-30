@@ -135,63 +135,69 @@ def faq(request: Request):
 
 # -- účet klienta -------------------------------------------------------------
 
+# kam presmerovať po prihlásení/registrácii: 'order' → späť na objednávku
+def _next_dest(next_: str) -> str:
+    return "/" if next_ == "order" else "/account"
+
+
 @app.get("/register")
-def register_form(request: Request):
+def register_form(request: Request, next: str = ""):
     if current_user(request):
-        return _redirect("/account")
-    return _render(request, "register.html")
+        return _redirect(_next_dest(next))
+    return _render(request, "register.html", next=next)
 
 
 @app.post("/register")
 def register(request: Request, email: str = Form(...), password: str = Form(...),
-             website: str = Form(""),
+             next: str = Form(""), website: str = Form(""),
              cf_turnstile_response: str = Form("", alias="cf-turnstile-response")):
     ip = security.client_ip(request)
     if security.honeypot_tripped(website):
         return _redirect("/register")
     if security.rate_limited(f"register:{ip}", limit=5, window_s=3600):
-        return _render(request, "register.html",
+        return _render(request, "register.html", next=next,
                        err="Too many attempts. Please try again later.")
     if not security.turnstile_ok(cf_turnstile_response, ip):
-        return _render(request, "register.html",
+        return _render(request, "register.html", next=next,
                        err="Anti-bot check failed. Please try again.")
     if "@" not in email:
-        return _render(request, "register.html", err="Enter a valid e-mail address.")
+        return _render(request, "register.html", next=next,
+                       err="Enter a valid e-mail address.")
     if problem := auth.password_problem(password):
-        return _render(request, "register.html", err=problem)
+        return _render(request, "register.html", next=next, err=problem)
     store = Orders()
     try:
         if store.user_by_email(email):
-            return _render(request, "register.html",
+            return _render(request, "register.html", next=next,
                            err="An account with this e-mail already exists.")
         uid = store.create_user(email, auth.hash_password(password))
     finally:
         store.close()
-    resp = _redirect("/account")
+    resp = _redirect(_next_dest(next))
     resp.set_cookie("session", _session_cookie(uid), httponly=True,
                     samesite="lax", secure=_cookie_secure(), max_age=2592000)
     return resp
 
 
 @app.get("/login")
-def login_form(request: Request):
+def login_form(request: Request, next: str = ""):
     if current_user(request):
-        return _redirect("/account")
-    return _render(request, "login.html")
+        return _redirect(_next_dest(next))
+    return _render(request, "login.html", next=next)
 
 
 @app.post("/login")
 def login(request: Request, email: str = Form(...), password: str = Form(...),
-          website: str = Form(""),
+          next: str = Form(""), website: str = Form(""),
           cf_turnstile_response: str = Form("", alias="cf-turnstile-response")):
     ip = security.client_ip(request)
     if security.honeypot_tripped(website):
         return _redirect("/login")
     if security.rate_limited(f"login:{ip}", limit=8, window_s=900):
-        return _render(request, "login.html",
+        return _render(request, "login.html", next=next,
                        err="Too many attempts. Please try again in a few minutes.")
     if not security.turnstile_ok(cf_turnstile_response, ip):
-        return _render(request, "login.html",
+        return _render(request, "login.html", next=next,
                        err="Anti-bot check failed. Please try again.")
     store = Orders()
     try:
@@ -199,8 +205,8 @@ def login(request: Request, email: str = Form(...), password: str = Form(...),
     finally:
         store.close()
     if not user or not auth.verify_password(password, user["password_hash"]):
-        return _render(request, "login.html", err="Wrong e-mail or password.")
-    resp = _redirect("/account")
+        return _render(request, "login.html", next=next, err="Wrong e-mail or password.")
+    resp = _redirect(_next_dest(next))
     resp.set_cookie("session", _session_cookie(user["id"]), httponly=True,
                     samesite="lax", secure=_cookie_secure(), max_age=2592000)
     return resp
@@ -296,6 +302,10 @@ def order(request: Request,
           family_name: list[str] = Form(...), born_on: list[str] = Form(...),
           gender: list[str] = Form(...), website: str = Form("")):
     ip = security.client_ip(request)
+    # objednávka je možná len s účtom — hosťa pošleme najprv na registráciu
+    user = current_user(request)
+    if not user:
+        return _redirect("/register?next=order")
     if security.honeypot_tripped(website):
         return _redirect("/")
     if security.rate_limited(f"order:{ip}", limit=12, window_s=3600):
@@ -360,13 +370,13 @@ def order(request: Request,
     valid_until = min(date.today() + timedelta(days=days),
                       date.fromisoformat(depart_date)).isoformat() if days else ""
 
-    user = current_user(request)
+    # user je zaručene prihlásený (gate na začiatku) — objednávka patrí jemu
     store = Orders()
     try:
         token = store.create(email=email, phone=phone, slices=slices,
                              passengers=passengers, plan=plan,
                              valid_until=valid_until,
-                             user_id=user["id"] if user else None)
+                             user_id=user["id"])
         if pay == "crypto" and crypto.enabled():
             url = crypto.create_charge(token, _prices()[plan],
                                        f"{BRAND} — flight reservation ({plan})",

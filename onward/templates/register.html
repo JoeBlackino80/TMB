@@ -2,8 +2,10 @@
 {% block content %}
 <div class="card" style="max-width:440px;margin:20px auto">
   <h2>{{ t['register_title'] }}</h2>
+  {% if next == 'order' %}<p class="note" style="margin:0 0 12px">{{ t['book_need_account_text'] }}</p>{% endif %}
   {% if err %}<p class="bad">{{ err }}</p>{% endif %}
   <form method="post" action="/register">
+    <input type="hidden" name="next" value="{{ next or '' }}">
     <label>{{ t['email_lbl'] }}</label>
     <input type="email" name="email" required>
     <label>{{ t['password_lbl'] }}</label>
@@ -22,7 +24,7 @@
     <button type="submit">{{ t['register_btn'] }}</button>
   </form>
   <p class="note" style="margin-top:14px">{{ t['have_account'] }}
-    <a href="/login">{{ t['login_btn'] }}</a></p>
+    <a href="/login{% if next %}?next={{ next }}{% endif %}">{{ t['login_btn'] }}</a></p>
 </div>
 <script>
   const pw = document.getElementById('pw');

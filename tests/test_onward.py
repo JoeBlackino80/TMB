@@ -63,6 +63,12 @@ def _form_data(**over):
     return base
 
 
+def _auth(client, email="buyer@x.sk"):
+    """Zaregistruje (a prihlási) používateľa — objednávka je možná len s účtom."""
+    client.post("/register", data={"email": email, "password": "Heslo123!"})
+    return client
+
+
 def test_store_roundtrip(tmp_path):
     store = Orders(str(tmp_path / "o.db"))
     token = store.create(**_store_kwargs())
@@ -131,6 +137,8 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setenv("ONWARD_DB_PATH", str(tmp_path / "onward.db"))
     monkeypatch.setenv("ONWARD_COOKIE_SECURE", "0")  # TestClient beží cez HTTP
     from onward import app as onward_app
+    from onward import security
+    security._hits.clear()          # čistý rate-limiter pre každý test
     return TestClient(onward_app.app)
 
 
@@ -158,7 +166,18 @@ def test_pages(client):
         assert client.get(path).status_code == 200
 
 
+def test_order_requires_account(client):
+    """Bez prihlásenia objednávku nedovolíme — presmerujeme na registráciu."""
+    resp = client.post("/order", data=_form_data(), follow_redirects=False)
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/register?next=order"
+    # aj landing ukazuje hosťovi výzvu na registráciu namiesto formulára
+    page = client.get("/").text
+    assert "/register?next=order" in page
+
+
 def test_order_validation(client):
+    _auth(client)
     resp = client.post("/order", data=_form_data(origin="WIEN"))
     assert "3-letter codes" in resp.text
     resp = client.post("/order", data=_form_data(given_name=[""]))
@@ -170,6 +189,7 @@ def test_order_validation(client):
 
 
 def test_order_books_without_stripe(client, monkeypatch):
+    _auth(client)
     calls = _mock_duffel(monkeypatch)
     sent = _mock_mailer(monkeypatch)
 
@@ -190,6 +210,7 @@ def test_order_books_without_stripe(client, monkeypatch):
 
 
 def test_multi_city_order(client, monkeypatch):
+    _auth(client)
     calls = _mock_duffel(monkeypatch)
     _mock_mailer(monkeypatch)
     d2 = (date.today() + timedelta(days=5)).isoformat()
@@ -202,6 +223,7 @@ def test_multi_city_order(client, monkeypatch):
 
 
 def test_order_fails_gracefully_without_holdable_fare(client, monkeypatch):
+    _auth(client)
     _mock_duffel(monkeypatch, offers=[SAMPLE_OFFERS[1]])
     resp = client.post("/order", data=_form_data(), follow_redirects=True)
     assert "could not complete" in resp.text
@@ -289,6 +311,7 @@ def test_crypto_signature_and_token():
 
 
 def test_order_crypto_redirect(client, monkeypatch):
+    _auth(client)
     from onward import app as onward_app
     monkeypatch.setattr(onward_app.crypto, "enabled", lambda: True)
     monkeypatch.setattr(onward_app.crypto, "create_charge",
@@ -302,11 +325,11 @@ def test_order_crypto_redirect(client, monkeypatch):
 
 def test_spanish_translation(client):
     resp = client.get("/", params={"lang": "es"})
-    assert "Obtener mi reserva" in resp.text
+    assert "Pide tu reserva" in resp.text          # order_title (vidno vždy)
     assert resp.cookies.get("lang") == "es"
     # cookie drží jazyk aj na ďalších stránkach
     assert "Preguntas frecuentes" in client.get("/faq").text
-    assert "Get my reservation" in client.get("/", params={"lang": "en"}).text
+    assert "Order your reservation" in client.get("/", params={"lang": "en"}).text
 
 
 def test_register_login_account_flow(client):
@@ -381,6 +404,7 @@ def test_login_rate_limit(client):
 
 
 def test_order_honeypot(client, monkeypatch):
+    _auth(client)
     _mock_duffel(monkeypatch)
     _mock_mailer(monkeypatch)
     from onward import security
