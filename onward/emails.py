@@ -14,7 +14,7 @@ def _fmt_time(iso: str) -> str:
 
 def itinerary(order: sqlite3.Row, passengers: list[dict], segments: list[dict],
               brand: str, status_url: str = "",
-              renewed: bool = False) -> tuple[str, str, str]:
+              renewed: bool = False, qr_cid: str = "") -> tuple[str, str, str]:
     """Vráti (subject, text, html)."""
     prefix = "renewed reservation" if renewed else "flight reservation"
     subject = (f"{brand}: {prefix} {order['pnr']} — "
@@ -75,33 +75,47 @@ def itinerary(order: sqlite3.Row, passengers: list[dict], segments: list[dict],
                   f" until <b>{order['valid_until']}</b>.</p>")
     link_html = (f"<p style='font-size:14px'><a href='{status_url}'>Your itinerary"
                  f" page (live status &amp; PDF download)</a></p>" if status_url else "")
+    qr_html = (
+        f"<div style='text-align:center;margin:18px 0;padding:16px;"
+        f"background:#f7f9fc;border-radius:10px'>"
+        f"<img src='cid:{qr_cid}' width='140' height='140' alt='Verification QR'"
+        f" style='display:block;margin:0 auto 8px'>"
+        f"<div style='font-size:12px;color:#667'>Scan to verify this reservation"
+        f" &amp; view its live status</div></div>" if qr_cid else "")
     html = f"""
 <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;color:#1a2233">
-  <h2 style="margin-bottom:4px">{brand}</h2>
-  <p style="font-size:15px">{intro}</p>
-  <div style="background:#f2f5fa;border-radius:10px;padding:18px;text-align:center">
-    <div style="font-size:13px;color:#667">Booking reference (PNR)</div>
-    <div style="font-size:32px;font-weight:bold;letter-spacing:4px">{order['pnr']}</div>
-    <div style="font-size:14px;margin-top:6px">{order['airline']}</div>
+  <div style="background:#0d1b3d;background:linear-gradient(120deg,#0d1b3d,#16307a);
+       color:#fff;padding:20px 24px;border-radius:12px 12px 0 0">
+    <div style="font-size:22px;font-weight:bold;letter-spacing:.5px">&#9992; {brand}</div>
+    <div style="font-size:13px;color:#c7d4f2;margin-top:2px">Flight reservation / itinerary</div>
   </div>
-  <p><b>Passengers:</b></p><ul>{pax_html}</ul>
-  <table style="border-collapse:collapse;font-size:14px;width:100%">
-    <tr style="background:#e8edf5"><th style="padding:6px 12px;text-align:left">Flight</th>
-      <th style="padding:6px 12px;text-align:left">Route</th>
-      <th style="padding:6px 12px;text-align:left">Departure</th>
-      <th style="padding:6px 12px;text-align:left">Arrival</th></tr>
-    {rows}
-  </table>
-  <p style="font-size:14px"><b>Valid until {_fmt_time(order['hold_expires_at'])}.</b>
-    Verify it any time before then on the airline's website
-    (&ldquo;Manage booking&rdquo;) with the PNR and passenger surname.
-    A printable PDF itinerary is attached.</p>
-  {renew_html}
-  {link_html}
-  <p style="font-size:12px;color:#667">This is a genuine airline reservation
-    without a ticket issued — suitable for visa applications and proof of
-    onward travel. It cannot be used to board a flight, and the airline
-    releases it automatically after the validity time.</p>
+  <div style="border:1px solid #e6ebf4;border-top:0;border-radius:0 0 12px 12px;padding:22px 24px">
+    <p style="font-size:15px;margin-top:0">{intro}</p>
+    <div style="background:#f2f5fa;border-radius:10px;padding:18px;text-align:center">
+      <div style="font-size:13px;color:#667">Booking reference (PNR)</div>
+      <div style="font-size:32px;font-weight:bold;letter-spacing:4px">{order['pnr']}</div>
+      <div style="font-size:14px;margin-top:6px">{order['airline']}</div>
+    </div>
+    <p><b>Passengers:</b></p><ul>{pax_html}</ul>
+    <table style="border-collapse:collapse;font-size:14px;width:100%">
+      <tr style="background:#e8edf5"><th style="padding:6px 12px;text-align:left">Flight</th>
+        <th style="padding:6px 12px;text-align:left">Route</th>
+        <th style="padding:6px 12px;text-align:left">Departure</th>
+        <th style="padding:6px 12px;text-align:left">Arrival</th></tr>
+      {rows}
+    </table>
+    <p style="font-size:14px"><b>Valid until {_fmt_time(order['hold_expires_at'])}.</b>
+      Verify it any time before then on the airline's website
+      (&ldquo;Manage booking&rdquo;) with the PNR and passenger surname.
+      A printable PDF itinerary is attached.</p>
+    {qr_html}
+    {renew_html}
+    {link_html}
+    <p style="font-size:12px;color:#667">This is a genuine airline reservation
+      without a ticket issued — suitable for visa applications and proof of
+      onward travel. It cannot be used to board a flight, and the airline
+      releases it automatically after the validity time.</p>
+  </div>
 </div>"""
     return subject, text, html
 

@@ -7,6 +7,9 @@ PNR a pošle zákazníkovi aktualizovaný itinerár, kým platí `valid_until`.
 
 import os
 from datetime import date
+from io import BytesIO
+
+import qrcode
 
 from . import duffel, emails, mailer, pdf
 from .store import Orders
@@ -44,13 +47,20 @@ def book(store: Orders, token: str, renewed: bool = False) -> bool:
                           airline=airline, duffel_order_id=order_data["id"],
                           hold_expires_at=expires, segments=segs, renewed=renewed)
         row = store.by_token(token)
+        url = status_url(token)
+        qr_cid = "qr" if url else ""
         subject, text, html = emails.itinerary(row, passengers, segs, BRAND,
-                                               status_url(token), renewed=renewed)
+                                               url, renewed=renewed, qr_cid=qr_cid)
         attachment = ("itinerary.pdf",
-                      pdf.build_itinerary(row, passengers, segs, BRAND,
-                                          status_url(token)),
+                      pdf.build_itinerary(row, passengers, segs, BRAND, url),
                       "application/pdf")
-        mailer.send(row["email"], subject, text, html, attachments=[attachment])
+        inline = []
+        if qr_cid:
+            buf = BytesIO()
+            qrcode.make(url).get_image().save(buf, format="PNG")
+            inline = [("qr", buf.getvalue(), "image/png")]
+        mailer.send(row["email"], subject, text, html,
+                    attachments=[attachment], inline_images=inline)
         return True
     except duffel.DuffelError as e:
         store.set_status(token, "failed", str(e)[:500])

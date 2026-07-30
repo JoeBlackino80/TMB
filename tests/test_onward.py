@@ -156,7 +156,7 @@ def _mock_mailer(monkeypatch):
     from onward import booking
     monkeypatch.setattr(
         booking.mailer, "send",
-        lambda to, subject, text, html="", attachments=None:
+        lambda to, subject, text, html="", attachments=None, inline_images=None:
             sent.append((subject, attachments)) or True)
     return sent
 
@@ -524,3 +524,39 @@ def test_forgot_no_user_enumeration(client, monkeypatch):
     r = client.post("/forgot", data={"email": "nobody@nowhere.sk"})
     # rovnaká odpoveď aj pre neexistujúci účet
     assert "on its way" in r.text.lower() or "if an account" in r.text.lower()
+
+
+def test_email_has_inline_qr(client, monkeypatch):
+    _mock_duffel(monkeypatch)
+    captured = {}
+    from onward import booking
+    monkeypatch.setattr(booking, "BASE_URL", "https://validflight.com")
+    monkeypatch.setattr(booking.mailer, "send",
+                        lambda to, subject, text, html="", attachments=None,
+                        inline_images=None: captured.update(html=html, inline=inline_images) or True)
+    _auth(client)
+    client.post("/order", data=_form_data(), follow_redirects=True)
+    assert 'src=\'cid:qr\'' in captured["html"] or 'cid:qr' in captured["html"]
+    assert captured["inline"] and captured["inline"][0][0] == "qr"
+    assert captured["inline"][0][1].startswith(b"\x89PNG")  # PNG magic
+
+
+def test_mailer_builds_inline_related(monkeypatch):
+    from onward import mailer
+    monkeypatch.setenv("ONWARD_SMTP_HOST", "h"); monkeypatch.setenv("ONWARD_SMTP_USER", "u")
+    monkeypatch.setenv("ONWARD_SMTP_PASSWORD", "p")
+    built = {}
+    import smtplib
+    class FakeSMTP:
+        def __init__(self, *a, **k): pass
+        def starttls(self): pass
+        def login(self, *a): pass
+        def send_message(self, msg): built["msg"] = msg
+        def quit(self): pass
+    monkeypatch.setattr(smtplib, "SMTP", FakeSMTP)
+    ok = mailer.send("x@y.sk", "s", "text", "<p><img src='cid:qr'></p>",
+                     inline_images=[("qr", b"\x89PNG\r\n", "image/png")])
+    assert ok
+    # v strome sa nachádza image/png s Content-ID <qr>
+    types = [p.get_content_type() for p in built["msg"].walk()]
+    assert "image/png" in types

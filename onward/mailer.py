@@ -14,8 +14,11 @@ def smtp_configured() -> bool:
 
 
 def send(to: str, subject: str, text: str, html: str = "",
-         attachments: list[tuple[str, bytes, str]] | None = None) -> bool:
-    """`attachments`: [(filename, data, mime_type)] — napr. PDF itinerár."""
+         attachments: list[tuple[str, bytes, str]] | None = None,
+         inline_images: list[tuple[str, bytes, str]] | None = None) -> bool:
+    """`attachments`: [(filename, data, mime_type)] — napr. PDF itinerár.
+    `inline_images`: [(cid, data, mime_type)] — obrázky v tele HTML
+    (referencované cez src="cid:<cid>", napr. QR kód)."""
     if not smtp_configured():
         return False
     msg = EmailMessage()
@@ -25,6 +28,12 @@ def send(to: str, subject: str, text: str, html: str = "",
     msg.set_content(text)
     if html:
         msg.add_alternative(html, subtype="html")
+        if inline_images:
+            html_part = msg.get_payload()[-1]
+            for cid, data, mime in inline_images:
+                maintype, _, subtype = mime.partition("/")
+                html_part.add_related(data, maintype=maintype, subtype=subtype,
+                                      cid=f"<{cid}>")
     for filename, data, mime in attachments or []:
         maintype, _, subtype = mime.partition("/")
         msg.add_attachment(data, maintype=maintype, subtype=subtype, filename=filename)
