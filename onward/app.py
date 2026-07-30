@@ -373,6 +373,17 @@ def _valid_date(value: str, *, future: bool) -> bool:
     return parsed >= date.today() if future else True
 
 
+_PHONE = re.compile(r"^\+\d{8,15}$")
+
+
+def _normalize_phone(raw: str) -> str:
+    """Na E.164 (+predvoľba, len číslice). Vráti '' ak sa nedá spoľahlivo."""
+    s = re.sub(r"[^\d+]", "", raw or "")
+    if s.startswith("00"):
+        s = "+" + s[2:]
+    return s if _PHONE.match(s) else ""
+
+
 @app.post("/order")
 def order(request: Request,
           trip_type: str = Form("oneway"),
@@ -427,6 +438,10 @@ def order(request: Request,
         prev_date = s["date"]
     if "@" not in email:
         problems.append("Invalid e-mail address.")
+    phone_e164 = _normalize_phone(phone)
+    if not phone_e164:
+        problems.append("Enter the phone in international format, e.g. +421900123456"
+                        " (country code required).")
     if plan not in PLANS:
         plan = "basic"
 
@@ -457,7 +472,7 @@ def order(request: Request,
     # user je zaručene prihlásený (gate na začiatku) — objednávka patrí jemu
     store = Orders()
     try:
-        token = store.create(email=email, phone=phone, slices=slices,
+        token = store.create(email=email, phone=phone_e164, slices=slices,
                              passengers=passengers, plan=plan,
                              valid_until=valid_until,
                              user_id=user["id"])

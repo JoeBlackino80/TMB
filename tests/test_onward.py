@@ -560,3 +560,32 @@ def test_mailer_builds_inline_related(monkeypatch):
     # v strome sa nachádza image/png s Content-ID <qr>
     types = [p.get_content_type() for p in built["msg"].walk()]
     assert "image/png" in types
+
+
+def test_phone_normalization():
+    from onward.app import _normalize_phone
+    assert _normalize_phone("+421 900 123 456") == "+421900123456"
+    assert _normalize_phone("00421900123456") == "+421900123456"
+    assert _normalize_phone("+421-900-123-456") == "+421900123456"
+    assert _normalize_phone("0900123456") == ""      # bez predvoľby → odmietnuté
+    assert _normalize_phone("abc") == ""
+
+
+def test_order_rejects_bad_phone(client, monkeypatch):
+    _mock_duffel(monkeypatch); _mock_mailer(monkeypatch)
+    _auth(client)
+    r = client.post("/order", data=_form_data(phone="0900123456"))
+    assert "international format" in r.text
+
+
+def test_order_stores_normalized_phone(client, monkeypatch):
+    _mock_duffel(monkeypatch); _mock_mailer(monkeypatch)
+    _auth(client)
+    import os
+    from onward.store import Orders
+    client.post("/order", data=_form_data(phone="+421 900 123 456"),
+                follow_redirects=True)
+    store = Orders(os.environ["ONWARD_DB_PATH"])
+    row = store.all()[0]
+    assert row["phone"] == "+421900123456"
+    store.close()
