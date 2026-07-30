@@ -1,11 +1,11 @@
 {% if lang_suggest %}
-<div id="langsug" style="background:#e8f7f0;border-bottom:1px solid #c3e5d3;
+<div id="langsug" style="background:rgba(167,139,250,.12);border-bottom:1px solid rgba(167,139,250,.28);
      padding:9px 22px;font-size:14px;display:flex;gap:14px;align-items:center;
-     font-family:'Inter',-apple-system,sans-serif;position:relative;z-index:60">
+     font-family:-apple-system,'Inter',sans-serif;position:relative;z-index:60">
   <a href="{{ lang_suggest.url }}"
-     style="font-weight:700;color:#059669;text-decoration:none">🌍 {{ lang_suggest.text }}</a>
+     style="font-weight:700;color:#a78bfa;text-decoration:none">🌍 {{ lang_suggest.text }}</a>
   <a href="#" aria-label="✕"
-     style="margin-left:auto;color:#61697a;text-decoration:none;font-weight:700"
+     style="margin-left:auto;color:#9ea3ab;text-decoration:none;font-weight:700"
      onclick="document.cookie='langsug=off;path=/;max-age=31536000';
               document.getElementById('langsug').remove();return false">✕</a>
 </div>

@@ -51,8 +51,8 @@
   </table>
   {% if health.errors %}
   <p style="margin-top:12px"><b>Posledné chyby v agent.log:</b></p>
-  <pre style="font-size:11.5px;background:#fef0ef;border:1px solid #f2c8c4;
-       border-radius:8px;padding:10px;overflow-x:auto;margin-top:6px">{% for e in health.errors %}{{ e }}
+  <pre style="font-size:11.5px;background:rgba(255,107,94,.12);border:1px solid rgba(255,107,94,.3);
+       color:var(--ink);border-radius:8px;padding:10px;overflow-x:auto;margin-top:6px">{% for e in health.errors %}{{ e }}
 {% endfor %}</pre>
   {% else %}
   <p class="muted" style="margin-top:10px">V logu nie sú žiadne čerstvé chyby. 👌</p>

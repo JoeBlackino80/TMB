@@ -20,13 +20,14 @@
 {% block head %}{% endblock %}
 <style>
   :root {
-    color-scheme: light;
-    --bg: #f7f8fa; --card: #ffffff; --ink: #0d1117; --muted: #61697a;
-    --faint: #98a1b2; --line: #e7e9ee; --line2: #eff1f5;
-    --accent: #059669; --accent-soft: #e8f7f0;
-    --black: #0a0c10; --red: #d92d20; --red-soft: #fef0ef;
-    --amber: #b54708; --amber-soft: #fdf4e3;
-    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color-scheme: dark;
+    --bg: #0a0a0c; --card: #141416; --ink: #f2f3f5; --muted: #9ea3ab;
+    --faint: #6f747c; --line: #2a2a2e; --line2: #1f1f22;
+    --accent: #a78bfa; --accent-soft: rgba(167,139,250,.16); --on-accent: #17122a;
+    --black: #0a0a0c; --red: #ff6b5e; --red-soft: rgba(255,107,94,.14);
+    --amber: #e6ad3f; --amber-soft: rgba(230,173,63,.14);
+    --ok: #34d399; --ok-soft: rgba(52,211,153,.15);
+    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif;
   }
   * { box-sizing: border-box; margin: 0; }
   body { font-family: var(--sans); background: var(--bg); color: var(--ink);
@@ -49,8 +50,9 @@
     text-decoration: none; color: var(--muted); font-size: 14px; font-weight: 500;
     padding: 8px 10px; border-radius: 8px; transition: background .12s, color .12s; }
   aside.side nav a svg { flex-shrink: 0; opacity: .75; }
-  aside.side nav a:hover { background: #f2f4f7; color: var(--ink); }
-  aside.side nav a.on { background: #eef0f4; color: var(--ink); font-weight: 600; }
+  aside.side nav a:hover { background: #1b1b1f; color: var(--ink); }
+  aside.side nav a.on { background: var(--accent-soft); color: var(--ink); font-weight: 600; }
+  aside.side nav a.on svg { opacity: 1; color: var(--accent); }
   aside.side .foot { margin-top: auto; padding: 12px 10px 4px;
     border-top: 1px solid var(--line2); font-size: 12.5px; color: var(--faint);
     word-break: break-all; }
@@ -70,25 +72,26 @@
     color: var(--muted); }
   input, select { width: 100%; max-width: 420px; padding: 9px 12px;
     border: 1px solid var(--line); border-radius: 8px; font-size: 14px;
-    background: #fff; font-family: var(--sans); color: var(--ink); }
+    background: #161618; font-family: var(--sans); color: var(--ink); }
+  input::placeholder { color: var(--faint); }
   input:focus, select:focus { outline: none; border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-soft); }
 
-  button, .btn { background: var(--black); color: #fff; border: 1px solid var(--black);
+  button, .btn { background: var(--accent); color: var(--on-accent); border: 1px solid var(--accent);
     border-radius: 8px; padding: 9px 16px; font-size: 13.5px; font-weight: 600;
     cursor: pointer; margin-top: 12px; text-decoration: none;
-    display: inline-block; font-family: var(--sans); transition: opacity .15s; }
-  button:hover, .btn:hover { opacity: .82; }
-  button.small { padding: 5px 11px; font-size: 12.5px; margin: 0; background: #fff;
+    display: inline-block; font-family: var(--sans); transition: opacity .15s, transform .15s; }
+  button:hover, .btn:hover { opacity: .88; }
+  button.small { padding: 5px 11px; font-size: 12.5px; margin: 0; background: transparent;
     color: var(--ink); border: 1px solid var(--line); font-weight: 600; }
-  button.small:hover { opacity: 1; background: #f8f9fb; border-color: #c9cedb; }
+  button.small:hover { opacity: 1; background: #1b1b1f; border-color: #3a3a40; }
   button.small.danger { color: var(--red); }
-  button.small.danger:hover { background: var(--red-soft); border-color: #f0c4c0; }
+  button.small.danger:hover { background: var(--red-soft); border-color: rgba(255,107,94,.4); }
 
-  .error { background: var(--red-soft); border: 1px solid #f2c8c4;
+  .error { background: var(--red-soft); border: 1px solid rgba(255,107,94,.32);
     color: var(--red); padding: 11px 15px; border-radius: 10px;
     margin-bottom: 16px; font-size: 13.5px; }
-  .notice { background: var(--amber-soft); border: 1px solid #eedcb2;
+  .notice { background: var(--amber-soft); border: 1px solid rgba(230,173,63,.32);
     color: var(--amber); padding: 11px 15px; border-radius: 10px;
     margin-bottom: 16px; font-size: 13.5px; }
   .notice a, .error a { color: inherit; font-weight: 700; }
@@ -100,14 +103,14 @@
   td { text-align: left; padding: 10px; border-bottom: 1px solid var(--line2);
     vertical-align: middle; font-variant-numeric: tabular-nums; }
   tr:last-child td { border-bottom: 0; }
-  tbody tr:hover td { background: #fafbfc; }
+  tbody tr:hover td { background: #161618; }
 
   .badge { display: inline-block; padding: 2px 9px; border-radius: 99px;
     font-size: 11.5px; font-weight: 600; white-space: nowrap; }
-  .b-green { background: var(--accent-soft); color: var(--accent); }
+  .b-green { background: var(--ok-soft); color: var(--ok); }
   .b-red { background: var(--red-soft); color: var(--red); }
   .b-amber { background: var(--amber-soft); color: var(--amber); }
-  .b-gray { background: #f2f4f7; color: var(--muted); }
+  .b-gray { background: #26262a; color: var(--muted); }
   .muted { color: var(--muted); font-size: 13px; }
 
   .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));

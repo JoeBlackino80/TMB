@@ -22,9 +22,9 @@
   .mb-tag { position: absolute; top: 13px; right: 13px; font-size: 10px; font-weight: 700;
     text-transform: uppercase; letter-spacing: .5px; color: var(--accent);
     background: var(--accent-soft); border-radius: 99px; padding: 3px 9px; }
-  .mb-tag.gray { color: var(--muted); background: #f2f4f7; }
+  .mb-tag.gray { color: var(--muted); background: #26262a; }
   .mb-copy { display: flex; gap: 8px; align-items: stretch; }
-  .mb-copy code { flex: 1; min-width: 0; background: #f6f8fa; border: 1px solid var(--line);
+  .mb-copy code { flex: 1; min-width: 0; background: #161618; border: 1px solid var(--line);
     border-radius: 8px; padding: 10px 12px; font-size: 13px;
     font-family: ui-monospace, "SF Mono", Menlo, monospace; overflow: auto;
     white-space: nowrap; color: var(--ink); }
@@ -34,11 +34,11 @@
   .mb-steps li { counter-increment: s; position: relative; padding: 7px 0 7px 34px;
     font-size: 13.5px; color: var(--ink); line-height: 1.5; }
   .mb-steps li::before { content: counter(s); position: absolute; left: 0; top: 5px;
-    width: 22px; height: 22px; border-radius: 50%; background: var(--black); color: #fff;
+    width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--on-accent);
     font-size: 12px; font-weight: 700; display: flex; align-items: center;
     justify-content: center; }
   .mb-adv { margin: 4px 0 6px; border: 1px solid var(--line); border-radius: 10px;
-    padding: 0 14px; background: #fafbfc; max-width: 420px; }
+    padding: 0 14px; background: #161618; max-width: 420px; }
   .mb-adv summary { cursor: pointer; font-weight: 600; font-size: 12.8px;
     color: var(--muted); padding: 11px 0; list-style: none; }
   .mb-adv summary::-webkit-details-marker { display: none; }
@@ -57,7 +57,7 @@
 </div>
 
 {% if not verified %}
-<div class="card" style="border-color:#eedcb2;background:#fdfaf3">
+<div class="card" style="border-color:rgba(230,173,63,.32);background:rgba(230,173,63,.07)">
   <h2>{{ t.mb_verify_title }}</h2>
   <p class="muted">{{ t.mb_verify_body }}</p>
   <form method="post" action="/verify/resend">
