@@ -49,6 +49,23 @@ templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "t
 _IATA = re.compile(r"^[A-Za-z]{3}$")
 
 
+def _cookie_secure() -> bool:
+    """Secure flag na cookies — vypnuteľné pri lokálnom teste (HTTP)."""
+    return os.environ.get("ONWARD_COOKIE_SECURE", "1") != "0"
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    resp = await call_next(request)
+    resp.headers["X-Content-Type-Options"] = "nosniff"
+    resp.headers["X-Frame-Options"] = "DENY"
+    resp.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    resp.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    resp.headers.setdefault("Content-Security-Policy", "frame-ancestors 'none'")
+    resp.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    return resp
+
+
 def _prices() -> dict:
     return {plan: os.environ.get(env, default)
             for plan, (_, env, default, _link) in PLANS.items()}
@@ -152,7 +169,7 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
         store.close()
     resp = _redirect("/account")
     resp.set_cookie("session", _session_cookie(uid), httponly=True,
-                    samesite="lax", max_age=2592000)
+                    samesite="lax", secure=_cookie_secure(), max_age=2592000)
     return resp
 
 
@@ -185,7 +202,7 @@ def login(request: Request, email: str = Form(...), password: str = Form(...),
         return _render(request, "login.html", err="Wrong e-mail or password.")
     resp = _redirect("/account")
     resp.set_cookie("session", _session_cookie(user["id"]), httponly=True,
-                    samesite="lax", max_age=2592000)
+                    samesite="lax", secure=_cookie_secure(), max_age=2592000)
     return resp
 
 
@@ -451,6 +468,9 @@ def itinerary_pdf(token: str):
 
 @app.get("/admin")
 def admin(request: Request, key: str = ""):
+    if security.rate_limited(f"admin:{security.client_ip(request)}", limit=20,
+                             window_s=3600):
+        return Response(status_code=429)
     if not ADMIN_KEY or not hmac.compare_digest(key, ADMIN_KEY):
         return Response(status_code=404)
     store = Orders()

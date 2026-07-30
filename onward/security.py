@@ -16,10 +16,15 @@ _hits: dict[str, list[float]] = defaultdict(list)
 
 
 def client_ip(request) -> str:
-    """Reálna IP aj za reverzným proxy (Caddy posiela X-Forwarded-For)."""
+    """Reálna IP za jedným dôveryhodným reverzným proxy (Caddy).
+
+    Berieme POSLEDNÚ hodnotu X-Forwarded-For — tú pridal náš Caddy a je
+    dôveryhodná. Prvé hodnoty si môže podvrhnúť klient (a tým obísť
+    rate-limit), preto ich ignorujeme.
+    """
     xff = request.headers.get("x-forwarded-for", "")
     if xff:
-        return xff.split(",")[0].strip()
+        return xff.split(",")[-1].strip()
     return request.client.host if request.client else "?"
 
 
@@ -32,6 +37,10 @@ def rate_limited(key: str, limit: int, window_s: int) -> bool:
     if len(hits) >= limit:
         return True
     hits.append(now)
+    # ochrana pamäte: občas vyprázdni prázdne/staré kľúče
+    if len(_hits) > 5000:
+        for k in [k for k, v in _hits.items() if not v or v[-1] < cutoff]:
+            _hits.pop(k, None)
     return False
 
 

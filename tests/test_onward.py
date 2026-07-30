@@ -129,6 +129,7 @@ def test_pdf_builds(tmp_path):
 @pytest.fixture()
 def client(tmp_path, monkeypatch):
     monkeypatch.setenv("ONWARD_DB_PATH", str(tmp_path / "onward.db"))
+    monkeypatch.setenv("ONWARD_COOKIE_SECURE", "0")  # TestClient beží cez HTTP
     from onward import app as onward_app
     return TestClient(onward_app.app)
 
@@ -408,3 +409,54 @@ def test_password_policy():
 def test_register_rejects_weak_password(client):
     r = client.post("/register", data={"email": "w@x.sk", "password": "weakpass"})
     assert "uppercase" in r.text or "special" in r.text or "digit" in r.text
+
+
+def test_security_headers(client):
+    r = client.get("/")
+    assert r.headers["x-frame-options"] == "DENY"
+    assert r.headers["x-content-type-options"] == "nosniff"
+    assert "max-age" in r.headers["strict-transport-security"]
+    assert "frame-ancestors" in r.headers["content-security-policy"]
+
+
+def test_xff_spoofing_does_not_bypass_rate_limit(client):
+    from onward import security
+    security._hits.clear()
+    # útočník mení PRVÚ hodnotu XFF (podvrh), Caddy pridáva reálnu ako poslednú
+    last = None
+    for i in range(10):
+        last = client.post("/login",
+                           data={"email": "x@x.sk", "password": "x"},
+                           headers={"x-forwarded-for": f"9.9.9.{i}, 203.0.113.5"})
+    assert "Too many attempts" in last.text  # limit drží podľa poslednej IP
+
+
+def test_client_ip_takes_last_xff():
+    from onward import security
+    class Req:
+        headers = {"x-forwarded-for": "1.2.3.4, 203.0.113.9"}
+        client = None
+    assert security.client_ip(Req()) == "203.0.113.9"
+
+
+def test_delete_passenger_is_user_scoped(client, monkeypatch):
+    from cryptography.fernet import Fernet
+    monkeypatch.setenv("ONWARD_DATA_KEY", Fernet.generate_key().decode())
+    # user A pridá pasažiera
+    client.post("/register", data={"email": "a1@x.sk", "password": "Heslo123!"})
+    client.post("/account/passenger", data={
+        "title": "mr", "given_name": "A", "family_name": "One",
+        "born_on": "1990-01-01", "gender": "m"})
+    import os
+    from onward.store import Orders
+    store = Orders(os.environ["ONWARD_DB_PATH"])
+    uid_a = store.user_by_email("a1@x.sk")["id"]
+    pid_a = store.saved_passengers(uid_a)[0]["id"]
+    store.close()
+    # user B sa prihlási a skúsi zmazať pasažiera user A
+    client.get("/logout")
+    client.post("/register", data={"email": "b1@x.sk", "password": "Heslo123!"})
+    client.post(f"/account/passenger/{pid_a}/delete")
+    store = Orders(os.environ["ONWARD_DB_PATH"])
+    assert len(store.saved_passengers(uid_a)) == 1  # pasažier A ostal
+    store.close()
