@@ -13,6 +13,15 @@
 {% block content %}
 <div class="card" style="margin-top:-34px">
   <h2>{{ t['order_title'] }}</h2>
+  {% if not user %}
+  <p class="note" style="margin:0 0 14px">{{ t['book_need_account_text'] }}</p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <a class="btn" href="/register?next=order"
+       style="display:inline-block;text-decoration:none">{{ t['book_register_btn'] }}</a>
+    <a class="btn ghost" href="/login?next=order"
+       style="display:inline-block;text-decoration:none">{{ t['book_signin_btn'] }}</a>
+  </div>
+  {% else %}
   <form method="post" action="/order">
     <label style="margin-bottom:2px">{{ t['validity'] }}</label>
     <div class="plans">
@@ -77,7 +86,7 @@
 
     <div class="row">
       <div><label>{{ t['email'] }}</label>
-        <input type="email" name="email" required></div>
+        <input type="email" name="email" value="{{ user['email'] }}" required></div>
       <div><label>{{ t['phone'] }}</label>
         <input name="phone" placeholder="+421900123456" required></div>
     </div>
@@ -124,6 +133,7 @@
     <button type="submit">{{ t['submit'] }}</button>
     <p class="note">{{ t['fee_note'] }}</p>
   </form>
+  {% endif %}
 </div>
 
 <div class="card">
@@ -143,6 +153,7 @@
 </div>
 
 <script>
+{% if user %}
   const paxBoxes = [...document.querySelectorAll('fieldset.pax')]
     .filter(b => b.id.startsWith('pax'));
   const btn = document.getElementById('addpax');
@@ -215,5 +226,6 @@
         leg.disabled = (t !== 'multi');
       }
     }));
+{% endif %}
 </script>
 {% endblock %}

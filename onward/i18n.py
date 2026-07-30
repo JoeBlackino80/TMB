@@ -36,6 +36,11 @@ STRINGS = {
         "badge1": "Real, verifiable PNR", "badge2": "Delivered in minutes",
         "badge3": "PDF itinerary + QR verification",
         "order_title": "Order your reservation",
+        "book_need_account_text": "Reservations are placed from your account — it "
+            "keeps your booking history and lets you reuse traveller details. "
+            "Creating one takes a few seconds.",
+        "book_register_btn": "Create account & book",
+        "book_signin_btn": "I already have an account",
         "validity": "Validity",
         "plan_basic": "Standard",
         "plan_basic_desc": "One reservation, valid 24–72 h (airline dependent)",
@@ -181,6 +186,11 @@ a verifiable reservation, you get a full refund — no questions asked. See
         "badge1": "PNR real y verificable", "badge2": "Entrega en minutos",
         "badge3": "Itinerario PDF + verificación QR",
         "order_title": "Pide tu reserva",
+        "book_need_account_text": "Las reservas se hacen desde tu cuenta — guarda "
+            "tu historial y te permite reutilizar los datos de los pasajeros. "
+            "Crear una cuenta lleva unos segundos.",
+        "book_register_btn": "Crear cuenta y reservar",
+        "book_signin_btn": "Ya tengo una cuenta",
         "validity": "Validez",
         "plan_basic": "Estándar",
         "plan_basic_desc": "Una reserva, válida 24–72 h (según la aerolínea)",
