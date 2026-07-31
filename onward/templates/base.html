@@ -21,10 +21,17 @@
                    border:1px solid #3a4d85; font-size:12px; }
   header .lang a.on { background:#fff; color:#0d1b3d; font-weight:700; }
   .hero { background:linear-gradient(150deg,#0d1b3d 0%,#16307a 55%,#1c64f2 130%);
-          color:#fff; padding:44px 20px 52px; }
+          color:#fff; padding:44px 20px 52px; position:relative; overflow:hidden; }
+  .hero-inner { position:relative; z-index:2; }
   .hero h1 { font-size:36px; margin:0 0 12px; line-height:1.15; }
   .hero p { font-size:17px; color:#d7e1f7; max-width:640px; margin:0 0 20px; }
   .hero b { color:#fff; }
+  .hero-deco { position:absolute; right:-40px; top:0; height:100%; width:auto;
+               opacity:.13; color:#fff; z-index:1; pointer-events:none; }
+  @media (max-width:720px){ .hero-deco { opacity:.08; right:-120px; } }
+  .h2ic { width:19px; height:19px; vertical-align:-3px; margin-right:7px;
+          fill:none; stroke:#1c64f2; stroke-width:2; stroke-linecap:round;
+          stroke-linejoin:round; }
   .badges { display:flex; gap:10px; flex-wrap:wrap; }
   .badges span { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25);
                  border-radius:99px; padding:7px 14px; font-size:13px; font-weight:600; }
