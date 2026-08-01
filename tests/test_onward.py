@@ -589,3 +589,91 @@ def test_order_stores_normalized_phone(client, monkeypatch):
     row = store.all()[0]
     assert row["phone"] == "+421900123456"
     store.close()
+
+
+# ---- Hotely (Duffel Stays) ----
+
+SEARCH_RESULTS = [{"id": "sr_1", "accommodation": {"name": "Test Hotel"}}]
+RATES_DATA = {
+    "name": "Test Hotel",
+    "location": {"address": {"line_one": "1 Main St", "city_name": "Bangkok",
+                             "country_code": "TH"}},
+    "rooms": [{"rates": [
+        {"id": "rate_cheap", "total_amount": "120.00",
+         "conditions": [{"type": "cancellation", "deadline": "2099-01-01T00:00:00Z"}]},
+    ]}],
+}
+STAY_BOOKING = {"id": "bk_1", "reference": "HOTELREF1"}
+
+
+def _hotel_form(**over):
+    base = dict(city="Bangkok, TH", latitude="13.6900", longitude="100.7501",
+                check_in=TOMORROW,
+                check_out=(date.today() + timedelta(days=3)).isoformat(),
+                email="buyer@x.sk", phone="+421900123456",
+                given_name=["Jan"], family_name=["Novak"])
+    base.update(over)
+    return base
+
+
+def _mock_stays(monkeypatch):
+    from onward import hotelbooking
+    monkeypatch.setattr(hotelbooking, "BASE_URL", "https://validflight.com")
+    monkeypatch.setattr(hotelbooking.stays, "search", lambda *a, **k: SEARCH_RESULTS)
+    monkeypatch.setattr(hotelbooking.stays, "fetch_rates", lambda sid: RATES_DATA)
+    monkeypatch.setattr(hotelbooking.stays, "create_quote", lambda rid: {"id": "q_1"})
+    monkeypatch.setattr(hotelbooking.stays, "create_booking",
+                        lambda quote_id, guests, email, phone_number: STAY_BOOKING)
+    monkeypatch.setattr(hotelbooking.stays, "cancel_booking", lambda bid: {"id": bid})
+    sent = []
+    monkeypatch.setattr(hotelbooking.mailer, "send",
+                        lambda to, subject, text, html="", attachments=None,
+                        inline_images=None: sent.append((subject, attachments)) or True)
+    return sent
+
+
+def test_hotel_requires_account(client):
+    r = client.post("/hotel/order", data=_hotel_form(), follow_redirects=False)
+    assert r.status_code == 303 and r.headers["location"] == "/register?next=hotel"
+
+
+def test_free_cancellation_rate_pick():
+    from onward import stays
+    picked = stays.pick_free_cancellation_rate(RATES_DATA)
+    assert picked and picked[0]["id"] == "rate_cheap"
+    assert picked[1] == "2099-01-01T00:00:00Z"
+
+
+def test_hotel_order_books(client, monkeypatch):
+    sent = _mock_stays(monkeypatch)
+    _auth(client)
+    r = client.post("/hotel/order", data=_hotel_form(), follow_redirects=True)
+    assert r.status_code == 200
+    assert "HOTELREF1" in r.text and "Test Hotel" in r.text
+    assert sent and "HOTELREF1" in sent[0][0]
+    assert sent[0][1][0][0] == "hotel-reservation.pdf"
+    # voucher PDF sa stiahne
+    token = r.url.path.rsplit("/", 1)[-1]
+    pdf_resp = client.get(f"/hotel/voucher/{token}.pdf")
+    assert pdf_resp.status_code == 200 and pdf_resp.content.startswith(b"%PDF")
+
+
+def test_hotel_bad_city_rejected(client, monkeypatch):
+    _mock_stays(monkeypatch); _auth(client)
+    r = client.post("/hotel/order", data=_hotel_form(latitude="", longitude=""))
+    assert "pick a city" in r.text
+
+
+def test_hotel_cancel_due(client, monkeypatch):
+    _mock_stays(monkeypatch); _auth(client)
+    client.post("/hotel/order", data=_hotel_form(), follow_redirects=True)
+    import os
+    from onward.store import Orders
+    from onward import hotelbooking
+    store = Orders(os.environ["ONWARD_DB_PATH"])
+    # nastav cancel_by do minulosti a spusti cron cancel
+    store.conn.execute("UPDATE stays SET cancel_by='2000-01-01T00:00:00Z'")
+    store.conn.commit()
+    assert hotelbooking.cancel_due(store) == 1
+    assert store.all_stays()[0]["status"] == "cancelled"
+    store.close()

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  {% if stay['status'] == 'booked' %}
+    <h2 class="ok">{{ t['hotel_confirmed'] }}</h2>
+    <div style="text-align:center;font-size:26px;font-weight:800;letter-spacing:2px">
+      {{ stay['reference'] }}</div>
+    <p style="text-align:center">{{ stay['hotel_name'] }}</p>
+    {% if summary.get('address') %}<p class="note" style="text-align:center">{{ summary['address'] }}</p>{% endif %}
+    <table>
+      <tr><th>{{ t['hotel_th'] }}</th><th>{{ t['checkin_th'] }}</th><th>{{ t['checkout_th'] }}</th></tr>
+      <tr><td>{{ stay['hotel_name'] }}</td><td>{{ stay['check_in'] }}</td><td>{{ stay['check_out'] }}</td></tr>
+    </table>
+    <p><b>{{ t['st_passengers'] }}:</b>
+      {% for g in guests %}{{ g['given_name'] }} {{ g['family_name'] }}{{ ", " if not loop.last }}{% endfor %}</p>
+    <p class="note">The reservation was also sent to {{ stay['email'] }}.</p>
+    <p><a href="/hotel/voucher/{{ stay['token'] }}.pdf"><b>{{ t['hotel_download'] }}</b></a></p>
+    <a href="/hotel" class="btnlink">{{ t['nav_hotel'] }}</a>
+  {% elif stay['status'] in ('new', 'paid') %}
+    <h2>{{ t['st_working'] }}</h2>
+    <p>{{ t['st_working_text'] }}</p>
+    <meta http-equiv="refresh" content="10">
+  {% elif stay['status'] == 'cancelled' %}
+    <h2>{{ t['st_expired'] }}</h2>
+    <p>Reservation {{ stay['reference'] }} was released before the free-cancellation
+    deadline. <a href="/hotel">{{ t['st_new_order'] }}</a>.</p>
+  {% else %}
+    <h2 class="bad">{{ t['st_failed'] }}</h2>
+    <p>{{ stay['error'] or '' }}</p>
+    <p>{{ t['st_failed_text'] }}</p>
+  {% endif %}
+</div>
+{% endblock %}

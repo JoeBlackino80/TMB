@@ -23,6 +23,19 @@
     {% endfor %}
   </table>
   {% else %}<p class="note">{{ t['no_orders'] }} <a href="/">{{ t['nav_order'] }}</a></p>{% endif %}
+  {% if stays %}
+  <h3 style="font-size:15px;margin-top:18px">{{ t['nav_hotel'] }}</h3>
+  <table>
+    <tr><th>{{ t['th_date'] }}</th><th>{{ t['hotel_th'] }}</th>
+        <th>{{ t['th_status'] }}</th><th></th></tr>
+    {% for s in stays %}
+    <tr><td>{{ s['created_at'][:10] }}</td>
+        <td>{{ s['hotel_name'] or s['city'] }}</td>
+        <td>{{ s['status'] }}</td>
+        <td><a href="/hotel/status/{{ s['token'] }}">{{ t['view'] }}</a></td></tr>
+    {% endfor %}
+  </table>
+  {% endif %}
 </div>
 
 <div class="card">

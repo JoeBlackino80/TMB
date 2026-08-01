@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block hero %}
+<div class="hero"><div class="hero-inner">
+  <h1>{{ t['hotel_hero_title'] }}</h1>
+  <p>{{ t['hotel_hero_sub'] | safe }}</p>
+  <div class="badges">
+    <span>&#9962; {{ t['badge1'] }}</span>
+    <span>&#9201; {{ t['badge2'] }}</span>
+    <span>&#128196; {{ t['badge3'] }}</span>
+  </div>
+</div></div>
+{% endblock %}
+{% block content %}
+<div class="card" style="margin-top:-34px">
+  <h2>{{ t['hotel_order_title'] }}</h2>
+  {% if need_account %}
+  <p class="note" style="margin:0 0 14px">{{ t['book_need_account_text'] }}</p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <a class="btn" href="/register?next=hotel" style="text-decoration:none">{{ t['book_register_btn'] }}</a>
+    <a class="btn ghost" href="/login?next=hotel" style="text-decoration:none">{{ t['book_signin_btn'] }}</a>
+  </div>
+  {% else %}
+  <form method="post" action="/hotel/order">
+    <label>{{ t['city_lbl'] }}</label>
+    <input id="cityin" autocomplete="off" placeholder="{{ t['placeholder_city'] }}" required>
+    <input type="hidden" name="city" id="cityname">
+    <input type="hidden" name="latitude" id="lat">
+    <input type="hidden" name="longitude" id="lng">
+    <div class="row">
+      <div><label>{{ t['checkin_lbl'] }}</label>
+        <input type="date" name="check_in" min="{{ min_date }}" required></div>
+      <div><label>{{ t['checkout_lbl'] }}</label>
+        <input type="date" name="check_out" min="{{ min_date }}" required></div>
+    </div>
+    <div class="row">
+      <div><label>{{ t['email'] }}</label>
+        <input type="email" name="email" value="{{ user['email'] }}" required></div>
+      <div><label>{{ t['phone'] }}</label>
+        <input name="phone" placeholder="+421900123456" required></div>
+    </div>
+    {% for i in range(max_pax) %}
+    <fieldset class="pax" id="g{{ i }}" {% if i > 0 %}hidden disabled{% endif %}>
+      <h3>{{ t['guest'] }} {{ i + 1 }}</h3>
+      <div class="row">
+        <div><label>{{ t['given'] }}</label><input name="given_name" required></div>
+        <div><label>{{ t['surname'] }}</label><input name="family_name" required></div>
+      </div>
+    </fieldset>
+    {% endfor %}
+    <button type="button" class="linklike" id="addg">{{ t['add_guest'] }}</button>
+    <div class="hp" aria-hidden="true"><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
+    <button type="submit">{{ t['hotel_submit'] }}</button>
+    <p class="note">{{ t['fee_note'] }}</p>
+  </form>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>{{ t['what_title'] }}</h2>
+  <p>You receive a <b>real, cancellable hotel reservation</b> with a confirmation
+  number — held on a free-cancellation rate, so it can be verified as genuine and
+  is released automatically before the cancellation deadline. It is supporting
+  documentation for visa applications and proof of accommodation, not a paid stay.</p>
+</div>
+
+{% if not need_account %}
+<script>
+  const gboxes = [...document.querySelectorAll('fieldset.pax')];
+  const addg = document.getElementById('addg');
+  addg.addEventListener('click', () => {
+    const n = gboxes.find(b => b.hidden);
+    if (n) { n.hidden = false; n.disabled = false; }
+    if (!gboxes.some(b => b.hidden)) addg.hidden = true;
+  });
+
+  let A = [];
+  fetch('/airports.json').then(r => r.json()).then(d => { A = d; });
+  const cityin = document.getElementById('cityin');
+  const wrap = document.createElement('div'); wrap.className = 'ac-wrap';
+  cityin.parentNode.insertBefore(wrap, cityin); wrap.appendChild(cityin);
+  const list = document.createElement('ul'); list.className = 'ac-list'; list.hidden = true;
+  wrap.appendChild(list);
+  let matches = [];
+  function find(q){ q=q.trim().toLowerCase(); if(q.length<2) return [];
+    const r=[]; for(const a of A){ const city=(a[2]||'').toLowerCase();
+      if(city.startsWith(q)||a[1].toLowerCase().startsWith(q)||a[0].toLowerCase()===q) r.push(a);
+      if(r.length>=8) break; } return r; }
+  function choose(m){ cityin.value = (m[2]||m[1])+', '+m[3];
+    document.getElementById('cityname').value = (m[2]||m[1])+', '+m[3];
+    document.getElementById('lat').value = m[4];
+    document.getElementById('lng').value = m[5]; list.hidden = true; }
+  cityin.addEventListener('input', () => {
+    matches = find(cityin.value);
+    list.innerHTML = matches.map(m => `<li><b>${m[2]||m[1]}</b>, ${m[3]}<small>${m[1]}</small></li>`).join('');
+    list.hidden = !matches.length;
+    [...list.children].forEach((li,i)=>li.addEventListener('mousedown',e=>{e.preventDefault();choose(matches[i]);}));
+  });
+  cityin.addEventListener('blur', () => { setTimeout(()=>list.hidden=true,150);
+    if(!document.getElementById('lat').value && matches.length) choose(matches[0]); });
+</script>
+{% endif %}
+{% endblock %}

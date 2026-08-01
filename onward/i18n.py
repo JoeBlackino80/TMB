@@ -9,6 +9,19 @@ STRINGS = {
     "en": {
         "nav_order": "Order", "nav_faq": "FAQ", "nav_terms": "Terms",
         "nav_login": "Sign in", "nav_account": "My account", "nav_logout": "Sign out",
+        "nav_hotel": "Hotel",
+        "hotel_hero_title": "A real hotel reservation for your visa",
+        "hotel_hero_sub": "A <b>genuine, cancellable hotel reservation</b> with a"
+            " confirmation number — held on a free-cancellation rate and delivered"
+            " as a printable PDF. Perfect for <b>visa applications</b> and"
+            " <b>proof of accommodation</b>.",
+        "hotel_order_title": "Order your hotel reservation",
+        "city_lbl": "Destination city", "checkin_lbl": "Check-in",
+        "checkout_lbl": "Check-out", "guest": "Guest", "add_guest": "+ Add guest",
+        "hotel_submit": "Get my hotel reservation",
+        "hotel_confirmed": "Hotel reservation confirmed",
+        "hotel_download": "Download PDF reservation",
+        "checkin_th": "Check-in", "checkout_th": "Check-out", "hotel_th": "Hotel",
         "login_title": "Sign in", "register_title": "Create an account",
         "email_lbl": "E-mail", "password_lbl": "Password", "min8": "min. 8 characters",
         "login_btn": "Sign in", "register_btn": "Create account",
@@ -163,6 +176,19 @@ a verifiable reservation, you get a full refund — no questions asked. See
     "es": {
         "nav_order": "Reservar", "nav_faq": "FAQ", "nav_terms": "Términos",
         "nav_login": "Entrar", "nav_account": "Mi cuenta", "nav_logout": "Salir",
+        "nav_hotel": "Hotel",
+        "hotel_hero_title": "Una reserva de hotel real para tu visado",
+        "hotel_hero_sub": "Una <b>reserva de hotel genuina y cancelable</b> con"
+            " número de confirmación — con tarifa de cancelación gratuita y"
+            " enviada en PDF. Perfecta para <b>solicitudes de visado</b> y"
+            " <b>prueba de alojamiento</b>.",
+        "hotel_order_title": "Pide tu reserva de hotel",
+        "city_lbl": "Ciudad de destino", "checkin_lbl": "Entrada",
+        "checkout_lbl": "Salida", "guest": "Huésped", "add_guest": "+ Añadir huésped",
+        "hotel_submit": "Obtener mi reserva de hotel",
+        "hotel_confirmed": "Reserva de hotel confirmada",
+        "hotel_download": "Descargar reserva PDF",
+        "checkin_th": "Entrada", "checkout_th": "Salida", "hotel_th": "Hotel",
         "login_title": "Iniciar sesión", "register_title": "Crear una cuenta",
         "email_lbl": "E-mail", "password_lbl": "Contraseña", "min8": "mín. 8 caracteres",
         "login_btn": "Entrar", "register_btn": "Crear cuenta",

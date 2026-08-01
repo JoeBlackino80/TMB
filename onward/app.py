@@ -28,7 +28,8 @@ from fastapi import FastAPI, Form, Request
 from fastapi.responses import FileResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from . import auth, booking, crypto, i18n, mailer, pdf, security
+from . import (auth, booking, crypto, hotelbooking, i18n, mailer, pdf,
+               security, staypdf)
 from .store import Orders
 
 BRAND = os.environ.get("ONWARD_BRAND", "ValidFlight")
@@ -311,10 +312,11 @@ def account(request: Request):
     store = Orders()
     try:
         orders = store.orders_for_user(user["id"])
+        stays = store.stays_for_user(user["id"])
         passengers = store.saved_passengers(user["id"])
     finally:
         store.close()
-    return _render(request, "account.html", user=user, orders=orders,
+    return _render(request, "account.html", user=user, orders=orders, stays=stays,
                    passengers=passengers,
                    saved="saved" in request.query_params,
                    passport_on=auth.passport_storage_enabled())
@@ -513,16 +515,27 @@ async def stripe_webhook(request: Request):
         return Response(status_code=400)
     event = json.loads(payload)
     if event.get("type") == "checkout.session.completed":
-        token = event.get("data", {}).get("object", {}).get("client_reference_id", "")
-        if token:
-            store = Orders()
-            try:
-                if (row := store.by_token(token)) and row["status"] == "new":
-                    store.set_status(token, "paid")
-                    booking.book(store, token)
-            finally:
-                store.close()
+        ref = event.get("data", {}).get("object", {}).get("client_reference_id", "")
+        _fulfil_paid(ref)
     return Response(status_code=200)
+
+
+def _fulfil_paid(ref: str):
+    """Po zaplatení: `hotel_<token>` = hotel, inak let."""
+    if not ref:
+        return
+    store = Orders()
+    try:
+        if ref.startswith("hotel_"):
+            token = ref[len("hotel_"):]
+            if (row := store.stay_by_token(token)) and row["status"] == "new":
+                store.set_stay_status(token, "paid")
+                hotelbooking.book_stay(store, token)
+        elif (row := store.by_token(ref)) and row["status"] == "new":
+            store.set_status(ref, "paid")
+            booking.book(store, ref)
+    finally:
+        store.close()
 
 
 @app.post("/crypto/webhook")
@@ -534,13 +547,7 @@ async def crypto_webhook(request: Request):
         return Response(status_code=400)
     token = crypto.confirmed_token(json.loads(payload))
     if token:
-        store = Orders()
-        try:
-            if (row := store.by_token(token)) and row["status"] == "new":
-                store.set_status(token, "paid")
-                booking.book(store, token)
-        finally:
-            store.close()
+        _fulfil_paid(token)
     return Response(status_code=200)
 
 
@@ -585,6 +592,105 @@ def admin(request: Request, key: str = ""):
     store = Orders()
     try:
         return _render(request, "admin.html", orders=store.all())
+    finally:
+        store.close()
+
+
+# -- hotelové rezervácie ------------------------------------------------------
+
+@app.get("/hotel")
+def hotel_form(request: Request):
+    if not current_user(request):
+        return _render(request, "hotel.html", need_account=True,
+                       min_date=date.today().isoformat())
+    return _render(request, "hotel.html", min_date=date.today().isoformat())
+
+
+@app.post("/hotel/order")
+def hotel_order(request: Request, city: str = Form(...),
+                latitude: str = Form(""), longitude: str = Form(""),
+                check_in: str = Form(...), check_out: str = Form(...),
+                email: str = Form(...), phone: str = Form(...),
+                given_name: list[str] = Form(...), family_name: list[str] = Form(...),
+                website: str = Form("")):
+    user = current_user(request)
+    if not user:
+        return _redirect("/register?next=hotel")
+    ip = security.client_ip(request)
+    if security.honeypot_tripped(website):
+        return _redirect("/hotel")
+    if security.rate_limited(f"hotel:{ip}", limit=12, window_s=3600):
+        return _render(request, "message.html", heading="Slow down",
+                       lines=["Too many requests. Please try again later."], back="/hotel")
+    problems = []
+    try:
+        lat, lng = float(latitude), float(longitude)
+    except ValueError:
+        problems.append("Please pick a city from the suggestions.")
+        lat = lng = 0.0
+    if not _valid_date(check_in, future=True):
+        problems.append("Check-in date must be today or later.")
+    if not _valid_date(check_out, future=True) or check_out <= check_in:
+        problems.append("Check-out date must be after check-in.")
+    if "@" not in email:
+        problems.append("Invalid e-mail address.")
+    phone_e164 = _normalize_phone(phone)
+    if not phone_e164:
+        problems.append("Enter the phone in international format, e.g. +421900123456.")
+    counts = {len(given_name), len(family_name)}
+    if counts != {len(given_name)} or not 1 <= len(given_name) <= MAX_PAX:
+        problems.append(f"Between 1 and {MAX_PAX} complete guests required.")
+        guests = []
+    else:
+        guests = [{"given_name": g.strip(), "family_name": f.strip()}
+                  for g, f in zip(given_name, family_name)]
+        if any(not g["given_name"] or not g["family_name"] for g in guests):
+            problems.append("Invalid guest details.")
+    if problems:
+        return _render(request, "message.html", heading="Please check the form",
+                       lines=problems, back="/hotel")
+
+    store = Orders()
+    try:
+        token = store.create_stay(email=email, phone=phone_e164, city=city,
+                                  latitude=lat, longitude=lng, check_in=check_in,
+                                  check_out=check_out, guests=guests, plan="basic",
+                                  user_id=user["id"])
+        if pay_link := os.environ.get("STRIPE_LINK_ONWARD_HOTEL", ""):
+            return RedirectResponse(
+                f"{pay_link}?client_reference_id=hotel_{quote(token)}", status_code=303)
+        hotelbooking.book_stay(store, token)
+        return RedirectResponse(f"/hotel/status/{token}", status_code=303)
+    finally:
+        store.close()
+
+
+@app.get("/hotel/status/{token}")
+def hotel_status(request: Request, token: str):
+    store = Orders()
+    try:
+        row = store.stay_by_token(token)
+        if not row:
+            return _render(request, "message.html", heading="Reservation not found",
+                           lines=["Check the link in your e-mail."], back="/hotel")
+        return _render(request, "hotel_status.html", stay=row,
+                       guests=store.stay_guests(row), summary=store.stay_summary(row))
+    finally:
+        store.close()
+
+
+@app.get("/hotel/voucher/{token}.pdf")
+def hotel_voucher(token: str):
+    store = Orders()
+    try:
+        row = store.stay_by_token(token)
+        if not row or row["status"] not in ("booked", "cancelled"):
+            return Response(status_code=404)
+        data = staypdf.build_voucher(row, store.stay_guests(row),
+                                     store.stay_summary(row), BRAND,
+                                     hotelbooking.stay_status_url(token))
+        return Response(data, media_type="application/pdf", headers={
+            "Content-Disposition": f'attachment; filename="hotel-{row["reference"]}.pdf"'})
     finally:
         store.close()
 

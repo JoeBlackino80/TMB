@@ -54,6 +54,28 @@ CREATE TABLE IF NOT EXISTS saved_passengers (
     passport_enc TEXT NOT NULL DEFAULT '',
     passport_expiry TEXT NOT NULL DEFAULT ''
 );
+CREATE TABLE IF NOT EXISTS stays (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    token TEXT UNIQUE NOT NULL,
+    created_at TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'new',
+    plan TEXT NOT NULL DEFAULT 'basic',
+    email TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    city TEXT NOT NULL,
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
+    check_in TEXT NOT NULL,
+    check_out TEXT NOT NULL,
+    guests_json TEXT NOT NULL,
+    hotel_name TEXT,
+    reference TEXT,
+    duffel_booking_id TEXT,
+    cancel_by TEXT,
+    summary_json TEXT,
+    error TEXT,
+    user_id INTEGER
+);
 """
 
 
@@ -154,6 +176,58 @@ class Orders:
         self.conn.execute("DELETE FROM saved_passengers WHERE id=? AND user_id=?",
                           (pid, user_id))
         self.conn.commit()
+
+    # -- hotelové rezervácie ----------------------------------------------------
+
+    def create_stay(self, *, email: str, phone: str, city: str, latitude: float,
+                    longitude: float, check_in: str, check_out: str,
+                    guests: list[dict], plan: str, user_id: int | None = None) -> str:
+        token = secrets.token_urlsafe(16)
+        self.conn.execute(
+            "INSERT INTO stays (token, created_at, plan, email, phone, city,"
+            " latitude, longitude, check_in, check_out, guests_json, user_id)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            (token, utcnow(), plan, email.strip(), phone.strip(), city,
+             latitude, longitude, check_in, check_out,
+             json.dumps(guests, ensure_ascii=False), user_id))
+        self.conn.commit()
+        return token
+
+    def stay_by_token(self, token: str) -> sqlite3.Row | None:
+        return self.conn.execute("SELECT * FROM stays WHERE token=?", (token,)).fetchone()
+
+    def stay_guests(self, row: sqlite3.Row) -> list[dict]:
+        return json.loads(row["guests_json"])
+
+    def stay_summary(self, row: sqlite3.Row) -> dict:
+        return json.loads(row["summary_json"]) if row["summary_json"] else {}
+
+    def set_stay_status(self, token: str, status: str, error: str = ""):
+        self.conn.execute("UPDATE stays SET status=?, error=? WHERE token=?",
+                          (status, error, token))
+        self.conn.commit()
+
+    def set_stay_booking(self, token: str, *, hotel_name: str, reference: str,
+                         duffel_booking_id: str, cancel_by: str, summary: dict):
+        self.conn.execute(
+            "UPDATE stays SET status='booked', hotel_name=?, reference=?,"
+            " duffel_booking_id=?, cancel_by=?, summary_json=?, error='' WHERE token=?",
+            (hotel_name, reference, duffel_booking_id, cancel_by,
+             json.dumps(summary, ensure_ascii=False), token))
+        self.conn.commit()
+
+    def stays_for_user(self, user_id: int) -> list[sqlite3.Row]:
+        return self.conn.execute(
+            "SELECT * FROM stays WHERE user_id=? ORDER BY id DESC", (user_id,)).fetchall()
+
+    def stays_to_cancel(self) -> list[sqlite3.Row]:
+        """Rezervácie s bezplatným stornom, ktorých deadline sa blíži."""
+        return self.conn.execute(
+            "SELECT * FROM stays WHERE status='booked' AND cancel_by != ''"
+            " AND cancel_by < ?", (utcnow(),)).fetchall()
+
+    def all_stays(self) -> list[sqlite3.Row]:
+        return self.conn.execute("SELECT * FROM stays ORDER BY id DESC").fetchall()
 
     def slices(self, row: sqlite3.Row) -> list[dict]:
         if row["slices_json"]:

@@ -7,7 +7,7 @@ stav a pošle oznam. Week/twoweek: kým platí `valid_until`, vytvorí sa
 nová rezervácia s čerstvým PNR a zákazník dostane aktualizovaný itinerár.
 """
 
-from . import booking
+from . import booking, hotelbooking
 from .store import Orders
 
 
@@ -17,6 +17,9 @@ def main() -> None:
         for row in store.booked_past_expiry():
             outcome = booking.renew_or_expire(store, row)
             print(f"{outcome}: {row['pnr']} ({row['email']})")
+        cancelled = hotelbooking.cancel_due(store)
+        if cancelled:
+            print(f"hotels cancelled before free-cancel deadline: {cancelled}")
     finally:
         store.close()
 
