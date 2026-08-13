@@ -677,3 +677,36 @@ def test_hotel_cancel_due(client, monkeypatch):
     assert hotelbooking.cancel_due(store) == 1
     assert store.all_stays()[0]["status"] == "cancelled"
     store.close()
+
+
+def test_nowpayments_enabled(monkeypatch):
+    from onward import nowpayments
+    monkeypatch.delenv("NOWPAYMENTS_API_KEY", raising=False)
+    assert not nowpayments.enabled()
+    monkeypatch.setenv("NOWPAYMENTS_API_KEY", "k")
+    assert nowpayments.enabled()
+
+
+def test_nowpayments_ipn_signature(monkeypatch):
+    from onward import nowpayments
+    import json as _j, hmac as _h, hashlib as _hh
+    monkeypatch.setenv("NOWPAYMENTS_IPN_SECRET", "s3cr3t")
+    body = {"payment_status": "finished", "order_id": "tok9", "price_amount": 9.9}
+    sorted_json = _j.dumps(body, separators=(",", ":"), sort_keys=True)
+    sig = _h.new(b"s3cr3t", sorted_json.encode(), _hh.sha512).hexdigest()
+    payload = _j.dumps(body).encode()
+    assert nowpayments.verify_ipn(payload, sig)
+    assert not nowpayments.verify_ipn(payload, "bad")
+    assert nowpayments.confirmed_order_id(body) == "tok9"
+    assert nowpayments.confirmed_order_id({"payment_status": "waiting"}) == ""
+
+
+def test_order_crypto_prefers_nowpayments(client, monkeypatch):
+    from onward import app as A
+    monkeypatch.setattr(A.nowpayments, "enabled", lambda: True)
+    monkeypatch.setattr(A.nowpayments, "create_invoice",
+                        lambda order_id, amount, desc, base: f"https://nowpayments.io/i/{order_id}")
+    _auth(client)
+    r = client.post("/order", data=_form_data(pay="crypto"), follow_redirects=False)
+    assert r.status_code == 303
+    assert r.headers["location"].startswith("https://nowpayments.io/")

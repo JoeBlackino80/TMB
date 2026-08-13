@@ -28,8 +28,8 @@ from fastapi import FastAPI, Form, Request
 from fastapi.responses import FileResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from . import (auth, booking, crypto, hotelbooking, i18n, mailer, pdf,
-               security, staypdf)
+from . import (auth, booking, crypto, hotelbooking, i18n, mailer, nowpayments,
+               pdf, security, staypdf)
 from .store import Orders
 
 BRAND = os.environ.get("ONWARD_BRAND", "ValidFlight")
@@ -135,7 +135,7 @@ def _render(request: Request, name: str, **ctx):
     ctx.setdefault("user", current_user(request))
     resp = templates.TemplateResponse(
         request, name, {"brand": BRAND, "prices": _prices(), "max_pax": MAX_PAX,
-                        "crypto_enabled": crypto.enabled(),
+                        "crypto_enabled": crypto.enabled() or nowpayments.enabled(),
                         "turnstile_key": security.turnstile_site_key(),
                         "t": i18n.STRINGS[lang], "lang": lang, **ctx})
     if query_lang in i18n.STRINGS:
@@ -478,11 +478,16 @@ def order(request: Request,
                              passengers=passengers, plan=plan,
                              valid_until=valid_until,
                              user_id=user["id"])
-        if pay == "crypto" and crypto.enabled():
-            url = crypto.create_charge(token, _prices()[plan],
-                                       f"{BRAND} — flight reservation ({plan})",
-                                       booking.status_url(token))
-            return RedirectResponse(url, status_code=303)
+        if pay == "crypto":
+            desc = f"{BRAND} — flight reservation ({plan})"
+            if nowpayments.enabled():
+                url = nowpayments.create_invoice(token, _prices()[plan], desc,
+                                                 _base_url(request))
+                return RedirectResponse(url, status_code=303)
+            if crypto.enabled():
+                url = crypto.create_charge(token, _prices()[plan], desc,
+                                           booking.status_url(token))
+                return RedirectResponse(url, status_code=303)
         link = _stripe_link(plan)
         if link:
             return RedirectResponse(
@@ -548,6 +553,17 @@ async def crypto_webhook(request: Request):
     token = crypto.confirmed_token(json.loads(payload))
     if token:
         _fulfil_paid(token)
+    return Response(status_code=200)
+
+
+@app.post("/nowpayments/ipn")
+async def nowpayments_ipn(request: Request):
+    payload = await request.body()
+    if not nowpayments.verify_ipn(payload, request.headers.get("x-nowpayments-sig", "")):
+        return Response(status_code=400)
+    ref = nowpayments.confirmed_order_id(json.loads(payload))
+    if ref:
+        _fulfil_paid(ref)
     return Response(status_code=200)
 
 

@@ -89,7 +89,7 @@ STRINGS = {
         "pay_method": "Payment method",
         "pay_card": "Card", "pay_card_desc": "Visa, Mastercard — via Stripe",
         "pay_crypto": "Crypto",
-        "pay_crypto_desc": "BTC, ETH, USDC, USDT — via Coinbase",
+        "pay_crypto_desc": "BTC, XMR, ZEC, ETH, USDT — 300+ coins",
         "submit": "Get my reservation",
         "fee_note": "You pay only our service fee. We never charge you the price"
                     " of the flight and the airline is never paid.",
@@ -259,7 +259,7 @@ a verifiable reservation, you get a full refund — no questions asked. See
         "pay_method": "Método de pago",
         "pay_card": "Tarjeta", "pay_card_desc": "Visa, Mastercard — vía Stripe",
         "pay_crypto": "Cripto",
-        "pay_crypto_desc": "BTC, ETH, USDC, USDT — vía Coinbase",
+        "pay_crypto_desc": "BTC, XMR, ZEC, ETH, USDT — 300+ monedas",
         "submit": "Obtener mi reserva",
         "fee_note": "Solo pagas nuestra tarifa de servicio. Nunca te cobramos"
                     " el precio del vuelo y la aerolínea nunca recibe pago.",
