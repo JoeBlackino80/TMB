@@ -7,13 +7,13 @@ PNR a pošle zákazníkovi aktualizovaný itinerár, kým platí `valid_until`.
 
 import os
 import traceback
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from io import BytesIO
 
 import qrcode
 
 from . import duffel, emails, mailer, notify, pdf
-from .store import Orders
+from .store import Orders, utcnow
 
 BRAND = os.environ.get("ONWARD_BRAND", "ValidFlight")
 BASE_URL = os.environ.get("ONWARD_BASE_URL", "").rstrip("/")
@@ -62,8 +62,14 @@ def book(store: Orders, token: str, renewed: bool = False) -> bool:
         return False
 
     # rezervácia je uložená — chyba pri e-maile ju už nesmie označiť za zlyhanú
-    row = store.by_token(token)
-    url = status_url(token)
+    send_itinerary(store, store.by_token(token), renewed=renewed)
+    return True
+
+
+def send_itinerary(store: Orders, row, renewed: bool = False) -> None:
+    """E-mail s itinerárom, PDF a QR kódom (aj opätovné poslanie z adminu)."""
+    passengers, segs = store.passengers(row), store.segments(row)
+    url = status_url(row["token"])
     qr_cid = "qr" if url else ""
     subject, text, html = emails.itinerary(row, passengers, segs, BRAND,
                                            url, renewed=renewed, qr_cid=qr_cid)
@@ -77,7 +83,32 @@ def book(store: Orders, token: str, renewed: bool = False) -> bool:
         inline = [("qr", buf.getvalue(), "image/png")]
     mailer.send(row["email"], subject, text, html,
                 attachments=[attachment], inline_images=inline)
-    return True
+
+
+def book_at_for(needed_on: str) -> str:
+    """Kedy vytvoriť rezerváciu, aby platila v deň termínu `needed_on`.
+
+    Aerolinky držia nezaplatenú rezerváciu aspoň 24 h, preto ju vytvoríme
+    večer pred termínom (22:00 UTC). Termín dnes alebo zajtra = hneď ('').
+    """
+    if not needed_on:
+        return ""
+    day = date.fromisoformat(needed_on)
+    if day <= date.today() + timedelta(days=1):
+        return ""
+    return f"{(day - timedelta(days=1)).isoformat()}T22:00:00Z"
+
+
+def book_or_schedule(store: Orders, token: str) -> bool:
+    """Po zaplatení: rezervácia hneď, alebo naplánovaná na večer pred termínom."""
+    row = store.by_token(token)
+    if row and row["book_at"] and row["book_at"] > utcnow():
+        store.set_status(token, "scheduled")
+        subject, text, html = emails.scheduled_notice(store.by_token(token), BRAND,
+                                                      status_url(token))
+        mailer.send(row["email"], subject, text, html)
+        return True
+    return book(store, token)
 
 
 def _hours_since(iso: str) -> float:

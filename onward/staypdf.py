@@ -68,6 +68,11 @@ def build_voucher(row, guests: list[dict], summ: dict, brand: str,
         pdf.cell(0, 5, "Scan to view this reservation online.")
         pdf.set_y(y + 30)
 
+    if summ.get("supplier_note"):
+        pdf.set_font("helvetica", "", 8)
+        pdf.set_text_color(*MUTED)
+        pdf.multi_cell(0, 4.5, _latin(summ["supplier_note"]), new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(2)
     pdf.set_font("helvetica", "", 9)
     pdf.set_text_color(*MUTED)
     pdf.multi_cell(0, 5,

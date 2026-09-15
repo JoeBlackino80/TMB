@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width:440px;margin:20px auto">
+  <h2>{{ t['login_title'] }}</h2>
+  <p class="note">{{ t['link_confirm_text'] }}</p>
+  <form method="post" action="/login/link/confirm">
+    <input type="hidden" name="token" value="{{ token }}">
+    <input type="hidden" name="next" value="{{ next or '' }}">
+    <button type="submit">{{ t['link_confirm_btn'] }}</button>
+  </form>
+</div>
+{% endblock %}

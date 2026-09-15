@@ -1,4 +1,4 @@
-"""Preklady webu (EN + ES). Itinerár, PDF a e-maily ostávajú v angličtine —
+"""Preklady webu (EN, ES, FR, AR, PT). Itinerár, PDF a e-maily ostávajú v angličtine —
 sú určené ambasádam a leteckým kontrolám.
 
 Použitie: šablóny dostanú slovník `t` podľa jazyka požiadavky
@@ -7,6 +7,33 @@ Použitie: šablóny dostanú slovník `t` podľa jazyka požiadavky
 
 STRINGS = {
     "en": {
+        "pw_hint": "At least 10 characters. We also check that it hasn't appeared in a known data breach.",
+        "google_btn": "Continue with Google", "or": "or",
+        "link_btn": "E-mail me a sign-in link",
+        "link_note": "No password needed — we send a one-time link, valid for 30 minutes.",
+        "link_sent": "If an account exists for that e-mail, a sign-in link is on its way.",
+        "link_confirm_text": "Click the button to finish signing in on this device.",
+        "link_confirm_btn": "Sign in", "password_login": "Sign in with a password instead",
+        "register_optional": "An account is optional — you can also order without one and"
+            " sign in later with an e-mail link.",
+        "guest_order_text": "No account needed: we create one for your e-mail automatically and"
+            " you can sign in any time with a one-time e-mail link. Already have an account?",
+        "needed_on_lbl": "Embassy appointment or check-in date (optional)",
+        "needed_on_note": "Tell us when the reservation must be valid and we'll create it the"
+            " evening before, so it is live on that day.",
+        "calc_basic": "We'll create your reservation the evening before this date and e-mail it"
+            " to you right away — it will be valid on the day.",
+        "calc_week": "", "calc_twoweek": "More than 60 days away — order closer to the date,"
+            " or choose the 14-day plan if you need it now.",
+        "sample_btn": "See a sample document (PDF)",
+        "hotel_soon_title": "Hotel reservations are coming soon.",
+        "hotel_soon_text": "We are connecting our hotel booking partners. Flight reservations"
+            " are available now.",
+        "residency_lbl": "Guest nationality (passport country, 2 letters)",
+        "residency_note": "Hotels price rates by the guest's country, e.g. SK, DE, IN.",
+        "st_scheduled": "Payment received — reservation scheduled",
+        "st_scheduled_text": "So that your reservation is valid on your date, we will create it"
+            " and e-mail the itinerary on",
         "nav_privacy": "Privacy",
         "meta_title": "flight & hotel reservations for visa applications",
         "meta_description": "Unticketed flight reservations (PNR) and cancellable hotel"
@@ -207,6 +234,33 @@ a verifiable reservation, you get a full refund — no questions asked. See
 <a href="/terms">Terms</a>.</p></div>""",
     },
     "es": {
+        "pw_hint": "Al menos 10 caracteres. También comprobamos que no haya aparecido en una filtración de datos conocida.",
+        "google_btn": "Continuar con Google", "or": "o",
+        "link_btn": "Enviarme un enlace de acceso",
+        "link_note": "Sin contraseña: enviamos un enlace de un solo uso, válido 30 minutos.",
+        "link_sent": "Si existe una cuenta con ese e-mail, el enlace de acceso va en camino.",
+        "link_confirm_text": "Pulsa el botón para terminar de iniciar sesión en este dispositivo.",
+        "link_confirm_btn": "Entrar", "password_login": "Entrar con contraseña",
+        "register_optional": "La cuenta es opcional: también puedes reservar sin ella y entrar"
+            " más tarde con un enlace por e-mail.",
+        "guest_order_text": "No necesitas cuenta: la creamos automáticamente con tu e-mail y"
+            " puedes entrar cuando quieras con un enlace de un solo uso. ¿Ya tienes cuenta?",
+        "needed_on_lbl": "Fecha de la cita en la embajada o del check-in (opcional)",
+        "needed_on_note": "Indícanos cuándo debe ser válida la reserva y la crearemos la noche"
+            " anterior, para que esté activa ese día.",
+        "calc_basic": "Crearemos tu reserva la noche anterior a esta fecha y te la enviaremos"
+            " al momento: será válida ese día.",
+        "calc_week": "", "calc_twoweek": "Faltan más de 60 días: reserva más cerca de la fecha"
+            " o elige el plan de 14 días si la necesitas ya.",
+        "sample_btn": "Ver un documento de ejemplo (PDF)",
+        "hotel_soon_title": "Las reservas de hotel llegarán pronto.",
+        "hotel_soon_text": "Estamos conectando a nuestros socios hoteleros. Las reservas de"
+            " vuelo ya están disponibles.",
+        "residency_lbl": "Nacionalidad del huésped (país del pasaporte, 2 letras)",
+        "residency_note": "Los hoteles fijan tarifas según el país del huésped, p. ej. ES, MX, CO.",
+        "st_scheduled": "Pago recibido: reserva programada",
+        "st_scheduled_text": "Para que tu reserva sea válida en tu fecha, la crearemos y te"
+            " enviaremos el itinerario el",
         "nav_privacy": "Privacidad",
         "meta_title": "reservas de vuelo y hotel para visados",
         "meta_description": "Reservas de vuelo sin billete (PNR) y reservas de hotel"
@@ -409,6 +463,702 @@ diremos de inmediato y te devolveremos el importe completo.</p></div>
 entregar una reserva verificable, reembolso completo — sin preguntas. Ver
 <a href="/terms">Términos</a>.</p></div>""",
     },
+    "fr": {
+        "pw_hint": "Au moins 10 caractères. Nous vérifions aussi qu'il n'apparaît dans"
+            " aucune fuite de données connue.",
+        "google_btn": "Continuer avec Google", "or": "ou",
+        "link_btn": "M'envoyer un lien de connexion par e-mail",
+        "link_note": "Aucun mot de passe requis : nous envoyons un lien à usage unique,"
+            " valable 30 minutes.",
+        "link_sent": "Si un compte existe pour cet e-mail, un lien de connexion est en route.",
+        "link_confirm_text": "Cliquez sur le bouton pour terminer la connexion sur cet appareil.",
+        "link_confirm_btn": "Se connecter",
+        "password_login": "Se connecter plutôt avec un mot de passe",
+        "register_optional": "Le compte est facultatif : vous pouvez aussi commander sans"
+            " compte et vous connecter plus tard avec un lien envoyé par e-mail.",
+        "guest_order_text": "Aucun compte nécessaire : nous en créons un automatiquement pour"
+            " votre e-mail et vous pouvez vous connecter à tout moment avec un lien à usage"
+            " unique envoyé par e-mail. Vous avez déjà un compte ?",
+        "needed_on_lbl": "Date du rendez-vous à l'ambassade ou de l'enregistrement (facultatif)",
+        "needed_on_note": "Indiquez-nous quand la réservation doit être valable : nous la"
+            " créerons la veille au soir, pour qu'elle soit active ce jour-là.",
+        "calc_basic": "Nous créerons votre réservation la veille au soir de cette date et"
+            " vous l'enverrons aussitôt par e-mail — elle sera valable le jour même.",
+        "calc_week": "", "calc_twoweek": "Plus de 60 jours à l'avance — commandez plus près"
+            " de la date, ou choisissez la formule 14 jours si vous en avez besoin maintenant.",
+        "sample_btn": "Voir un exemple de document (PDF)",
+        "hotel_soon_title": "Les réservations d'hôtel arrivent bientôt.",
+        "hotel_soon_text": "Nous connectons nos partenaires de réservation hôtelière. Les"
+            " réservations de vol sont disponibles dès maintenant.",
+        "residency_lbl": "Nationalité du client (pays du passeport, 2 lettres)",
+        "residency_note": "Les hôtels fixent leurs tarifs selon le pays du client,"
+            " p. ex. SK, DE, IN.",
+        "st_scheduled": "Paiement reçu — réservation programmée",
+        "st_scheduled_text": "Pour que votre réservation soit valable à votre date, nous la"
+            " créerons et vous enverrons l'itinéraire par e-mail le",
+        "nav_privacy": "Confidentialité",
+        "meta_title": "réservations de vol et d'hôtel pour les demandes de visa",
+        "meta_description": "Réservations de vol sans billet (PNR) et réservations d'hôtel"
+            " annulables pour les demandes de visa et la preuve de voyage de sortie,"
+            " envoyées par e-mail avec un PDF imprimable.",
+        "test_title": "MODE TEST.",
+        "test_text": "Les réservations créées sur ce site sont actuellement des"
+            " réservations fictives de test : elles n'existent dans le système d'aucune"
+            " compagnie aérienne ni d'aucun hôtel, ne peuvent pas être vérifiées et ne"
+            " doivent PAS être utilisées pour une demande de visa. Aucun paiement n'est"
+            " prélevé.",
+        "operated_by": "Exploité par", "company_id": "N° d'entreprise",
+        "tax_id": "N° fiscal", "vat_id": "N° de TVA",
+        "vat_note": "Prix TTC (TVA incluse).",
+        "consent_html": "Je demande que le service commence immédiatement et je reconnais"
+            " perdre mon droit de rétractation dès que la réservation a été livrée."
+            " J'accepte les <a href='/terms'>Conditions</a> et j'ai lu la"
+            " <a href='/privacy'>Politique de confidentialité</a>.",
+        "hotel_badge1": "Réservation réelle et annulable",
+        "hotel_badge3": "Voucher PDF + QR",
+        "hotel_price_note": "par réservation, quel que soit le nombre de nuits.",
+        "hotel_what_html": "<p>Vous recevez une <b>réservation d'hôtel réelle et"
+            " annulable</b> avec une référence de réservation — maintenue sur un tarif à"
+            " annulation gratuite et libérée automatiquement avant la date limite"
+            " d'annulation. C'est un justificatif pour les demandes de visa et une preuve"
+            " d'hébergement, <b>pas un séjour payé</b>.</p>",
+        "st_verify_short": "Vérifiez-la sur le site de la compagnie aérienne, rubrique"
+            " « Gérer ma réservation », avec le PNR et le nom de famille du passager.",
+        "st_sent_to": "Les documents ont également été envoyés à",
+        "st_test_confirmed": "Réservation de TEST — non valable, non vérifiable",
+        "st_refunded": "Réservation annulée",
+        "st_refunded_text": "Le paiement de cette réservation a été remboursé ou contesté ;"
+            " la réservation a donc été annulée et ne sera pas renouvelée.",
+        "hotel_released": "a été libérée avant la date limite d'annulation gratuite.",
+        "nav_order": "Commander", "nav_faq": "FAQ", "nav_terms": "Conditions",
+        "nav_login": "Connexion", "nav_account": "Mon compte", "nav_logout": "Déconnexion",
+        "nav_hotel": "Hôtel",
+        "hotel_hero_title": "Une vraie réservation d'hôtel pour votre visa",
+        "hotel_hero_sub": "Une <b>réservation d'hôtel authentique et annulable</b> avec un"
+            " numéro de confirmation — maintenue sur un tarif à annulation gratuite et"
+            " livrée en PDF imprimable. Idéale pour les <b>demandes de visa</b> et la"
+            " <b>preuve d'hébergement</b>.",
+        "hotel_order_title": "Commandez votre réservation d'hôtel",
+        "city_lbl": "Ville de destination", "checkin_lbl": "Arrivée",
+        "checkout_lbl": "Départ", "guest": "Client", "add_guest": "+ Ajouter un client",
+        "hotel_submit": "Obtenir ma réservation d'hôtel",
+        "hotel_confirmed": "Réservation d'hôtel confirmée",
+        "hotel_download": "Télécharger la réservation PDF",
+        "checkin_th": "Arrivée", "checkout_th": "Départ", "hotel_th": "Hôtel",
+        "login_title": "Connexion", "register_title": "Créer un compte",
+        "email_lbl": "E-mail", "password_lbl": "Mot de passe", "min8": "8 caractères min.",
+        "login_btn": "Se connecter", "register_btn": "Créer un compte",
+        "no_account": "Pas encore de compte ?", "have_account": "Vous avez déjà un compte ?",
+        "forgot_link": "Mot de passe oublié ?",
+        "forgot_title": "Réinitialiser votre mot de passe",
+        "forgot_text": "Saisissez l'e-mail de votre compte et nous vous enverrons un lien"
+            " de réinitialisation.",
+        "forgot_btn": "Envoyer le lien de réinitialisation",
+        "forgot_sent": "Si un compte existe pour cet e-mail, un lien de réinitialisation"
+            " est en route.",
+        "reset_title": "Définir un nouveau mot de passe",
+        "new_password": "Nouveau mot de passe",
+        "reset_btn": "Changer le mot de passe",
+        "account_title": "Mon compte", "order_history": "Historique des commandes",
+        "th_date": "Date", "th_status": "Statut", "view": "Voir",
+        "no_orders": "Aucune commande pour l'instant.",
+        "saved_passengers": "Voyageurs enregistrés",
+        "saved_passengers_note": "Enregistrez les informations des voyageurs pour les"
+            " réutiliser lors de vos prochaines commandes. Les données du passeport sont"
+            " facultatives et stockées chiffrées.",
+        "nationality": "Nationalité", "passport": "Numéro de passeport",
+        "passport_expiry": "Expiration du passeport",
+        "add_saved_passenger": "Ajouter un voyageur",
+        "passport_note": "Facultatif. Stocké chiffré ; utilisé uniquement pour finaliser"
+            " les réservations internationales.",
+        "delete": "Supprimer", "save": "Enregistrer",
+        "new_order_btn": "Nouvelle réservation", "traveller_saved": "Voyageur enregistré.",
+        "pw_len": "Au moins 8 caractères", "pw_upper": "Une lettre majuscule",
+        "pw_lower": "Une lettre minuscule", "pw_digit": "Un chiffre",
+        "pw_special": "Un caractère spécial (! ? # $ ...)",
+        "hero_title": "Une vraie réservation de vol en quelques minutes",
+        "hero_sub": "Une <b>réservation aérienne authentique (PNR)</b> sans acheter"
+                    " le billet — vérifiable sur le site de la compagnie aérienne,"
+                    " envoyée à votre e-mail avec un itinéraire PDF imprimable. Idéale"
+                    " pour les <b>demandes de visa</b> et la <b>preuve de voyage de"
+                    " sortie</b>.",
+        "badge1": "PNR réel et vérifiable", "badge2": "Livré en quelques minutes",
+        "badge3": "Itinéraire PDF + vérification QR",
+        "order_title": "Commandez votre réservation",
+        "book_need_account_text": "Les réservations se font depuis votre compte — il "
+            "conserve l'historique de vos réservations et vous permet de réutiliser les "
+            "informations des voyageurs. La création ne prend que quelques secondes.",
+        "book_register_btn": "Créer un compte et réserver",
+        "book_signin_btn": "J'ai déjà un compte",
+        "validity": "Validité",
+        "plan_basic": "Standard",
+        "plan_basic_desc": "Une réservation, valable 24 à 72 h (selon la compagnie)",
+        "plan_week": "7 jours",
+        "plan_week_desc": "Renouvelée automatiquement avec un nouveau PNR à chaque"
+                          " expiration — maintenue valable pendant 7 jours",
+        "plan_2week": "14 jours",
+        "plan_2week_desc": "Renouvellement automatique pendant 14 jours — idéal pour"
+                           " les traitements de visa plus longs",
+        "trip_type": "Type de voyage",
+        "oneway": "Aller simple", "oneway_desc": "Un seul vol",
+        "round": "Aller-retour", "round_desc": "Aller et retour",
+        "multi": "Multi-destinations", "multi_desc": "2 à 3 vols",
+        "from": "Départ", "to": "Arrivée", "depart": "Date de départ",
+        "return": "Date de retour", "flight2": "Vol 2",
+        "flight3": "Vol 3 (facultatif)", "date": "Date",
+        "placeholder_city": "Ville ou aéroport",
+        "email": "E-mail (l'itinéraire est envoyé ici)",
+        "phone": "Téléphone (format international, +34...)",
+        "passenger": "Passager", "title_lbl": "Civilité",
+        "given": "Prénom (comme sur le passeport)",
+        "surname": "Nom (comme sur le passeport)",
+        "dob": "Date de naissance", "gender": "Sexe",
+        "male": "Homme", "female": "Femme",
+        "add_passenger": "+ Ajouter un passager",
+        "pay_method": "Moyen de paiement",
+        "pay_card": "Carte", "pay_card_desc": "Visa, Mastercard — via Stripe",
+        "pay_crypto": "Crypto",
+        "pay_crypto_desc": "BTC, XMR, ZEC, ETH, USDT — plus de 300 cryptomonnaies",
+        "submit": "Obtenir ma réservation",
+        "fee_note": "Vous ne payez que nos frais de service. Nous ne vous facturons"
+                    " jamais le prix du vol et la compagnie aérienne n'est jamais payée.",
+        "how_title": "Comment ça marche",
+        "how1": "Vous payez les frais de service — rien d'autre, jamais.",
+        "how2": "Nous effectuons une vraie réservation auprès de la compagnie aérienne"
+                " à votre nom — une réservation avec un code PNR, maintenue sans paiement.",
+        "how3": "L'itinéraire avec le PNR et un PDF imprimable arrive dans votre boîte"
+                " de réception, généralement en quelques minutes. Vérifiez-le sur le site"
+                " de la compagnie aérienne elle-même (« Gérer ma réservation »).",
+        "how4": "Standard : la compagnie aérienne libère la réservation non payée après"
+                " 24 à 72 heures. Avec l'option 7/14 jours, nous créons automatiquement"
+                " une nouvelle réservation à chaque expiration et vous envoyons le"
+                " nouveau PNR par e-mail.",
+        "what_title": "Ce que c'est — et ce que ce n'est pas",
+        "what_html": "<p>Vous recevez une <b>vraie réservation</b>, pas un PDF"
+                     " retouché : le PNR existe dans le système de la compagnie"
+                     " aérienne et chacun peut le vérifier tant qu'il est valable.</p>"
+                     "<p>Ce n'est <b>pas un billet d'avion</b> — vous ne pouvez pas"
+                     " embarquer avec, et une fois expirée, la vérification l'indiquera"
+                     " comme libérée. Les ambassades acceptent couramment (et"
+                     " recommandent souvent) les réservations sans billet pour les"
+                     " demandes de visa ; les options de renouvellement automatique"
+                     " maintiennent un PNR actif dans votre boîte de réception pendant"
+                     " toute la durée du traitement.</p>",
+        "more_faq": "D'autres questions ? Consultez la <a href='/faq'>FAQ</a>.",
+        "footer": "propose des réservations de vol sans billet et des réservations"
+                  " d'hôtel annulables pour les demandes de visa et la preuve de voyage"
+                  " de sortie. Une réservation n'est ni un billet d'avion ni un séjour"
+                  " payé et ne permet pas d'embarquer.",
+        "st_confirmed": "Réservation confirmée",
+        "st_passengers": "Passagers",
+        "th_flight": "Vol", "th_route": "Trajet",
+        "th_dep": "Départ", "th_arr": "Arrivée",
+        "st_valid": "Valable jusqu'au",
+        "st_verify": "Vérifiez-la sur le site de la compagnie aérienne, rubrique"
+                     " « Gérer ma réservation », avec le PNR et votre nom de famille."
+                     " L'itinéraire a également été envoyé à",
+        "st_autorenew": "Renouvellement automatique activé : chaque fois que la"
+                        " compagnie libère cette réservation, nous en créons une"
+                        " nouvelle et vous envoyons le nouveau PNR par e-mail —"
+                        " jusqu'au",
+        "st_renewed": "Renouvelée", "st_renewed_sofar": " fois jusqu'à présent.",
+        "st_download": "Télécharger l'itinéraire PDF",
+        "st_working": "Traitement en cours...",
+        "st_working_text": "Votre réservation est en cours de création. Cette page"
+                           " s'actualise automatiquement ; l'itinéraire arrivera"
+                           " aussi par e-mail.",
+        "st_expired": "Réservation expirée",
+        "st_expired_text": "est arrivée en fin de validité et a été libérée par la"
+                           " compagnie aérienne. Besoin d'une nouvelle ?",
+        "st_new_order": "Passer une nouvelle commande",
+        "st_failed": "Nous n'avons pas pu finaliser cette réservation",
+        "st_failed_text": "Si vous avez déjà payé, nous trouverons une solution ou vous"
+                          " rembourserons intégralement. Questions :",
+        "back": "Retour",
+        "faq_title": "Questions fréquentes",
+        "faq_html": """
+<div class="card"><h2>La réservation est-elle réelle ?</h2><p>Oui. Nous créons une
+véritable réservation dans le système de réservation de la compagnie aérienne — du
+même type que celle qu'une agence de voyages crée avant l'émission du billet. Elle
+possède un vrai code PNR que vous pouvez vérifier sur le site de la compagnie,
+rubrique « Gérer ma réservation » (PNR + nom du passager), tant qu'elle est
+valable.</p></div>
+<div class="card"><h2>Puis-je voyager avec ?</h2><p><b>Non.</b> Une réservation
+n'est pas un billet — aucun numéro de billet n'est émis et elle ne permet pas
+d'embarquer. C'est un justificatif pour une demande de visa ou une preuve de voyage
+de sortie.</p></div>
+<div class="card"><h2>Combien de temps est-elle valable ?</h2><p>La compagnie
+aérienne conserve une réservation non payée pendant 24 à 72 heures, selon le
+transporteur. Avec l'option 7 jours ou 14 jours, nous créons automatiquement une
+nouvelle réservation à chaque libération et vous envoyons le nouveau PNR par
+e-mail, afin que vous disposiez d'une réservation active et vérifiable pendant toute
+la période.</p></div>
+<div class="card"><h2>Les ambassades l'acceptent-elles ?</h2><p>La plupart des
+ambassades demandent une <i>réservation ou un itinéraire</i> de vol — beaucoup
+conseillent explicitement de <b>ne pas</b> acheter de billet avant l'approbation du
+visa. Une réservation sans billet est le document standard à cet effet. Vérifiez
+toujours les exigences exactes de votre ambassade ; planifiez votre rendez-vous pour
+que la réservation soit valable le jour où elle est contrôlée (ou utilisez le
+renouvellement automatique).</p></div>
+<div class="card"><h2>En combien de temps vais-je la recevoir ?</h2><p>Généralement
+quelques minutes après le paiement. S'il n'existe aucun tarif permettant une
+réservation sans paiement pour votre trajet et votre date, nous vous le dirons tout
+de suite et vous rembourserons intégralement.</p></div>
+<div class="card"><h2>Quelle est votre politique de remboursement ?</h2><p>Si nous
+ne pouvons pas fournir une réservation vérifiable, vous êtes remboursé
+intégralement — sans poser de questions. Voir les
+<a href="/terms">Conditions</a>.</p></div>""",
+    },
+    "ar": {
+        "pw_hint": "10 أحرف على الأقل. ونتحقق أيضاً من أنها لم تظهر في أي تسريب بيانات معروف.",
+        "google_btn": "المتابعة باستخدام Google", "or": "أو",
+        "link_btn": "أرسل لي رابط تسجيل الدخول بالبريد الإلكتروني",
+        "link_note": "لا حاجة إلى كلمة مرور — نرسل رابطاً لمرة واحدة صالحاً لمدة 30 دقيقة.",
+        "link_sent": "إذا كان هناك حساب مرتبط بهذا البريد الإلكتروني، فرابط تسجيل الدخول"
+            " في الطريق إليك.",
+        "link_confirm_text": "انقر على الزر لإكمال تسجيل الدخول على هذا الجهاز.",
+        "link_confirm_btn": "تسجيل الدخول",
+        "password_login": "تسجيل الدخول بكلمة مرور بدلاً من ذلك",
+        "register_optional": "الحساب اختياري — يمكنك أيضاً الطلب دون حساب وتسجيل الدخول"
+            " لاحقاً عبر رابط يُرسل إلى بريدك الإلكتروني.",
+        "guest_order_text": "لا حاجة إلى حساب: ننشئ حساباً لبريدك الإلكتروني تلقائياً"
+            " ويمكنك تسجيل الدخول في أي وقت عبر رابط لمرة واحدة يُرسل إلى بريدك"
+            " الإلكتروني. هل لديك حساب بالفعل؟",
+        "needed_on_lbl": "تاريخ موعد السفارة أو تاريخ تسجيل الوصول (اختياري)",
+        "needed_on_note": "أخبرنا متى يجب أن يكون الحجز صالحاً، وسننشئه في مساء اليوم"
+            " السابق ليكون سارياً في ذلك اليوم.",
+        "calc_basic": "سننشئ حجزك في مساء اليوم السابق لهذا التاريخ ونرسله إلى بريدك"
+            " الإلكتروني فوراً — وسيكون صالحاً في ذلك اليوم.",
+        "calc_week": "", "calc_twoweek": "يفصلنا أكثر من 60 يوماً عن هذا التاريخ — اطلب"
+            " في موعد أقرب إليه، أو اختر خطة 14 يوماً إذا كنت بحاجة إليه الآن.",
+        "sample_btn": "عرض مستند نموذجي (PDF)",
+        "hotel_soon_title": "حجوزات الفنادق قادمة قريباً.",
+        "hotel_soon_text": "نعمل حالياً على ربط شركائنا في حجز الفنادق. حجوزات الطيران"
+            " متاحة الآن.",
+        "residency_lbl": "جنسية النزيل (بلد جواز السفر، حرفان)",
+        "residency_note": "تحدد الفنادق أسعارها حسب بلد النزيل، مثل SK وDE وIN.",
+        "st_scheduled": "تم استلام الدفعة — الحجز مجدول",
+        "st_scheduled_text": "لكي يكون حجزك صالحاً في التاريخ المطلوب، سننشئه ونرسل خط"
+            " سير الرحلة إلى بريدك الإلكتروني في",
+        "nav_privacy": "الخصوصية",
+        "meta_title": "حجوزات طيران وفنادق لطلبات التأشيرة",
+        "meta_description": "حجوزات طيران دون إصدار تذكرة (PNR) وحجوزات فنادق قابلة للإلغاء"
+            " لطلبات التأشيرة وإثبات مواصلة السفر، تُرسل بالبريد الإلكتروني مع ملف PDF"
+            " قابل للطباعة.",
+        "test_title": "وضع الاختبار.",
+        "test_text": "الحجوزات التي تُنشأ على هذا الموقع حالياً حجوزات تجريبية وهمية:"
+            " لا وجود لها في نظام أي شركة طيران أو فندق، ولا يمكن التحقق منها، ويجب"
+            " عدم استخدامها إطلاقاً في طلب تأشيرة. لا يتم تحصيل أي مبلغ.",
+        "operated_by": "يُدار بواسطة", "company_id": "رقم تسجيل الشركة",
+        "tax_id": "الرقم الضريبي", "vat_id": "رقم ضريبة القيمة المضافة",
+        "vat_note": "الأسعار تشمل ضريبة القيمة المضافة.",
+        "consent_html": "أطلب أن تبدأ الخدمة فوراً، وأُقرّ بأنني أفقد حقي في الانسحاب"
+            " (العدول) بمجرد تسليم الحجز. أوافق على <a href='/terms'>الشروط</a> وقد"
+            " اطّلعت على <a href='/privacy'>سياسة الخصوصية</a>.",
+        "hotel_badge1": "حجز حقيقي قابل للإلغاء",
+        "hotel_badge3": "قسيمة PDF + رمز QR",
+        "hotel_price_note": "لكل حجز، بغض النظر عن عدد الليالي.",
+        "hotel_what_html": "<p>تحصل على <b>حجز فندقي حقيقي قابل للإلغاء</b> برقم مرجعي"
+            " — محجوز بسعر يتيح الإلغاء المجاني ويُلغى تلقائياً قبل انتهاء مهلة الإلغاء."
+            " وهو مستند داعم لطلبات التأشيرة وإثبات الإقامة، <b>وليس إقامة مدفوعة"
+            "</b>.</p>",
+        "st_verify_short": "تحقق منه على موقع شركة الطيران ضمن «إدارة الحجز» باستخدام"
+            " رمز PNR واسم عائلة المسافر.",
+        "st_sent_to": "أُرسلت المستندات أيضاً إلى",
+        "st_test_confirmed": "حجز تجريبي — غير صالح ولا يمكن التحقق منه",
+        "st_refunded": "تم إلغاء الحجز",
+        "st_refunded_text": "تم استرداد مبلغ هذا الحجز أو الاعتراض عليه، ولذلك أُلغي"
+            " الحجز ولن يُجدَّد.",
+        "hotel_released": "أُلغي قبل انتهاء مهلة الإلغاء المجاني.",
+        "nav_order": "اطلب", "nav_faq": "الأسئلة الشائعة", "nav_terms": "الشروط",
+        "nav_login": "تسجيل الدخول", "nav_account": "حسابي", "nav_logout": "تسجيل الخروج",
+        "nav_hotel": "فندق",
+        "hotel_hero_title": "حجز فندقي حقيقي لتأشيرتك",
+        "hotel_hero_sub": "<b>حجز فندقي أصلي قابل للإلغاء</b> برقم تأكيد — محجوز بسعر"
+            " يتيح الإلغاء المجاني ويُرسل بصيغة PDF قابلة للطباعة. مثالي لـ<b>طلبات"
+            " التأشيرة</b> و<b>إثبات الإقامة</b>.",
+        "hotel_order_title": "اطلب حجزك الفندقي",
+        "city_lbl": "مدينة الوجهة", "checkin_lbl": "تسجيل الوصول",
+        "checkout_lbl": "تسجيل المغادرة", "guest": "النزيل", "add_guest": "+ إضافة نزيل",
+        "hotel_submit": "احصل على حجزي الفندقي",
+        "hotel_confirmed": "تم تأكيد الحجز الفندقي",
+        "hotel_download": "تنزيل الحجز بصيغة PDF",
+        "checkin_th": "الوصول", "checkout_th": "المغادرة", "hotel_th": "الفندق",
+        "login_title": "تسجيل الدخول", "register_title": "إنشاء حساب",
+        "email_lbl": "البريد الإلكتروني", "password_lbl": "كلمة المرور",
+        "min8": "8 أحرف على الأقل",
+        "login_btn": "تسجيل الدخول", "register_btn": "إنشاء حساب",
+        "no_account": "ليس لديك حساب بعد؟", "have_account": "هل لديك حساب بالفعل؟",
+        "forgot_link": "هل نسيت كلمة المرور؟",
+        "forgot_title": "إعادة تعيين كلمة المرور",
+        "forgot_text": "أدخل البريد الإلكتروني لحسابك وسنرسل إليك رابط إعادة التعيين.",
+        "forgot_btn": "إرسال رابط إعادة التعيين",
+        "forgot_sent": "إذا كان هناك حساب مرتبط بهذا البريد الإلكتروني، فرابط إعادة"
+            " التعيين في الطريق إليك.",
+        "reset_title": "تعيين كلمة مرور جديدة", "new_password": "كلمة المرور الجديدة",
+        "reset_btn": "تغيير كلمة المرور",
+        "account_title": "حسابي", "order_history": "سجل الطلبات",
+        "th_date": "التاريخ", "th_status": "الحالة", "view": "عرض",
+        "no_orders": "لا توجد طلبات بعد.",
+        "saved_passengers": "المسافرون المحفوظون",
+        "saved_passengers_note": "احفظ بيانات المسافرين لإعادة استخدامها في الطلبات"
+            " المستقبلية. بيانات جواز السفر اختيارية وتُخزَّن مشفّرة.",
+        "nationality": "الجنسية", "passport": "رقم جواز السفر",
+        "passport_expiry": "تاريخ انتهاء جواز السفر",
+        "add_saved_passenger": "إضافة مسافر",
+        "passport_note": "اختياري. يُخزَّن مشفّراً، ويُستخدم فقط لإتمام الحجوزات الدولية.",
+        "delete": "حذف", "save": "حفظ",
+        "new_order_btn": "حجز جديد", "traveller_saved": "تم حفظ المسافر.",
+        "pw_len": "8 أحرف على الأقل", "pw_upper": "حرف كبير واحد",
+        "pw_lower": "حرف صغير واحد", "pw_digit": "رقم واحد",
+        "pw_special": "رمز خاص واحد (! ? # $ ...)",
+        "hero_title": "حجز طيران حقيقي في دقائق",
+        "hero_sub": "<b>حجز طيران أصلي (PNR)</b> دون شراء التذكرة — يمكن التحقق منه"
+                    " على موقع شركة الطيران، ويُرسل إلى بريدك الإلكتروني مع خط سير"
+                    " رحلة بصيغة PDF قابل للطباعة. مثالي لـ<b>طلبات التأشيرة</b>"
+                    " و<b>إثبات مواصلة السفر</b>.",
+        "badge1": "PNR حقيقي قابل للتحقق", "badge2": "يُسلَّم في دقائق",
+        "badge3": "خط سير رحلة PDF + تحقق عبر QR",
+        "order_title": "اطلب حجزك",
+        "book_need_account_text": "تتم الحجوزات من خلال حسابك — إذ يحفظ سجل حجوزاتك "
+            "ويتيح لك إعادة استخدام بيانات المسافرين. "
+            "إنشاء الحساب لا يستغرق سوى ثوانٍ.",
+        "book_register_btn": "إنشاء حساب والحجز",
+        "book_signin_btn": "لدي حساب بالفعل",
+        "validity": "مدة الصلاحية",
+        "plan_basic": "قياسي",
+        "plan_basic_desc": "حجز واحد، صالح لمدة 24–72 ساعة (حسب شركة الطيران)",
+        "plan_week": "7 أيام",
+        "plan_week_desc": "يُجدَّد تلقائياً برمز PNR جديد كلما انتهت صلاحيته —"
+                          " ويبقى صالحاً لمدة 7 أيام",
+        "plan_2week": "14 يوماً",
+        "plan_2week_desc": "تجديد تلقائي لمدة 14 يوماً — مثالي لإجراءات التأشيرة"
+                           " الأطول",
+        "trip_type": "نوع الرحلة",
+        "oneway": "ذهاب فقط", "oneway_desc": "رحلة واحدة",
+        "round": "ذهاب وعودة", "round_desc": "ذهاباً وإياباً",
+        "multi": "وجهات متعددة", "multi_desc": "2–3 رحلات",
+        "from": "من", "to": "إلى", "depart": "تاريخ المغادرة",
+        "return": "تاريخ العودة", "flight2": "الرحلة 2",
+        "flight3": "الرحلة 3 (اختياري)", "date": "التاريخ",
+        "placeholder_city": "المدينة أو المطار",
+        "email": "البريد الإلكتروني (يُرسل خط سير الرحلة إليه)",
+        "phone": "الهاتف (بالصيغة الدولية، +34...)",
+        "passenger": "المسافر", "title_lbl": "اللقب",
+        "given": "الاسم الأول (كما في جواز السفر)",
+        "surname": "اسم العائلة (كما في جواز السفر)",
+        "dob": "تاريخ الميلاد", "gender": "الجنس",
+        "male": "ذكر", "female": "أنثى",
+        "add_passenger": "+ إضافة مسافر",
+        "pay_method": "طريقة الدفع",
+        "pay_card": "بطاقة", "pay_card_desc": "Visa وMastercard — عبر Stripe",
+        "pay_crypto": "عملات مشفّرة",
+        "pay_crypto_desc": "BTC وXMR وZEC وETH وUSDT — أكثر من 300 عملة",
+        "submit": "احصل على حجزي",
+        "fee_note": "تدفع رسوم خدمتنا فقط. لا نحمّلك أبداً سعر الرحلة، ولا يُدفع أي"
+                    " مبلغ لشركة الطيران إطلاقاً.",
+        "how_title": "كيف تعمل الخدمة",
+        "how1": "تدفع رسوم الخدمة — ولا شيء غيرها، أبداً.",
+        "how2": "نُجري حجزاً حقيقياً لدى شركة الطيران باسمك — حجزاً برمز PNR، محتفظاً"
+                " به دون دفع.",
+        "how3": "يصل خط سير الرحلة مع رمز PNR وملف PDF قابل للطباعة إلى بريدك الوارد،"
+                " عادةً خلال دقائق. تحقق منه على موقع شركة الطيران نفسها («إدارة الحجز»).",
+        "how4": "القياسي: تُلغي شركة الطيران الحجز غير المدفوع بعد 24–72 ساعة. ومع خيار"
+                " 7/14 يوماً ننشئ تلقائياً حجزاً جديداً في كل مرة تنتهي فيها صلاحية"
+                " الحجز ونرسل إليك رمز PNR الجديد بالبريد الإلكتروني.",
+        "what_title": "ما هو — وما ليس هو",
+        "what_html": "<p>تحصل على <b>حجز حقيقي</b>، وليس ملف PDF معدَّلاً: رمز PNR"
+                     " موجود في نظام شركة الطيران ويمكن لأي شخص التحقق منه ما دام"
+                     " صالحاً.</p><p>إنه <b>ليس تذكرة طيران</b> — لا يمكنك الصعود إلى"
+                     " الطائرة به، وبعد انتهاء صلاحيته سيُظهر التحقق أنه أُلغي. تقبل"
+                     " السفارات عادةً (وكثيراً ما توصي بـ) الحجوزات دون إصدار تذكرة"
+                     " لطلبات التأشيرة؛ وتحافظ خيارات التجديد التلقائي على رمز PNR"
+                     " ساري المفعول في بريدك الوارد طوال فترة معالجة الطلب.</p>",
+        "more_faq": "هل لديك أسئلة أخرى؟ اطّلع على <a href='/faq'>الأسئلة الشائعة</a>.",
+        "footer": "تقدّم حجوزات طيران دون إصدار تذكرة وحجوزات فنادق قابلة للإلغاء"
+                  " لطلبات التأشيرة وإثبات مواصلة السفر. الحجز ليس تذكرة طيران ولا"
+                  " إقامة مدفوعة، ولا يمكن استخدامه للصعود إلى الطائرة.",
+        "st_confirmed": "تم تأكيد الحجز",
+        "st_passengers": "المسافرون",
+        "th_flight": "الرحلة", "th_route": "المسار",
+        "th_dep": "المغادرة", "th_arr": "الوصول",
+        "st_valid": "صالح حتى",
+        "st_verify": "تحقق منه على موقع شركة الطيران ضمن «إدارة الحجز» باستخدام"
+                     " رمز PNR واسم عائلتك. كما أُرسل خط سير الرحلة إلى",
+        "st_autorenew": "التجديد التلقائي مفعّل: كلما ألغت شركة الطيران هذا الحجز،"
+                        " ننشئ حجزاً جديداً ونرسل إليك رمز PNR الجديد بالبريد"
+                        " الإلكتروني — حتى",
+        "st_renewed": "عدد مرات التجديد:", "st_renewed_sofar": " حتى الآن.",
+        "st_download": "تنزيل خط سير الرحلة بصيغة PDF",
+        "st_working": "جارٍ العمل على طلبك...",
+        "st_working_text": "يجري إنشاء حجزك. تتحدّث هذه الصفحة تلقائياً، وسيصلك خط"
+                           " سير الرحلة أيضاً بالبريد الإلكتروني.",
+        "st_expired": "انتهت صلاحية الحجز",
+        "st_expired_text": "بلغ نهاية مدة صلاحيته وألغته شركة الطيران. هل تحتاج إلى"
+                           " حجز جديد؟",
+        "st_new_order": "قدّم طلباً جديداً",
+        "st_failed": "تعذّر علينا إتمام هذا الحجز",
+        "st_failed_text": "إذا كنت قد دفعت بالفعل، فسنعالج الأمر أو نردّ إليك المبلغ"
+                          " كاملاً. للاستفسارات:",
+        "back": "رجوع",
+        "faq_title": "الأسئلة الشائعة",
+        "faq_html": """
+<div class="card"><h2>هل الحجز حقيقي؟</h2><p>نعم. ننشئ حجزاً فعلياً في نظام
+الحجوزات لدى شركة الطيران — من النوع نفسه الذي تنشئه وكالة السفر قبل إصدار
+التذكرة. وله رمز PNR حقيقي يمكنك التحقق منه على موقع شركة الطيران ضمن «إدارة
+الحجز» (PNR + اسم عائلة المسافر) ما دام صالحاً.</p></div>
+<div class="card"><h2>هل يمكنني السفر به؟</h2><p><b>لا.</b> الحجز ليس تذكرة — لا
+يُصدر له رقم تذكرة ولا يمكن استخدامه للصعود إلى الطائرة. إنه مستند داعم لطلب
+التأشيرة أو لإثبات مواصلة السفر.</p></div>
+<div class="card"><h2>ما مدة صلاحيته؟</h2><p>تحتفظ شركة الطيران بالحجز غير المدفوع
+لمدة 24–72 ساعة حسب الناقل. ومع خيار 7 أيام أو 14 يوماً ننشئ تلقائياً حجزاً جديداً
+في كل مرة يُلغى فيها الحجز ونرسل إليك رمز PNR الجديد بالبريد الإلكتروني، لتحصل على
+حجز ساري المفعول وقابل للتحقق طوال المدة.</p></div>
+<div class="card"><h2>هل تقبله السفارات؟</h2><p>تطلب معظم السفارات <i>حجز طيران
+أو خط سير رحلة</i> — وينصح كثير منها صراحةً <b>بعدم</b> شراء تذكرة قبل الموافقة على
+التأشيرة. والحجز دون إصدار تذكرة هو المستند المعتاد لهذا الغرض. تحقق دائماً من
+المتطلبات الدقيقة لسفارتك، ورتّب موعدك بحيث يكون الحجز صالحاً في يوم التحقق منه
+(أو استخدم التجديد التلقائي).</p></div>
+<div class="card"><h2>متى سأحصل عليه؟</h2><p>عادةً خلال دقائق من الدفع. وإذا لم
+تتوفر أجرة قابلة للحجز دون دفع لمسارك وتاريخك، فسنخبرك فوراً ونردّ إليك المبلغ
+كاملاً.</p></div>
+<div class="card"><h2>ما سياسة الاسترداد لديكم؟</h2><p>إذا لم نتمكن من تسليم حجز
+قابل للتحقق، تسترد المبلغ كاملاً — دون أي أسئلة. راجع
+<a href="/terms">الشروط</a>.</p></div>""",
+    },
+    "pt": {
+        "pw_hint": "Pelo menos 10 caracteres. Também verificamos se ela não apareceu em"
+            " nenhum vazamento de dados conhecido.",
+        "google_btn": "Continuar com o Google", "or": "ou",
+        "link_btn": "Enviar-me um link de acesso por e-mail",
+        "link_note": "Sem senha — enviamos um link de uso único, válido por 30 minutos.",
+        "link_sent": "Se existir uma conta com esse e-mail, o link de acesso está a caminho.",
+        "link_confirm_text": "Clique no botão para concluir o acesso neste dispositivo.",
+        "link_confirm_btn": "Entrar", "password_login": "Entrar com senha",
+        "register_optional": "A conta é opcional — você também pode fazer o pedido sem ela e"
+            " entrar mais tarde com um link enviado por e-mail.",
+        "guest_order_text": "Não é preciso ter conta: criamos uma automaticamente para o seu"
+            " e-mail e você pode entrar a qualquer momento com um link de uso único enviado"
+            " por e-mail. Já tem uma conta?",
+        "needed_on_lbl": "Data do agendamento na embaixada ou do check-in (opcional)",
+        "needed_on_note": "Informe quando a reserva precisa estar válida e nós a criaremos"
+            " na noite anterior, para que esteja ativa nesse dia.",
+        "calc_basic": "Criaremos sua reserva na noite anterior a esta data e a enviaremos"
+            " por e-mail imediatamente — ela estará válida no dia.",
+        "calc_week": "", "calc_twoweek": "Faltam mais de 60 dias — faça o pedido mais perto"
+            " da data ou escolha o plano de 14 dias se precisar dela agora.",
+        "sample_btn": "Ver um documento de exemplo (PDF)",
+        "hotel_soon_title": "As reservas de hotel chegam em breve.",
+        "hotel_soon_text": "Estamos conectando nossos parceiros de reservas de hotel. As"
+            " reservas de voo já estão disponíveis.",
+        "residency_lbl": "Nacionalidade do hóspede (país do passaporte, 2 letras)",
+        "residency_note": "Os hotéis definem as tarifas pelo país do hóspede, p. ex. SK, DE, IN.",
+        "st_scheduled": "Pagamento recebido — reserva agendada",
+        "st_scheduled_text": "Para que sua reserva esteja válida na sua data, vamos criá-la"
+            " e enviar o itinerário por e-mail em",
+        "nav_privacy": "Privacidade",
+        "meta_title": "reservas de voo e hotel para pedidos de visto",
+        "meta_description": "Reservas de voo sem emissão de passagem (PNR) e reservas de"
+            " hotel canceláveis para pedidos de visto e comprovante de viagem de saída,"
+            " enviadas por e-mail com um PDF para impressão.",
+        "test_title": "MODO DE TESTE.",
+        "test_text": "As reservas criadas neste site são, por enquanto, reservas"
+            " fictícias de teste: não existem no sistema de nenhuma companhia aérea ou"
+            " hotel, não podem ser verificadas e NÃO devem ser usadas em um pedido de"
+            " visto. Nenhum pagamento é cobrado.",
+        "operated_by": "Operado por", "company_id": "N.º de registro da empresa",
+        "tax_id": "N.º de identificação fiscal", "vat_id": "N.º de IVA",
+        "vat_note": "Preços com IVA incluído.",
+        "consent_html": "Solicito que o serviço comece imediatamente e reconheço que perco"
+            " meu direito de desistência assim que a reserva for entregue. Aceito os"
+            " <a href='/terms'>Termos</a> e li a"
+            " <a href='/privacy'>Política de privacidade</a>.",
+        "hotel_badge1": "Reserva real e cancelável",
+        "hotel_badge3": "Voucher PDF + QR",
+        "hotel_price_note": "por reserva, independentemente do número de noites.",
+        "hotel_what_html": "<p>Você recebe uma <b>reserva de hotel real e cancelável</b>"
+            " com código de reserva — mantida em uma tarifa com cancelamento gratuito e"
+            " liberada automaticamente antes do prazo de cancelamento. É documentação de"
+            " apoio para pedidos de visto e comprovante de hospedagem, <b>não uma estadia"
+            " paga</b>.</p>",
+        "st_verify_short": "Verifique-a no site da companhia aérea em “Gerenciar reserva”"
+            " com o PNR e o sobrenome do passageiro.",
+        "st_sent_to": "Os documentos também foram enviados para",
+        "st_test_confirmed": "Reserva de TESTE — não válida, não verificável",
+        "st_refunded": "Reserva cancelada",
+        "st_refunded_text": "O pagamento desta reserva foi reembolsado ou contestado;"
+            " por isso a reserva foi cancelada e não será renovada.",
+        "hotel_released": "foi liberada antes do prazo de cancelamento gratuito.",
+        "nav_order": "Pedir", "nav_faq": "FAQ", "nav_terms": "Termos",
+        "nav_login": "Entrar", "nav_account": "Minha conta", "nav_logout": "Sair",
+        "nav_hotel": "Hotel",
+        "hotel_hero_title": "Uma reserva de hotel real para o seu visto",
+        "hotel_hero_sub": "Uma <b>reserva de hotel genuína e cancelável</b> com número de"
+            " confirmação — mantida em uma tarifa com cancelamento gratuito e entregue"
+            " em PDF para impressão. Ideal para <b>pedidos de visto</b> e"
+            " <b>comprovante de hospedagem</b>.",
+        "hotel_order_title": "Peça sua reserva de hotel",
+        "city_lbl": "Cidade de destino", "checkin_lbl": "Check-in",
+        "checkout_lbl": "Check-out", "guest": "Hóspede", "add_guest": "+ Adicionar hóspede",
+        "hotel_submit": "Obter minha reserva de hotel",
+        "hotel_confirmed": "Reserva de hotel confirmada",
+        "hotel_download": "Baixar reserva em PDF",
+        "checkin_th": "Check-in", "checkout_th": "Check-out", "hotel_th": "Hotel",
+        "login_title": "Entrar", "register_title": "Criar uma conta",
+        "email_lbl": "E-mail", "password_lbl": "Senha", "min8": "mín. 8 caracteres",
+        "login_btn": "Entrar", "register_btn": "Criar conta",
+        "no_account": "Ainda não tem conta?", "have_account": "Já tem uma conta?",
+        "forgot_link": "Esqueceu a senha?",
+        "forgot_title": "Redefinir sua senha",
+        "forgot_text": "Digite o e-mail da sua conta e enviaremos um link de redefinição.",
+        "forgot_btn": "Enviar link de redefinição",
+        "forgot_sent": "Se existir uma conta com esse e-mail, o link de redefinição está"
+            " a caminho.",
+        "reset_title": "Definir nova senha", "new_password": "Nova senha",
+        "reset_btn": "Alterar senha",
+        "account_title": "Minha conta", "order_history": "Histórico de pedidos",
+        "th_date": "Data", "th_status": "Status", "view": "Ver",
+        "no_orders": "Nenhum pedido ainda.",
+        "saved_passengers": "Viajantes salvos",
+        "saved_passengers_note": "Salve os dados dos viajantes para reutilizá-los em"
+            " pedidos futuros. Os dados do passaporte são opcionais e armazenados"
+            " criptografados.",
+        "nationality": "Nacionalidade", "passport": "Número do passaporte",
+        "passport_expiry": "Validade do passaporte",
+        "add_saved_passenger": "Adicionar viajante",
+        "passport_note": "Opcional. Armazenado criptografado; usado apenas para concluir"
+            " reservas internacionais.",
+        "delete": "Excluir", "save": "Salvar",
+        "new_order_btn": "Nova reserva", "traveller_saved": "Viajante salvo.",
+        "pw_len": "Pelo menos 8 caracteres", "pw_upper": "Uma letra maiúscula",
+        "pw_lower": "Uma letra minúscula", "pw_digit": "Um número",
+        "pw_special": "Um caractere especial (! ? # $ ...)",
+        "hero_title": "Uma reserva de voo real em minutos",
+        "hero_sub": "Uma <b>reserva aérea genuína (PNR)</b> sem comprar a passagem"
+                    " — verificável no site da companhia aérea, enviada ao seu"
+                    " e-mail com um itinerário em PDF para impressão. Ideal para"
+                    " <b>pedidos de visto</b> e <b>comprovante de viagem de"
+                    " saída</b>.",
+        "badge1": "PNR real e verificável", "badge2": "Entrega em minutos",
+        "badge3": "Itinerário em PDF + verificação por QR",
+        "order_title": "Peça sua reserva",
+        "book_need_account_text": "As reservas são feitas pela sua conta — ela guarda "
+            "seu histórico de reservas e permite reutilizar os dados dos viajantes. "
+            "Criar uma leva poucos segundos.",
+        "book_register_btn": "Criar conta e reservar",
+        "book_signin_btn": "Já tenho uma conta",
+        "validity": "Validade",
+        "plan_basic": "Padrão",
+        "plan_basic_desc": "Uma reserva, válida por 24–72 h (depende da companhia aérea)",
+        "plan_week": "7 dias",
+        "plan_week_desc": "Renovada automaticamente com um novo PNR sempre que expira —"
+                          " mantida válida por 7 dias",
+        "plan_2week": "14 dias",
+        "plan_2week_desc": "Renovação automática por 14 dias — ideal para processos de"
+                           " visto mais longos",
+        "trip_type": "Tipo de viagem",
+        "oneway": "Só ida", "oneway_desc": "Um único voo",
+        "round": "Ida e volta", "round_desc": "Ida e retorno",
+        "multi": "Vários destinos", "multi_desc": "2–3 voos",
+        "from": "Origem", "to": "Destino", "depart": "Data de partida",
+        "return": "Data de volta", "flight2": "Voo 2",
+        "flight3": "Voo 3 (opcional)", "date": "Data",
+        "placeholder_city": "Cidade ou aeroporto",
+        "email": "E-mail (o itinerário é enviado para cá)",
+        "phone": "Telefone (formato internacional, +34...)",
+        "passenger": "Passageiro", "title_lbl": "Tratamento",
+        "given": "Nome (como no passaporte)",
+        "surname": "Sobrenome (como no passaporte)",
+        "dob": "Data de nascimento", "gender": "Sexo",
+        "male": "Masculino", "female": "Feminino",
+        "add_passenger": "+ Adicionar passageiro",
+        "pay_method": "Forma de pagamento",
+        "pay_card": "Cartão", "pay_card_desc": "Visa, Mastercard — via Stripe",
+        "pay_crypto": "Cripto",
+        "pay_crypto_desc": "BTC, XMR, ZEC, ETH, USDT — mais de 300 moedas",
+        "submit": "Obter minha reserva",
+        "fee_note": "Você paga apenas a nossa taxa de serviço. Nunca cobramos o preço"
+                    " do voo e a companhia aérea nunca recebe pagamento.",
+        "how_title": "Como funciona",
+        "how1": "Você paga a taxa de serviço — nada mais, nunca.",
+        "how2": "Fazemos uma reserva real com a companhia aérea em seu nome — uma"
+                " reserva com código PNR, mantida sem pagamento.",
+        "how3": "O itinerário com o PNR e um PDF para impressão chega à sua caixa de"
+                " entrada, geralmente em minutos. Verifique-o no próprio site da"
+                " companhia aérea (“Gerenciar reserva”).",
+        "how4": "Padrão: a companhia aérea libera a reserva não paga após 24–72 horas."
+                " Com a opção de 7/14 dias, criamos automaticamente uma nova reserva"
+                " sempre que uma expira e enviamos o novo PNR por e-mail.",
+        "what_title": "O que é — e o que não é",
+        "what_html": "<p>Você recebe uma <b>reserva real</b>, não um PDF editado:"
+                     " o PNR existe no sistema da companhia aérea e qualquer pessoa"
+                     " pode verificá-lo enquanto estiver válido.</p><p><b>Não é uma"
+                     " passagem aérea</b> — você não pode embarcar com ela e, depois"
+                     " que expirar, a verificação a mostrará como liberada. As"
+                     " embaixadas costumam aceitar (e muitas vezes recomendam)"
+                     " reservas sem emissão de passagem para pedidos de visto; as"
+                     " opções de renovação automática mantêm um PNR ativo na sua"
+                     " caixa de entrada durante todo o processo.</p>",
+        "more_faq": "Mais perguntas? Veja o <a href='/faq'>FAQ</a>.",
+        "footer": "oferece reservas de voo sem emissão de passagem e reservas de hotel"
+                  " canceláveis para pedidos de visto e comprovante de viagem de saída."
+                  " Uma reserva não é uma passagem aérea nem uma estadia paga e não"
+                  " pode ser usada para embarcar.",
+        "st_confirmed": "Reserva confirmada",
+        "st_passengers": "Passageiros",
+        "th_flight": "Voo", "th_route": "Rota",
+        "th_dep": "Partida", "th_arr": "Chegada",
+        "st_valid": "Válida até",
+        "st_verify": "Verifique-a no site da companhia aérea em “Gerenciar"
+                     " reserva” com o PNR e o seu sobrenome. O itinerário"
+                     " também foi enviado para",
+        "st_autorenew": "Renovação automática ativada: sempre que a companhia aérea"
+                        " liberar esta reserva, criaremos uma nova e enviaremos o"
+                        " novo PNR por e-mail — até",
+        "st_renewed": "Renovada", "st_renewed_sofar": " vez(es) até agora.",
+        "st_download": "Baixar itinerário em PDF",
+        "st_working": "Processando...",
+        "st_working_text": "Sua reserva está sendo criada. Esta página é atualizada"
+                           " automaticamente; o itinerário também chegará por"
+                           " e-mail.",
+        "st_expired": "Reserva expirada",
+        "st_expired_text": "chegou ao fim da validade e foi liberada pela companhia"
+                           " aérea. Precisa de uma nova?",
+        "st_new_order": "Fazer um novo pedido",
+        "st_failed": "Não conseguimos concluir esta reserva",
+        "st_failed_text": "Se você já pagou, vamos resolver ou reembolsar o valor"
+                          " integral. Dúvidas:",
+        "back": "Voltar",
+        "faq_title": "Perguntas frequentes",
+        "faq_html": """
+<div class="card"><h2>A reserva é real?</h2><p>Sim. Criamos uma reserva de verdade
+no sistema de reservas da companhia aérea — do mesmo tipo que uma agência de
+viagens cria antes de emitir a passagem. Ela tem um código PNR real que você pode
+verificar no site da companhia aérea em “Gerenciar reserva” (PNR + sobrenome do
+passageiro) enquanto estiver válida.</p></div>
+<div class="card"><h2>Posso voar com ela?</h2><p><b>Não.</b> Uma reserva não é
+uma passagem — nenhum número de bilhete é emitido e ela não pode ser usada para
+embarcar. É documentação de apoio para um pedido de visto ou comprovante de viagem
+de saída.</p></div>
+<div class="card"><h2>Por quanto tempo é válida?</h2><p>A companhia aérea mantém
+uma reserva não paga por 24–72 horas, dependendo da empresa. Com a opção de 7 ou
+14 dias, criamos automaticamente uma nova reserva sempre que uma é liberada e
+enviamos o novo PNR por e-mail, para que você tenha uma reserva ativa e
+verificável durante todo o período.</p></div>
+<div class="card"><h2>As embaixadas aceitam?</h2><p>A maioria das embaixadas pede
+uma <i>reserva ou itinerário</i> de voo — muitas recomendam explicitamente
+<b>não</b> comprar a passagem antes da aprovação do visto. Uma reserva sem emissão
+de passagem é o documento padrão para essa finalidade. Sempre confira os requisitos
+exatos da sua embaixada; programe o seu agendamento para que a reserva esteja
+válida no dia em que for verificada (ou use a renovação automática).</p></div>
+<div class="card"><h2>Em quanto tempo vou recebê-la?</h2><p>Geralmente poucos
+minutos após o pagamento. Se não houver tarifa que permita reserva sem pagamento
+para sua rota e data, avisaremos imediatamente e reembolsaremos o valor
+integral.</p></div>
+<div class="card"><h2>Qual é a política de reembolso?</h2><p>Se não conseguirmos
+entregar uma reserva verificável, você recebe o reembolso integral — sem
+perguntas. Veja os <a href="/terms">Termos</a>.</p></div>""",
+    },
 }
 
 
@@ -416,4 +1166,8 @@ def pick_lang(query_lang: str, cookie_lang: str, accept_language: str) -> str:
     for candidate in (query_lang, cookie_lang):
         if candidate in STRINGS:
             return candidate
-    return "es" if (accept_language or "").strip().lower().startswith("es") else "en"
+    first = (accept_language or "").strip().lower()
+    for code in ("fr", "ar", "pt", "es"):
+        if first.startswith(code):
+            return code
+    return "en"

@@ -155,3 +155,21 @@ def expired_notice(order: sqlite3.Row, brand: str) -> tuple[str, str, str]:
             "If you need a fresh reservation, simply place a new order.")
     html = f"<p>{_e(text)}</p>"
     return subject, text, html
+
+
+def scheduled_notice(order: sqlite3.Row, brand: str, status_url: str = "") -> tuple[str, str, str]:
+    when = order["book_at"].replace("T", " ").replace("Z", " UTC")[:20]
+    subject = (f"{subject_prefix()}{brand}: payment received — reservation"
+               f" {order['origin']} → {order['destination']} scheduled")
+    lines = [
+        *([TEST_TEXT, ""] if config.test_mode() else []),
+        "Thank you, your payment was received.",
+        f"So that your reservation is valid on {order['needed_on']}, we will create it"
+        f" on {when} and e-mail you the itinerary with the PDF right away.",
+        *([f"Order status: {status_url}"] if status_url else []),
+        "",
+        f"Questions? Contact {config.contact_email()}",
+    ]
+    text = "\n".join(lines)
+    html = "".join(f"<p>{_e(line)}</p>" for line in lines if line)
+    return subject, text, html

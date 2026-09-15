@@ -1,0 +1,12 @@
+{# Nápoveda k heslu: dĺžka; uniknuté heslá kontroluje server #}
+<p id="pwhint" class="note" style="margin:6px 0 0">{{ t['pw_hint'] }}</p>
+<script>
+  (function () {
+    const pw = document.getElementById('pw'), hint = document.getElementById('pwhint');
+    pw.addEventListener('input', () => {
+      const ok = pw.value.length >= 10;
+      hint.style.color = ok ? '#0a7d38' : '';
+      hint.textContent = (ok ? '✓ ' : '') + {{ t['pw_hint']|tojson }};
+    });
+  })();
+</script>

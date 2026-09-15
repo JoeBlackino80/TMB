@@ -47,6 +47,15 @@ PAX = [{"title": "mr", "given_name": "Jan", "family_name": "Novak",
 SLICES = [{"origin": "vie", "destination": "bkk", "date": TOMORROW}]
 
 
+@pytest.fixture(autouse=True)
+def _offline(monkeypatch):
+    """Testy nevolajú Have I Been Pwned ani iné externé služby."""
+    monkeypatch.setenv("ONWARD_HIBP", "0")
+    monkeypatch.delenv("GOOGLE_CLIENT_ID", raising=False)
+    monkeypatch.delenv("RATEHAWK_KEY_ID", raising=False)
+    monkeypatch.delenv("HOTELBEDS_API_KEY", raising=False)
+
+
 def _store_kwargs(**over):
     base = dict(email="a@b.sk", phone="+421900000000", slices=SLICES,
                 passengers=PAX, plan="basic", valid_until="")
@@ -66,7 +75,7 @@ def _form_data(**over):
 
 def _auth(client, email="buyer@x.sk"):
     """Zaregistruje (a prihlási) používateľa — objednávka je možná len s účtom."""
-    client.post("/register", data={"email": email, "password": "Heslo123!"})
+    client.post("/register", data={"email": email, "password": "Heslo123!xy"})
     return client
 
 
@@ -167,14 +176,24 @@ def test_pages(client):
         assert client.get(path).status_code == 200
 
 
-def test_order_requires_account(client):
-    """Bez prihlásenia objednávku nedovolíme — presmerujeme na registráciu."""
-    resp = client.post("/order", data=_form_data(), follow_redirects=False)
-    assert resp.status_code == 303
-    assert resp.headers["location"] == "/register?next=order"
-    # aj landing ukazuje hosťovi výzvu na registráciu namiesto formulára
+def test_guest_can_order_without_account(client, monkeypatch):
+    """Objednávka bez registrácie: účet vznikne z e-mailu, hosť sa neprihlási."""
+    _mock_duffel(monkeypatch)
+    _mock_mailer(monkeypatch)
     page = client.get("/").text
-    assert "/register?next=order" in page
+    assert 'action="/order"' in page and "No account needed" in page
+    resp = client.post("/order", data=_form_data(email="guest@x.sk"), follow_redirects=True)
+    assert resp.status_code == 200 and "ABC123" in resp.text
+    import os
+    store = Orders(os.environ["ONWARD_DB_PATH"])
+    user = store.user_by_email("guest@x.sk")
+    assert user and user["password_hash"] == "!guest"
+    assert store.all()[0]["user_id"] == user["id"]
+    store.close()
+    assert client.get("/account", follow_redirects=False).status_code == 303
+    # heslom sa do účtu hosťa prihlásiť nedá
+    r = client.post("/login", data={"email": "guest@x.sk", "password": "!guest"})
+    assert "Wrong e-mail or password" in r.text
 
 
 def test_order_validation(client):
@@ -281,7 +300,7 @@ def test_admin_requires_key(client, monkeypatch):
     assert page.status_code == 200 and "Admin key" in page.text
     assert "Wrong key" in client.post("/admin/login", data={"key": "zle"}).text
     ok = client.post("/admin/login", data={"key": "tajne"}, follow_redirects=True)
-    assert ok.status_code == 200 and "Hotels" in ok.text
+    assert ok.status_code == 200 and "Hotely" in ok.text and "Export CSV" in ok.text
 
 
 def test_airports_json(client):
@@ -341,7 +360,7 @@ def test_spanish_translation(client):
 
 def test_register_login_account_flow(client):
     # registrácia → prihlásený, panel dostupný
-    r = client.post("/register", data={"email": "u@x.sk", "password": "Heslo123!"},
+    r = client.post("/register", data={"email": "u@x.sk", "password": "Heslo123!xy"},
                     follow_redirects=False)
     assert r.status_code == 303 and r.headers["location"] == "/account"
     assert client.get("/account").status_code == 200
@@ -381,7 +400,7 @@ def test_passport_encryption(monkeypatch):
 def test_saved_passenger_crud(client, monkeypatch):
     from cryptography.fernet import Fernet
     monkeypatch.setenv("ONWARD_DATA_KEY", Fernet.generate_key().decode())
-    client.post("/register", data={"email": "p@x.sk", "password": "Heslo123!"})
+    client.post("/register", data={"email": "p@x.sk", "password": "Heslo123!xy"})
     client.post("/account/passenger", data={
         "title": "mr", "given_name": "Jan", "family_name": "Novak",
         "born_on": "1990-01-01", "gender": "m", "nationality": "sk",
@@ -392,12 +411,12 @@ def test_saved_passenger_crud(client, monkeypatch):
 
 def test_honeypot_blocks_registration(client):
     r = client.post("/register",
-                    data={"email": "bot@x.sk", "password": "Heslo123!",
+                    data={"email": "bot@x.sk", "password": "Heslo123!xy",
                           "website": "http://spam.example"},
                     follow_redirects=False)
     assert r.status_code == 303 and r.headers["location"] == "/register"
     # účet nevznikol
-    r2 = client.post("/login", data={"email": "bot@x.sk", "password": "Heslo123!"})
+    r2 = client.post("/login", data={"email": "bot@x.sk", "password": "Heslo123!xy"})
     assert "Wrong e-mail or password" in r2.text
 
 
@@ -426,20 +445,41 @@ def test_turnstile_disabled_passes(monkeypatch):
     assert security.turnstile_ok("", "1.2.3.4") is True
 
 
-def test_password_policy():
+def test_password_policy(monkeypatch):
     from onward import auth
-    assert auth.password_problem("Shorty1!") == ""  # 8 znakov, spĺňa všetko
-    assert "8 characters" in auth.password_problem("Ab1!")
-    assert "uppercase" in auth.password_problem("abcdef1!")
-    assert "lowercase" in auth.password_problem("ABCDEF1!")
-    assert "digit" in auth.password_problem("Abcdefg!")
-    assert "special" in auth.password_problem("Abcdefg1")
-    assert auth.password_problem("Abcdef1!") == ""
+    assert "10 characters" in auth.password_problem("Short1!")
+    assert auth.password_problem("dlhe heslo bez pravidiel") == ""  # dĺžka stačí
+    assert "at most" in auth.password_problem("x" * 129)
+    monkeypatch.setattr(auth, "pwned_count", lambda pw: 12345)
+    assert "data breach" in auth.password_problem("password1234")
+
+
+def test_pwned_check_uses_k_anonymity(monkeypatch):
+    from onward import auth
+    import hashlib as _h
+    import urllib.request as _u
+    monkeypatch.setenv("ONWARD_HIBP", "1")
+    digest = _h.sha1(b"password1234").hexdigest().upper()
+    seen = {}
+
+    class Resp:
+        def __init__(self, body): self.body = body
+        def read(self): return self.body
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+
+    def fake_urlopen(req, timeout=0):
+        seen["url"] = req.full_url
+        return Resp(f"{digest[5:]}:42\r\nABCDEF:1".encode())
+    monkeypatch.setattr(_u, "urlopen", fake_urlopen)
+    assert auth.pwned_count("password1234") == 42
+    assert seen["url"].endswith("/range/" + digest[:5])      # posiela sa len 5 znakov
+    assert digest[5:] not in seen["url"]
 
 
 def test_register_rejects_weak_password(client):
-    r = client.post("/register", data={"email": "w@x.sk", "password": "weakpass"})
-    assert "uppercase" in r.text or "special" in r.text or "digit" in r.text
+    r = client.post("/register", data={"email": "w@x.sk", "password": "short"})
+    assert "10 characters" in r.text
 
 
 def test_security_headers(client):
@@ -474,7 +514,7 @@ def test_delete_passenger_is_user_scoped(client, monkeypatch):
     from cryptography.fernet import Fernet
     monkeypatch.setenv("ONWARD_DATA_KEY", Fernet.generate_key().decode())
     # user A pridá pasažiera
-    client.post("/register", data={"email": "a1@x.sk", "password": "Heslo123!"})
+    client.post("/register", data={"email": "a1@x.sk", "password": "Heslo123!xy"})
     client.post("/account/passenger", data={
         "title": "mr", "given_name": "A", "family_name": "One",
         "born_on": "1990-01-01", "gender": "m"})
@@ -486,7 +526,7 @@ def test_delete_passenger_is_user_scoped(client, monkeypatch):
     store.close()
     # user B sa prihlási a skúsi zmazať pasažiera user A
     client.post("/logout")
-    client.post("/register", data={"email": "b1@x.sk", "password": "Heslo123!"})
+    client.post("/register", data={"email": "b1@x.sk", "password": "Heslo123!xy"})
     client.post(f"/account/passenger/{pid_a}/delete")
     store = Orders(os.environ["ONWARD_DB_PATH"])
     assert len(store.saved_passengers(uid_a)) == 1  # pasažier A ostal
@@ -495,7 +535,7 @@ def test_delete_passenger_is_user_scoped(client, monkeypatch):
 
 def test_password_reset_flow(client, monkeypatch):
     # založ účet
-    client.post("/register", data={"email": "reset@x.sk", "password": "Heslo123!"})
+    client.post("/register", data={"email": "reset@x.sk", "password": "Heslo123!xy"})
     client.post("/logout")
     # zachyť reset e-mail
     sent = {}
@@ -510,12 +550,12 @@ def test_password_reset_flow(client, monkeypatch):
     token = _re.search(r"/reset\?token=([\w=\-]+)", sent["text"]).group(1)
     # slabé nové heslo odmietne
     bad = client.post("/reset", data={"token": token, "password": "weak"})
-    assert "uppercase" in bad.text or "special" in bad.text or "8 characters" in bad.text
+    assert "10 characters" in bad.text
     # silné nové heslo prejde
-    ok = client.post("/reset", data={"token": token, "password": "NoveHeslo1!"})
+    ok = client.post("/reset", data={"token": token, "password": "NoveHeslo1!xy"})
     assert "Password changed" in ok.text
     # prihlásenie novým heslom funguje
-    login = client.post("/login", data={"email": "reset@x.sk", "password": "NoveHeslo1!"},
+    login = client.post("/login", data={"email": "reset@x.sk", "password": "NoveHeslo1!xy"},
                         follow_redirects=False)
     assert login.status_code == 303 and login.headers["location"] == "/account"
 
@@ -615,7 +655,7 @@ STAY_BOOKING = {"id": "bk_1", "reference": "HOTELREF1"}
 
 
 def _hotel_form(**over):
-    base = dict(city="Bangkok, TH", latitude="13.6900", longitude="100.7501",
+    base = dict(city="Bangkok, TH", latitude="13.6900", longitude="100.7501", residency="sk",
                 check_in=TOMORROW,
                 check_out=(date.today() + timedelta(days=3)).isoformat(),
                 email="buyer@x.sk", phone="+421900123456",
@@ -625,24 +665,30 @@ def _hotel_form(**over):
 
 
 def _mock_stays(monkeypatch):
-    from onward import hotelbooking
+    from onward import hotelbooking, stays
+    monkeypatch.setenv("DUFFEL_API_KEY", "duffel_test_x")
+    monkeypatch.setenv("ONWARD_HOTEL_PROVIDERS", "duffel")
     monkeypatch.setattr(hotelbooking, "BASE_URL", "https://validflight.com")
-    monkeypatch.setattr(hotelbooking.stays, "search", lambda *a, **k: SEARCH_RESULTS)
-    monkeypatch.setattr(hotelbooking.stays, "fetch_rates", lambda sid: RATES_DATA)
-    monkeypatch.setattr(hotelbooking.stays, "create_quote", lambda rid: {"id": "q_1"})
-    monkeypatch.setattr(hotelbooking.stays, "create_booking",
+    monkeypatch.setattr(stays, "search", lambda *a, **k: SEARCH_RESULTS)
+    monkeypatch.setattr(stays, "fetch_rates", lambda sid: RATES_DATA)
+    monkeypatch.setattr(stays, "create_quote", lambda rid: {"id": "q_1"})
+    monkeypatch.setattr(stays, "create_booking",
                         lambda quote_id, guests, email, phone_number: STAY_BOOKING)
-    monkeypatch.setattr(hotelbooking.stays, "cancel_booking", lambda bid: {"id": bid})
+    monkeypatch.setattr(stays, "cancel_booking", lambda bid: {"id": bid})
     sent = []
     monkeypatch.setattr(hotelbooking.mailer, "send",
                         lambda to, subject, text, html="", attachments=None,
-                        inline_images=None: sent.append((subject, attachments)) or True)
+                        inline_images=None, queue=True: sent.append((subject, attachments)) or True)
     return sent
 
 
-def test_hotel_requires_account(client):
+def test_hotel_page_says_coming_soon_without_provider(client, monkeypatch):
+    monkeypatch.setenv("ONWARD_HOTEL_PROVIDERS", "ratehawk,hotelbeds")
+    page = client.get("/hotel").text
+    assert "coming soon" in page and 'action="/hotel/order"' not in page
+    assert 'href="/hotel"' not in client.get("/faq").text.split("<main>")[0]
     r = client.post("/hotel/order", data=_hotel_form(), follow_redirects=False)
-    assert r.status_code == 303 and r.headers["location"] == "/register?next=hotel"
+    assert r.status_code == 303 and r.headers["location"] == "/hotel"
 
 
 def test_free_cancellation_rate_pick():
@@ -908,7 +954,8 @@ def test_hotel_cancelled_with_margin_before_deadline(tmp_path, monkeypatch):
                                                                 "family_name": "B"}],
                                   plan="basic")
         store.set_stay_booking(token, hotel_name="H", reference=f"R{token_hours}",
-                               duffel_booking_id="bk", cancel_by=utc_in(hours=token_hours),
+                               provider="duffel", provider_ref="bk",
+                               cancel_by=utc_in(hours=token_hours),
                                summary={})
     assert hotelbooking.cancel_due(store) == 1
     statuses = {r["reference"]: r["status"] for r in store.all_stays()}
@@ -1016,7 +1063,7 @@ def test_purge_old_closed_orders(tmp_path):
 
 
 def test_password_change_revokes_sessions_and_reset_link(client, monkeypatch):
-    client.post("/register", data={"email": "s@x.sk", "password": "Heslo123!"})
+    client.post("/register", data={"email": "s@x.sk", "password": "Heslo123!xy"})
     assert client.get("/account", follow_redirects=False).status_code == 200
     old_cookie = client.cookies.get("session")
     sent = {}
@@ -1027,10 +1074,10 @@ def test_password_change_revokes_sessions_and_reset_link(client, monkeypatch):
     import re as _re
     token = _re.search(r"/reset\?token=([\w=\-]+)", sent["text"]).group(1)
     assert "Password changed" in client.post(
-        "/reset", data={"token": token, "password": "NoveHeslo1!"}).text
+        "/reset", data={"token": token, "password": "NoveHeslo1!xy"}).text
     # ten istý odkaz druhýkrát nefunguje
     assert "Invalid or expired" in client.post(
-        "/reset", data={"token": token, "password": "IneHeslo1!"}).text
+        "/reset", data={"token": token, "password": "IneHeslo1!xy"}).text
     # staré prihlásenie (napr. na inom zariadení) prestalo platiť
     client.cookies.set("session", old_cookie)
     assert client.get("/account", follow_redirects=False).status_code == 303
@@ -1094,3 +1141,310 @@ def test_client_ip_prefers_real_ip_from_caddy():
         headers = {"x-real-ip": "198.51.100.7", "x-forwarded-for": "1.2.3.4, 172.64.1.1"}
         client = None
     assert security.client_ip(Req()) == "198.51.100.7"
+
+
+# ---- 13 vylepšení a hotely cez RateHawk / Hotelbeds (september 2026) ----
+
+def _capture_mail(monkeypatch, module):
+    sent = []
+    monkeypatch.setattr(module.mailer, "send",
+                        lambda to, subject, text, html="", attachments=None,
+                        inline_images=None, queue=True: sent.append((to, subject, text)) or True)
+    return sent
+
+
+def test_login_link_is_single_use(client, monkeypatch):
+    from onward import app as A
+    client.post("/register", data={"email": "link@x.sk", "password": "Heslo123!xy"})
+    client.post("/logout")
+    sent = _capture_mail(monkeypatch, A)
+    r = client.post("/login/link", data={"email": "link@x.sk"})
+    assert "sign-in link is on its way" in r.text
+    import re as _re
+    token = _re.search(r"/login/link\?token=([\w=\-]+)", sent[0][2]).group(1)
+    # otvorenie odkazu ešte neprihlási (e-mailové skenery)
+    assert "finish signing in" in client.get("/login/link", params={"token": token}).text
+    assert client.get("/account", follow_redirects=False).status_code == 303
+    ok = client.post("/login/link/confirm", data={"token": token}, follow_redirects=False)
+    assert ok.status_code == 303
+    assert client.get("/account", follow_redirects=False).status_code == 200
+    client.post("/logout")
+    again = client.post("/login/link/confirm", data={"token": token})
+    assert "Invalid or expired" in again.text
+
+
+def test_login_link_does_not_reveal_accounts(client, monkeypatch):
+    from onward import app as A
+    sent = _capture_mail(monkeypatch, A)
+    r = client.post("/login/link", data={"email": "nobody@x.sk"})
+    assert "sign-in link is on its way" in r.text and not sent
+
+
+def test_google_sign_in(client, monkeypatch):
+    from onward import app as A, googleauth
+    monkeypatch.setenv("GOOGLE_CLIENT_ID", "cid")
+    monkeypatch.setenv("GOOGLE_CLIENT_SECRET", "sec")
+    assert "Continue with Google" in client.get("/login").text
+    start = client.get("/auth/google", params={"next": "order"}, follow_redirects=False)
+    assert start.headers["location"].startswith("https://accounts.google.com/")
+    from urllib.parse import parse_qs, urlsplit
+    params = parse_qs(urlsplit(start.headers["location"]).query)
+    state, nonce = params["state"][0], params["nonce"][0]
+    captured = {}
+
+    def fake_identity(code, redirect_uri, got_nonce):
+        captured.update(code=code, nonce=got_nonce)
+        return "google-sub-1", "g.user@gmail.com"
+    monkeypatch.setattr(googleauth, "verified_identity", fake_identity)
+    # zlý state → odmietnuté
+    bad = client.get("/auth/google/callback", params={"code": "c", "state": "zly"})
+    assert "Google sign-in failed" in bad.text
+    ok = client.get("/auth/google/callback", params={"code": "c", "state": state},
+                    follow_redirects=False)
+    assert ok.status_code == 303 and ok.headers["location"] == "/"
+    assert captured["nonce"] == nonce
+    assert client.get("/account", follow_redirects=False).status_code == 200
+
+
+def test_order_with_appointment_date_is_scheduled(client, monkeypatch):
+    calls = _mock_duffel(monkeypatch)
+    _mock_mailer(monkeypatch)
+    from onward import booking
+    sent = []
+    monkeypatch.setattr(booking.mailer, "send",
+                        lambda to, subject, text, html="", attachments=None,
+                        inline_images=None, queue=True: sent.append(subject) or True)
+    appointment = (date.today() + timedelta(days=10)).isoformat()
+    far = (date.today() + timedelta(days=20)).isoformat()
+    resp = client.post("/order", data=_form_data(needed_on=appointment, depart_date=far),
+                       follow_redirects=True)
+    assert "reservation scheduled" in resp.text and not calls
+    assert "scheduled" in sent[0]
+    import os
+    store = Orders(os.environ["ONWARD_DB_PATH"])
+    row = store.all()[0]
+    assert row["status"] == "scheduled"
+    assert row["book_at"] == (date.today() + timedelta(days=9)).isoformat() + "T22:00:00Z"
+    store.conn.execute("UPDATE orders SET book_at='2020-01-01T00:00:00Z'")
+    store.conn.commit()
+    store.close()
+    from onward import expire
+    expire.main()
+    store = Orders(os.environ["ONWARD_DB_PATH"])
+    assert store.all()[0]["status"] == "booked" and calls
+    store.close()
+
+
+def test_appointment_must_be_before_departure(client, monkeypatch):
+    _mock_duffel(monkeypatch)
+    late = (date.today() + timedelta(days=5)).isoformat()
+    r = client.post("/order", data=_form_data(needed_on=late))  # odlet zajtra
+    assert "must not be after the departure" in r.text
+
+
+def test_outbox_retries_failed_mail(tmp_path, monkeypatch):
+    monkeypatch.setenv("ONWARD_DB_PATH", str(tmp_path / "o.db"))
+    for k, v in (("ONWARD_SMTP_HOST", "h"), ("ONWARD_SMTP_USER", "u"), ("ONWARD_SMTP_PASSWORD", "p")):
+        monkeypatch.setenv(k, v)
+    from onward import mailer
+    delivered = []
+
+    def broken(msg):
+        raise ConnectionError("limit")
+    monkeypatch.setattr(mailer, "_deliver", broken)
+    assert mailer.send("x@y.sk", "Itinerary", "text", "<p>h</p>",
+                       attachments=[("a.pdf", b"%PDF", "application/pdf")]) is False
+    store = Orders()
+    assert store.conn.execute("SELECT COUNT(*) FROM outbox").fetchone()[0] == 1
+    store.conn.execute("UPDATE outbox SET next_try='2000-01-01T00:00:00Z'")
+    store.conn.commit()
+    monkeypatch.setattr(mailer, "_deliver", lambda msg: delivered.append(msg))
+    assert mailer.flush_outbox(store) == (1, 0)
+    assert delivered[0]["Subject"] == "Itinerary" and delivered[0]["Reply-To"]
+    assert store.conn.execute("SELECT COUNT(*) FROM outbox").fetchone()[0] == 0
+    store.close()
+
+
+def test_health_sample_pdf_and_guides(client):
+    assert client.get("/health").json() == {"ok": True}
+    pdf_resp = client.get("/sample-itinerary.pdf")
+    assert pdf_resp.status_code == 200 and pdf_resp.content.startswith(b"%PDF")
+    for slug in ("schengen-visa-flight-reservation", "onward-ticket-philippines",
+                 "thailand-proof-of-onward-travel", "hotel-reservation-for-visa"):
+        page = client.get(f"/guides/{slug}")
+        assert page.status_code == 200 and "application/ld+json" in page.text
+        assert "<title>" in page.text and "ValidFlight</title>" in page.text
+    assert client.get("/guides/neexistuje").status_code == 404
+    assert "/guides/onward-ticket-philippines" in client.get("/sitemap.xml").text
+
+
+def test_umami_is_optional_and_allowed_by_csp(client, monkeypatch):
+    assert "data-website-id" not in client.get("/").text
+    monkeypatch.setenv("ONWARD_UMAMI_SRC", "https://stat.depesa.sk/s.js")
+    monkeypatch.setenv("ONWARD_UMAMI_WEBSITE_ID", "abc-123")
+    r = client.get("/")
+    assert 'data-website-id="abc-123"' in r.text
+    assert "https://stat.depesa.sk" in r.headers["content-security-policy"]
+
+
+def test_admin_search_resend_and_export(client, monkeypatch):
+    from onward import app as A, booking
+    monkeypatch.setattr(A, "ADMIN_KEY", "tajne")
+    _mock_duffel(monkeypatch)
+    sent = []
+    monkeypatch.setattr(booking.mailer, "send",
+                        lambda to, subject, text, html="", attachments=None,
+                        inline_images=None, queue=True: sent.append(subject) or True)
+    client.post("/order", data=_form_data(email="find.me@x.sk"), follow_redirects=True)
+    client.post("/order", data=_form_data(email="other@x.sk"), follow_redirects=True)
+    client.post("/admin/login", data={"key": "tajne"})
+    page = client.get("/admin", params={"q": "find.me"}).text
+    assert "find.me@x.sk" in page and "other@x.sk" not in page and "Nájdené: 1" in page
+    import os
+    store = Orders(os.environ["ONWARD_DB_PATH"])
+    token = store.search("orders", "find.me")[0][0]["token"]
+    store.close()
+    before = len(sent)
+    r = client.post(f"/admin/orders/{token}/resend", follow_redirects=True)
+    assert "odoslaný znova" in r.text and len(sent) == before + 1
+    csv_resp = client.get("/admin/export.csv", params={"q": "find.me"})
+    assert csv_resp.headers["content-type"].startswith("text/csv")
+    assert "find.me@x.sk" in csv_resp.text and "other@x.sk" not in csv_resp.text
+    client.post("/admin/logout")
+    assert client.get("/admin/export.csv").status_code == 404
+
+
+def test_ratehawk_provider_flow(monkeypatch):
+    from onward.hotelproviders import ratehawk
+    from onward.store import utc_in
+    monkeypatch.setattr(ratehawk.time, "sleep", lambda s: None)
+    soon = utc_in(hours=10).rstrip("Z")
+    later = utc_in(days=6).rstrip("Z")
+
+    def rate(hash_key, amount, free_before):
+        return {"book_hash": hash_key, "search_hash": hash_key, "payment_options": {"payment_types": [
+            {"type": "deposit", "amount": amount, "currency_code": "EUR",
+             "show_amount": amount, "show_currency_code": "EUR",
+             "cancellation_penalties": {"free_cancellation_before": free_before}}]}}
+    calls = []
+
+    def fake_call(path, payload, timeout=60):
+        calls.append(path)
+        if path == "search/serp/geo":
+            return {"hotels": [
+                {"hid": 1, "rates": [rate("sr-cheap-soon", "50.00", soon)]},   # storno príliš skoro
+                {"hid": 2, "rates": [rate("sr-ok", "90.00", later)]},
+                {"hid": 3, "rates": [rate("sr-norefund", "40.00", None)]}]}
+        if path == "search/hp":
+            assert payload["hid"] == 2 and payload["residency"] == "in"
+            return {"hotels": [{"rates": [rate("h-ok", "90.00", later)]}]}
+        if path == "hotel/prebook":
+            return {"hotels": [{"rates": [rate("p-ok", "90.00", later)]}]}
+        if path == "hotel/order/booking/form":
+            return {"order_id": 555, "payment_types": [
+                {"type": "deposit", "amount": "90.00", "currency_code": "EUR"}]}
+        if path == "hotel/order/booking/finish":
+            assert payload["payment_type"]["type"] == "deposit"
+            assert payload["rooms"][0]["guests"][0]["last_name"] == "Novak"
+            return {}
+        if path == "hotel/order/booking/finish/status":
+            return {}
+        if path == "hotel/info":
+            return {"name": "Hotel Two", "address": "Main 2"}
+        raise AssertionError(path)
+    monkeypatch.setattr(ratehawk, "_call", fake_call)
+    offer = ratehawk.find_offer(1.0, 2.0, "2030-01-01", "2030-01-03", 1, "IN")
+    assert offer.hotel_id == "2" and offer.rate_ref == "h-ok" and offer.cancel_by.endswith("Z")
+    result = ratehawk.book(offer, [{"given_name": "Jan", "family_name": "Novak"}],
+                           "jan@x.sk", "+421900000000", client_ref="VF7")
+    assert result.cancel_ref == "VF7-1" and result.reference == "555"
+    assert result.name == "Hotel Two" and result.cancel_by == offer.cancel_by
+
+
+def test_hotelbeds_provider_flow(monkeypatch):
+    from onward.hotelproviders import hotelbeds
+    from datetime import datetime, timezone
+    assert hotelbeds.signature("k", "s", 1700000000) == \
+        __import__("hashlib").sha256(b"ks1700000000").hexdigest()
+    in_week = (datetime.now(timezone.utc) + timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%S+02:00")
+    in_hours = (datetime.now(timezone.utc) + timedelta(hours=5)).strftime("%Y-%m-%dT%H:%M:%S+02:00")
+
+    def fake_call(method, path, payload=None, timeout=60):
+        if path == "/hotels":
+            assert payload["geolocation"]["unit"] == "km" and payload["sourceMarket"] == "DE"
+            return {"hotels": {"hotels": [
+                {"code": 10, "name": "Too Soon", "currency": "EUR", "rooms": [{"rates": [
+                    {"rateKey": "k-soon", "rateType": "BOOKABLE", "net": "30", "paymentType": "AT_WEB",
+                     "cancellationPolicies": [{"amount": "30", "from": in_hours}]}]}]},
+                {"code": 11, "name": "At Hotel", "currency": "EUR", "rooms": [{"rates": [
+                    {"rateKey": "k-hotel", "rateType": "BOOKABLE", "net": "20", "paymentType": "AT_HOTEL",
+                     "cancellationPolicies": [{"amount": "20", "from": in_week}]}]}]},
+                {"code": 12, "name": "Good", "currency": "EUR", "destinationName": "Bangkok",
+                 "rooms": [{"rates": [
+                    {"rateKey": "k-good", "rateType": "RECHECK", "net": "80", "paymentType": "AT_WEB",
+                     "cancellationPolicies": [{"amount": "80", "from": in_week}]}]}]}]}}
+        if path == "/checkrates":
+            return {"hotel": {"rooms": [{"rates": [
+                {"rateKey": "k-good-2", "net": "80", "cancellationPolicies": [{"amount": "80", "from": in_week}]}]}]}}
+        if path == "/bookings":
+            assert payload["rooms"][0]["rateKey"] == "k-good-2" and len(payload["clientReference"]) <= 20
+            return {"booking": {"reference": "1-999", "status": "CONFIRMED", "totalNet": 80, "currency": "EUR",
+                                "hotel": {"name": "Good", "supplier": {"name": "HBX", "vatNumber": "ES123"},
+                                          "rooms": [{"rates": [{"cancellationPolicies": [{"amount": "80", "from": in_week}]}]}]}}}
+        if path.startswith("/bookings/1-999"):
+            assert "cancellationFlag=CANCELLATION" in path and method == "DELETE"
+            return {"booking": {"status": "CANCELLED"}}
+        raise AssertionError(path)
+    monkeypatch.setattr(hotelbeds, "_call", fake_call)
+    offer = hotelbeds.find_offer(1.0, 2.0, "2030-01-01", "2030-01-03", 1, "de")
+    assert offer.hotel_id == "12"
+    # posun +02:00 sa prepočíta na UTC
+    assert offer.cancel_by == (datetime.fromisoformat(in_week).astimezone(timezone.utc)
+                               .strftime("%Y-%m-%dT%H:%M:%SZ"))
+    result = hotelbeds.book(offer, [{"given_name": "Jan", "family_name": "Novak"}],
+                            "jan@x.sk", "+421900000000", client_ref="VF12")
+    assert result.reference == "1-999" and "Payable through HBX" in result.supplier_note
+    hotelbeds.cancel("1-999")
+
+
+def test_hotel_booking_falls_back_to_next_provider(client, monkeypatch):
+    from onward import hotelproviders, hotelbooking
+    from onward.hotelproviders import hotelbeds, ratehawk, base
+    from onward.store import utc_in
+    monkeypatch.setenv("ONWARD_HOTEL_PROVIDERS", "ratehawk,hotelbeds")
+    monkeypatch.setenv("RATEHAWK_KEY_ID", "k"); monkeypatch.setenv("RATEHAWK_API_KEY", "s")
+    monkeypatch.setenv("HOTELBEDS_API_KEY", "k"); monkeypatch.setenv("HOTELBEDS_SECRET", "s")
+    monkeypatch.setattr(ratehawk, "find_offer", lambda *a: None)
+    deadline = utc_in(days=5)
+    monkeypatch.setattr(hotelbeds, "find_offer", lambda *a: base.Offer(
+        provider="hotelbeds", hotel_id="1", rate_ref="k", total=base.amount("80"), currency="EUR",
+        cancel_by=deadline, name="Good"))
+    monkeypatch.setattr(hotelbeds, "book", lambda offer, guests, email, phone, client_ref, user_ip="":
+                        base.Booking(provider="hotelbeds", reference="1-1", cancel_ref="1-1",
+                                     cancel_by=deadline, name="Good", supplier_note="Payable through HBX"))
+    cancelled = []
+    monkeypatch.setattr(hotelbeds, "cancel", lambda ref: cancelled.append(ref))
+    sent = _capture_mail(monkeypatch, hotelbooking)
+    r = client.post("/hotel/order", data=_hotel_form(), follow_redirects=True)
+    assert "1-1" in r.text and "Good" in r.text and sent
+    token = r.url.path.rsplit("/", 1)[-1]
+    voucher = client.get(f"/hotel/voucher/{token}.pdf")
+    assert voucher.status_code == 200
+    import os
+    store = Orders(os.environ["ONWARD_DB_PATH"])
+    row = store.stay_by_token(token)
+    assert row["provider"] == "hotelbeds" and row["residency"] == "sk"
+    store.conn.execute("UPDATE stays SET cancel_by=?", (utc_in(hours=6),))
+    store.conn.commit()
+    assert hotelbooking.cancel_due(store) == 1 and cancelled == ["1-1"]
+    store.close()
+
+
+def test_new_languages_and_rtl(client):
+    ar = client.get("/?lang=ar").text
+    assert 'lang="ar" dir="rtl"' in ar
+    for code in ("fr", "pt", "ar"):
+        page = client.get("/", headers={"accept-language": {"fr": "fr-FR,fr;q=0.9",
+                                                            "pt": "pt-BR", "ar": "ar-SA"}[code]})
+        assert f'lang="{code}"' in page.text
+    assert 'hreflang="pt"' in client.get("/").text

@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="{{ lang }}">
+<html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ (page_title ~ ' — ' ~ brand) if page_title else (brand ~ ' — ' ~ t['meta_title']) }}</title>
-<meta name="description" content="{{ t['meta_description'] }}">
+<meta name="description" content="{{ page_description or t['meta_description'] }}">
 {% if test_mode %}<meta name="robots" content="noindex">{% endif %}
 <link rel="canonical" href="{{ base_url }}{{ path }}">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -128,17 +128,17 @@
   footer .op { margin-top:8px; line-height:1.5; }
 </style>
 {% if turnstile_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
+{% if umami_src %}<script defer src="{{ umami_src }}" data-website-id="{{ umami_site }}" data-do-not-track="true"></script>{% endif %}
 </head>
 <body>
 <header><div class="wrap"><b><svg class="ic ic-lg" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> {{ brand }}</b>
   <nav style="display:flex;align-items:center">
-    <a href="/">{{ t['nav_order'] }}</a><a href="/hotel">{{ t['nav_hotel'] }}</a><a href="/faq">{{ t['nav_faq'] }}</a>
+    <a href="/">{{ t['nav_order'] }}</a>{% if hotels_nav %}<a href="/hotel">{{ t['nav_hotel'] }}</a>{% endif %}<a href="/faq">{{ t['nav_faq'] }}</a>
     {% if user %}<a href="/account">{{ t['nav_account'] }}</a>
       <form method="post" action="/logout" class="navform"><button type="submit">{{ t['nav_logout'] }}</button></form>
     {% else %}<a href="/login">{{ t['nav_login'] }}</a>{% endif %}
     <span class="lang">
-      <a href="?lang=en" class="{{ 'on' if lang == 'en' }}">EN</a>
-      <a href="?lang=es" class="{{ 'on' if lang == 'es' }}">ES</a>
+      {% for code in languages %}<a href="?lang={{ code }}" class="{{ 'on' if lang == code }}" hreflang="{{ code }}">{{ code|upper }}</a>{% endfor %}
     </span>
   </nav>
 </div></header>
@@ -147,7 +147,11 @@
 <main>{% block content %}{% endblock %}</main>
 <footer>{{ brand }} {{ t['footer'] }}<br>
 <a href="/terms">{{ t['nav_terms'] }}</a> · <a href="/privacy">{{ t['nav_privacy'] }}</a> ·
-<a href="/faq">FAQ</a> · <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+<a href="/faq">FAQ</a> · <a href="mailto:{{ contact_email }}">{{ contact_email }}</a><br>
+<a href="/guides/schengen-visa-flight-reservation">Schengen visa</a> ·
+<a href="/guides/onward-ticket-philippines">Philippines</a> ·
+<a href="/guides/thailand-proof-of-onward-travel">Thailand</a> ·
+<a href="/guides/hotel-reservation-for-visa">Hotel for visa</a>
 <div class="op">{{ t['operated_by'] }} {{ operator['name'] }}, {{ operator['address'] }}<br>
 {{ t['company_id'] }} {{ operator['ico'] }} · {{ t['tax_id'] }} {{ operator['dic'] }} · {{ t['vat_id'] }} {{ operator['ic_dph'] }}</div></footer>
 </body>

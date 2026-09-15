@@ -15,7 +15,7 @@ Každý krok beží samostatne, aby jedna chybná objednávka nezastavila ostatn
 import os
 import traceback
 
-from . import booking, hotelbooking, notify
+from . import booking, hotelbooking, mailer, notify
 from .store import Orders
 
 # zaseknuté objednávky hlásime raz za proces cronu; aby sa nehlásili každých
@@ -40,6 +40,15 @@ def _renew(store: Orders) -> None:
             print(f"order #{row['id']} zlyhal:\n{traceback.format_exc()}", flush=True)
 
 
+def _scheduled(store: Orders) -> None:
+    for row in store.scheduled_due():
+        try:
+            ok = booking.book(store, row["token"])
+            print(f"scheduled → {'booked' if ok else 'failed'}: order #{row['id']}", flush=True)
+        except Exception:
+            print(f"scheduled order #{row['id']} zlyhal:\n{traceback.format_exc()}", flush=True)
+
+
 def _cancel_hotels(store: Orders) -> None:
     cancelled = hotelbooking.cancel_due(store)
     if cancelled:
@@ -59,6 +68,12 @@ def _report_stuck(store: Orders) -> None:
                          f" /admin a vybav ručne alebo vráť peniaze.")
 
 
+def _outbox(store: Orders) -> None:
+    sent, gave_up = mailer.flush_outbox(store)
+    if sent or gave_up:
+        print(f"outbox: odoslané {sent}, vzdané {gave_up}", flush=True)
+
+
 def _purge(store: Orders) -> None:
     days = int(os.environ.get("ONWARD_RETENTION_DAYS", "365"))
     deleted = store.purge_older_than(days)
@@ -69,8 +84,10 @@ def _purge(store: Orders) -> None:
 def main() -> None:
     store = Orders()
     try:
+        _step("scheduled", lambda: _scheduled(store))
         _step("renew", lambda: _renew(store))
         _step("hotel cancel", lambda: _cancel_hotels(store))
+        _step("outbox", lambda: _outbox(store))
         _step("stuck report", lambda: _report_stuck(store))
         _step("purge", lambda: _purge(store))
     finally:

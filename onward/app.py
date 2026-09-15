@@ -34,8 +34,8 @@ from fastapi import BackgroundTasks, FastAPI, Form, Request
 from fastapi.responses import FileResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from . import (auth, booking, config, crypto, duffel, hotelbooking, i18n, mailer,
-               notify, nowpayments, pdf, security, staypdf)
+from . import (auth, booking, config, crypto, duffel, googleauth, hotelbooking, i18n,
+               mailer, notify, nowpayments, pdf, security, staypdf, stripeapi)
 from .store import Orders
 
 _problems = config.startup_problems()
@@ -66,6 +66,14 @@ HOTEL_PRICE_ENV, HOTEL_PRICE_DEFAULT = "ONWARD_PRICE_HOTEL_EUR", "14.90"
 MAX_PAX = 4
 MAX_HOTEL_NIGHTS = 30
 MAX_DAYS_AHEAD = 330
+NEEDED_ON_MAX_DAYS = 60
+
+if os.environ.get("SENTRY_DSN"):
+    # hlásenie chýb aplikácie; osobné údaje (IP, cookies, telá požiadaviek) sa neposielajú
+    import sentry_sdk
+    sentry_sdk.init(dsn=os.environ["SENTRY_DSN"], send_default_pii=False,
+                    traces_sample_rate=0.0,
+                    environment="live" if config.live_mode() else "test")
 
 app = FastAPI(title=BRAND, docs_url=None, redoc_url=None, openapi_url=None)
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
@@ -103,10 +111,20 @@ class HeadAsGet:
 
 app.add_middleware(HeadAsGet)
 
-CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com;"
-       " frame-src https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline';"
-       " img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self';"
-       " frame-ancestors 'none'")
+def _umami() -> tuple[str, str]:
+    """(URL skriptu, website id) štatistík Umami, alebo ('', '')."""
+    src, site = os.environ.get("ONWARD_UMAMI_SRC", ""), os.environ.get("ONWARD_UMAMI_WEBSITE_ID", "")
+    return (src, site) if src.startswith("https://") and site else ("", "")
+
+
+def _csp() -> str:
+    stats = ""
+    if (src := _umami()[0]):
+        stats = " " + "https://" + urlsplit(src).netloc
+    return ("default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com"
+            f"{stats}; frame-src https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline';"
+            f" img-src 'self' data:; connect-src 'self'{stats}; object-src 'none'; base-uri 'self';"
+            " frame-ancestors 'none'")
 
 
 @app.middleware("http")
@@ -124,7 +142,7 @@ async def security_headers(request: Request, call_next):
     resp.headers["X-Frame-Options"] = "DENY"
     resp.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     resp.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    resp.headers.setdefault("Content-Security-Policy", CSP)
+    resp.headers.setdefault("Content-Security-Policy", _csp())
     resp.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
     return resp
 
@@ -168,12 +186,16 @@ def _set_session(resp: Response, user) -> None:
                     secure=_cookie_secure(), max_age=SESSION_DAYS * 86400)
 
 
-def _make_token(purpose: str, user, hours: int = 2) -> str:
-    """Podpísaný token s expiráciou; odtlačok hesla ho robí jednorazovým —
-    po zmene hesla prestane platiť."""
-    payload = f"{purpose}|{user['id']}|{int(time.time()) + hours * 3600}"
-    fp = auth.fingerprint(user["password_hash"])
-    sig = _sign(f"{payload}|{fp}")[:40]
+def _token_binding(user) -> str:
+    """Stav účtu, ktorý token zneplatní: zmena hesla alebo použitý odkaz na
+    prihlásenie (login_nonce sa po každom použití zmení)."""
+    return f"{auth.fingerprint(user['password_hash'])}|{user['login_nonce']}"
+
+
+def _make_token(purpose: str, user, minutes: int = 120) -> str:
+    """Podpísaný token s expiráciou, jednorazový vďaka _token_binding."""
+    payload = f"{purpose}|{user['id']}|{int(time.time()) + minutes * 60}"
+    sig = _sign(f"{payload}|{_token_binding(user)}")[:40]
     return base64.urlsafe_b64encode(f"{payload}|{sig}".encode()).decode()
 
 
@@ -190,8 +212,7 @@ def _check_token(purpose: str, token: str):
             store.close()
         if not user:
             return None
-        fp = auth.fingerprint(user["password_hash"])
-        expected = _sign(f"{p}|{uid}|{exp}|{fp}")[:40]
+        expected = _sign(f"{p}|{uid}|{exp}|{_token_binding(user)}")[:40]
         return user if hmac.compare_digest(expected.encode(), sig.encode()) else None
     except Exception:
         return None
@@ -231,9 +252,13 @@ def _render(request: Request, name: str, status_code: int = 200, **ctx):
                         "crypto_enabled": crypto.enabled() or nowpayments.enabled(),
                         "turnstile_key": security.turnstile_site_key(),
                         "test_mode": config.test_mode(), "operator": config.OPERATOR,
+                        "google_enabled": googleauth.enabled(),
+                        "hotels_nav": hotelbooking.enabled(),
+                        "umami_src": _umami()[0], "umami_site": _umami()[1],
                         "contact_email": config.contact_email(),
                         "base_url": _base_url(request), "path": request.url.path,
-                        "t": i18n.STRINGS[lang], "lang": lang, **ctx},
+                        "languages": list(i18n.STRINGS), "t": i18n.STRINGS[lang],
+                        "lang": lang, **ctx},
         status_code=status_code)
     if query_lang in i18n.STRINGS:
         resp.set_cookie("lang", query_lang, max_age=31536000, samesite="lax",
@@ -275,7 +300,9 @@ def robots(request: Request):
 def sitemap(request: Request):
     base = _base_url(request)
     urls = "".join(f"<url><loc>{base}{p}</loc></url>"
-                   for p in ("/", "/hotel", "/faq", "/terms", "/privacy"))
+                   for p in ("/", "/faq", "/terms", "/privacy",
+                             *(("/hotel",) if hotelbooking.enabled() else ()),
+                             *(f"/guides/{slug}" for slug in GUIDES)))
     return Response('<?xml version="1.0" encoding="UTF-8"?>'
                     f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>',
                     media_type="application/xml")
@@ -284,6 +311,36 @@ def sitemap(request: Request):
 @app.get("/faq")
 def faq(request: Request):
     return _render(request, "faq.html")
+
+
+GUIDES = {
+    "schengen-visa-flight-reservation": (
+        "Flight Reservation for a Schengen Visa Application",
+        "What Schengen consulates usually ask for as a flight itinerary, how an unticketed"
+        " reservation (PNR) fits in, its limits, and when to order it."),
+    "onward-ticket-philippines": (
+        "Onward Ticket for the Philippines",
+        "Proof of onward or return travel for the Philippines: who may ask for it, what an"
+        " unticketed flight reservation can and cannot do, and timing tips."),
+    "thailand-proof-of-onward-travel": (
+        "Proof of Onward Travel for Thailand",
+        "Travelling to Thailand one way? When proof of onward travel may be requested, how an"
+        " unticketed flight reservation fits in, and its limits."),
+    "hotel-reservation-for-visa": (
+        "Hotel Reservation for a Visa Application",
+        "How proof of accommodation works for visa applications, what a free-cancellation hotel"
+        " reservation is, and why it is not a booking for your stay."),
+}
+
+
+@app.get("/guides/{slug}")
+def guide(request: Request, slug: str):
+    if slug not in GUIDES:
+        return _render(request, "message.html", status_code=404, heading="Page not found",
+                       lines=["This guide does not exist."], back="/")
+    title, description = GUIDES[slug]
+    return _render(request, f"guides/{slug}.html", page_title=title,
+                   page_description=description)
 
 
 # -- účet klienta -------------------------------------------------------------
@@ -322,7 +379,8 @@ def register(request: Request, email: str = Form(...), password: str = Form(...)
     try:
         if store.user_by_email(email):
             return _render(request, "register.html", next=next,
-                           err="An account with this e-mail already exists.")
+                           err="An account with this e-mail already exists. Sign in"
+                               " with an e-mail link or reset your password.")
         uid = store.create_user(email, auth.hash_password(password))
         user = store.user_by_id(uid)
     finally:
@@ -368,6 +426,131 @@ def login(request: Request, email: str = Form(...), password: str = Form(...),
     finally:
         store.close()
     resp = _redirect(_next_dest(next))
+    _set_session(resp, user)
+    return resp
+
+
+# -- prihlásenie odkazom z e-mailu ---------------------------------------------
+
+LOGIN_LINK_MINUTES = 30
+
+
+def _send_login_link(email: str, base_url: str, next_: str) -> None:
+    store = Orders()
+    try:
+        user = store.user_by_email(email)
+    finally:
+        store.close()
+    if not user:
+        return
+    link = f"{base_url}/login/link?token={_make_token('login', user, LOGIN_LINK_MINUTES)}"
+    if next_ in ("order", "hotel"):
+        link += f"&next={next_}"
+    mailer.send(
+        user["email"], f"{BRAND}: your sign-in link",
+        f"Open this link to sign in to {BRAND} (valid {LOGIN_LINK_MINUTES} minutes,"
+        f" works once):\n\n{link}\n\nIf you didn't request this, ignore this e-mail.",
+        f"<p>Click below to sign in to {BRAND} (valid {LOGIN_LINK_MINUTES} minutes,"
+        f" works once):</p><p><a href='{link}'>Sign in to {BRAND}</a></p>"
+        f"<p style='font-size:12px;color:#667'>If you didn't request this,"
+        f" ignore this e-mail.</p>", queue=False)
+
+
+@app.post("/login/link")
+def login_link_request(request: Request, background: BackgroundTasks,
+                       email: str = Form(...), next: str = Form(""), website: str = Form(""),
+                       cf_turnstile_response: str = Form("", alias="cf-turnstile-response")):
+    ip = security.client_ip(request)
+    if security.honeypot_tripped(website):
+        return _redirect("/login")
+    if not security.turnstile_ok(cf_turnstile_response, ip):
+        return _render(request, "login.html", next=next,
+                       err="Anti-bot check failed. Please try again.")
+    key = email.strip().lower()
+    if (_valid_email(key)
+            and not security.rate_limited(f"loginlink:{ip}", limit=5, window_s=3600)
+            and not security.rate_limited(f"loginlink-mail:{key}", limit=3, window_s=3600)):
+        background.add_task(_send_login_link, key, _base_url(request), next)
+    return _render(request, "login.html", next=next, link_sent=True)
+
+
+@app.get("/login/link")
+def login_link_landing(request: Request, token: str = "", next: str = ""):
+    # prihlásenie až po kliknutí na tlačidlo — e-mailové skenery, ktoré odkazy
+    # otvárajú automaticky, by jednorazový odkaz inak spotrebovali
+    if not _check_token("login", token):
+        return _render(request, "message.html", heading="Invalid or expired link",
+                       lines=["Please request a new sign-in link."], back="/login")
+    return _render(request, "login_link.html", token=token, next=next)
+
+
+@app.post("/login/link/confirm")
+def login_link_confirm(request: Request, token: str = Form(...), next: str = Form("")):
+    user = _check_token("login", token)
+    if not user:
+        return _render(request, "message.html", heading="Invalid or expired link",
+                       lines=["Please request a new sign-in link."], back="/login")
+    store = Orders()
+    try:
+        store.rotate_login_nonce(user["id"])
+        user = store.user_by_id(user["id"])
+    finally:
+        store.close()
+    resp = _redirect(_next_dest(next))
+    _set_session(resp, user)
+    return resp
+
+
+# -- prihlásenie cez Google ----------------------------------------------------
+
+def _google_redirect_uri(request: Request) -> str:
+    return f"{_base_url(request)}/auth/google/callback"
+
+
+@app.get("/auth/google")
+def google_start(request: Request, next: str = ""):
+    if not googleauth.enabled():
+        return Response(status_code=404)
+    state, nonce = secrets.token_urlsafe(24), secrets.token_urlsafe(24)
+    resp = RedirectResponse(googleauth.authorize_url(_google_redirect_uri(request), state, nonce),
+                            status_code=303)
+    value = f"{state}.{nonce}.{next if next in ('order', 'hotel') else ''}"
+    resp.set_cookie("g_state", f"{value}.{_sign('g|' + value)}", max_age=600, httponly=True,
+                    samesite="lax", secure=_cookie_secure(), path="/auth/google")
+    return resp
+
+
+@app.get("/auth/google/callback")
+def google_callback(request: Request, code: str = "", state: str = ""):
+    if not googleauth.enabled():
+        return Response(status_code=404)
+    fail = _render(request, "message.html", heading="Google sign-in failed",
+                   lines=["Please try again or sign in with an e-mail link."], back="/login")
+    try:
+        c_state, nonce, next_, sig = request.cookies.get("g_state", "").split(".")
+    except ValueError:
+        return fail
+    value = f"{c_state}.{nonce}.{next_}"
+    if (not code or not hmac.compare_digest(_sign("g|" + value).encode(), sig.encode())
+            or not hmac.compare_digest(c_state.encode(), state.encode())):
+        return fail
+    try:
+        sub, email = googleauth.verified_identity(code, _google_redirect_uri(request), nonce)
+    except googleauth.GoogleAuthError as e:
+        print(f"Google prihlásenie zlyhalo: {e}", flush=True)
+        return fail
+    store = Orders()
+    try:
+        user = store.user_get_or_create(email)
+        if user["google_sub"] and user["google_sub"] != sub:
+            return fail
+        if not user["google_sub"]:
+            store.set_google_sub(user["id"], sub)
+        user = store.user_by_id(user["id"])
+    finally:
+        store.close()
+    resp = _redirect(_next_dest(next_))
+    resp.delete_cookie("g_state", path="/auth/google")
     _set_session(resp, user)
     return resp
 
@@ -566,14 +749,16 @@ def order(request: Request,
           title: list[str] = Form(...), given_name: list[str] = Form(...),
           family_name: list[str] = Form(...), born_on: list[str] = Form(...),
           gender: list[str] = Form(...), consent: str = Form(""),
-          website: str = Form("")):
+          needed_on: str = Form(""), website: str = Form(""),
+          cf_turnstile_response: str = Form("", alias="cf-turnstile-response")):
     ip = security.client_ip(request)
-    # objednávka je možná len s účtom — hosťa pošleme najprv na registráciu
+    # bez účtu sa dá objednať tiež — účet vznikne z e-mailu a prihlási sa odkazom
     user = current_user(request)
-    if not user:
-        return _redirect("/register?next=order")
     if security.honeypot_tripped(website):
         return _redirect("/")
+    if not user and not security.turnstile_ok(cf_turnstile_response, ip):
+        return _render(request, "message.html", heading="Anti-bot check failed",
+                       lines=["Please go back and try again."], back="/")
     if security.rate_limited(f"order:{ip}", limit=12, window_s=3600):
         return _render(request, "message.html", heading="Slow down",
                        lines=["Too many orders from this connection."
@@ -619,6 +804,15 @@ def order(request: Request,
     if not consent:
         problems.append("Please confirm that you request immediate performance of the"
                         " service (see Terms, right of withdrawal).")
+    if needed_on and plan == "basic":
+        if not _valid_date(needed_on, future=True) or (
+                date.fromisoformat(needed_on) > date.today() + timedelta(days=NEEDED_ON_MAX_DAYS)):
+            problems.append(f"The appointment date must be within the next"
+                            f" {NEEDED_ON_MAX_DAYS} days.")
+        elif _valid_date(depart_date, future=True) and needed_on > depart_date:
+            problems.append("The appointment date must not be after the departure date.")
+    else:
+        needed_on = ""
 
     counts = {len(title), len(given_name), len(family_name), len(born_on), len(gender)}
     if counts != {len(title)} or not 1 <= len(title) <= MAX_PAX:
@@ -649,13 +843,13 @@ def order(request: Request,
     valid_until = min(date.today() + timedelta(days=days),
                       date.fromisoformat(depart_date)).isoformat() if days else ""
 
-    # user je zaručene prihlásený (gate na začiatku) — objednávka patrí jemu
     store = Orders()
     try:
+        owner = user or store.user_get_or_create(email.strip().lower())
         token = store.create(email=email, phone=phone_e164, slices=slices,
                              passengers=passengers, plan=plan,
-                             valid_until=valid_until,
-                             user_id=user["id"])
+                             valid_until=valid_until, user_id=owner["id"],
+                             needed_on=needed_on, book_at=booking.book_at_for(needed_on))
         if use_crypto:
             desc = f"{BRAND} — flight reservation ({plan})"
             try:
@@ -674,7 +868,7 @@ def order(request: Request,
             return RedirectResponse(
                 f"{link}?client_reference_id={quote(token)}", status_code=303)
         # testovací režim bez platby: rezervuj rovno (fiktívna rezervácia)
-        booking.book(store, token)
+        booking.book_or_schedule(store, token)
         return RedirectResponse(f"/status/{token}", status_code=303)
     finally:
         store.close()
@@ -720,7 +914,7 @@ def _book_in_background(ref: str) -> None:
         if ref.startswith("hotel_"):
             hotelbooking.book_stay(store, ref[len("hotel_"):])
         else:
-            booking.book(store, ref)
+            booking.book_or_schedule(store, ref)
     finally:
         store.close()
 
@@ -861,6 +1055,35 @@ def status(request: Request, token: str):
         store.close()
 
 
+SAMPLE_ORDER = {
+    "pnr": "SAMPLE", "airline": "Example Airways", "created_at": "2026-01-10T09:30:00Z",
+    "hold_expires_at": "2026-01-12T09:30:00Z", "plan": "basic", "valid_until": "",
+    "origin": "VIE", "destination": "BKK", "email": "", "token": "",
+}
+SAMPLE_PASSENGERS = [{"title": "ms", "given_name": "Jana", "family_name": "Example",
+                      "born_on": "1990-01-01", "gender": "f"}]
+SAMPLE_SEGMENTS = [
+    {"flight": "EX123", "airline": "Example Airways", "cabin": "Economy",
+     "origin": "VIE", "origin_name": "Vienna International", "destination": "DOH",
+     "destination_name": "Hamad International", "departing_at": "2026-02-01T10:05:00",
+     "arriving_at": "2026-02-01T17:20:00", "duration": "6h 15m", "baggage": "1x checked bag"},
+    {"flight": "EX456", "airline": "Example Airways", "cabin": "Economy",
+     "origin": "DOH", "origin_name": "Hamad International", "destination": "BKK",
+     "destination_name": "Suvarnabhumi", "departing_at": "2026-02-01T19:40:00",
+     "arriving_at": "2026-02-02T06:35:00", "duration": "6h 55m", "baggage": "1x checked bag"},
+]
+
+
+@app.get("/sample-itinerary.pdf")
+def sample_itinerary():
+    """Ukážka, ako vyzerá dokument — s vodoznakom SAMPLE a vymyslenými údajmi."""
+    data = pdf.build_itinerary(SAMPLE_ORDER, SAMPLE_PASSENGERS, SAMPLE_SEGMENTS, BRAND,
+                               watermark="SAMPLE - NOT A RESERVATION")
+    return Response(data, media_type="application/pdf", headers={
+        "Content-Disposition": 'inline; filename="validflight-sample.pdf"',
+        "Cache-Control": "public, max-age=86400"})
+
+
 @app.get("/itinerary/{token}.pdf")
 def itinerary_pdf(token: str):
     store = Orders()
@@ -888,17 +1111,100 @@ def _admin_ok(request: Request) -> bool:
         return False
 
 
+ADMIN_PAGE = 100
+STATUSES = ("new", "paid", "scheduled", "booked", "expired", "failed", "cancelled", "refunded")
+
+
 @app.get("/admin")
-def admin(request: Request):
+def admin(request: Request, q: str = "", status: str = "", kind: str = "orders", page: int = 1):
     if not ADMIN_KEY:
         return Response(status_code=404)
     if not _admin_ok(request):
         return _render(request, "admin_login.html")
+    kind = kind if kind in ("orders", "stays") else "orders"
+    status = status if status in STATUSES else ""
+    page = max(1, page)
     store = Orders()
     try:
-        return _render(request, "admin.html", orders=store.all(), stays=store.all_stays())
+        rows, total = store.search(kind, q, status, ADMIN_PAGE, (page - 1) * ADMIN_PAGE)
+        return _render(request, "admin.html", rows=rows, total=total, kind=kind, q=q,
+                       status=status, statuses=STATUSES, page=page,
+                       pages=max(1, -(-total // ADMIN_PAGE)), stats=store.stats(),
+                       refunds_enabled=stripeapi.enabled(),
+                       flash=request.query_params.get("msg", ""))
     finally:
         store.close()
+
+
+def _admin_back(kind: str, msg: str) -> RedirectResponse:
+    return _redirect(f"/admin?kind={kind}&msg={quote(msg)}")
+
+
+@app.post("/admin/{kind}/{token}/resend")
+def admin_resend(request: Request, kind: str, token: str):
+    if not _admin_ok(request) or kind not in ("orders", "stays"):
+        return Response(status_code=404)
+    store = Orders()
+    try:
+        row = store.by_token(token) if kind == "orders" else store.stay_by_token(token)
+        if not row or row["status"] != "booked":
+            return _admin_back(kind, "Znova poslať sa dá len vybavená rezervácia.")
+        if kind == "orders":
+            booking.send_itinerary(store, row)
+        else:
+            hotelbooking.send_confirmation(store, row)
+        return _admin_back(kind, f"E-mail k #{row['id']} odoslaný znova.")
+    finally:
+        store.close()
+
+
+@app.post("/admin/{kind}/{token}/refund")
+def admin_refund(request: Request, kind: str, token: str):
+    if not _admin_ok(request) or kind not in ("orders", "stays"):
+        return Response(status_code=404)
+    store = Orders()
+    try:
+        row = store.by_token(token) if kind == "orders" else store.stay_by_token(token)
+    finally:
+        store.close()
+    if not row or not row["payment_ref"]:
+        return _admin_back(kind, "Objednávka nemá platbu na vrátenie.")
+    if not row["payment_ref"].startswith("pi_"):
+        return _admin_back(kind, f"#{row['id']}: platba {row['payment_ref']} nie je zo Stripe"
+                                 " — vráť ju ručne u poskytovateľa.")
+    try:
+        stripeapi.refund(row["payment_ref"], idempotency_key=f"refund-{kind}-{row['id']}")
+    except stripeapi.StripeError as e:
+        return _admin_back(kind, f"#{row['id']}: vrátenie zlyhalo — {e}")
+    _handle_refund(row["payment_ref"], "refund z adminu")
+    return _admin_back(kind, f"#{row['id']}: platba vrátená, objednávka zrušená.")
+
+
+@app.get("/admin/export.csv")
+def admin_export(request: Request, kind: str = "orders", q: str = "", status: str = ""):
+    if not _admin_ok(request):
+        return Response(status_code=404)
+    import csv
+    import io
+    kind = kind if kind in ("orders", "stays") else "orders"
+    cols = (["id", "created_at", "status", "plan", "email", "origin", "destination",
+             "depart_date", "needed_on", "pnr", "airline", "hold_expires_at", "renew_count",
+             "payment_ref"] if kind == "orders" else
+            ["id", "created_at", "status", "provider", "email", "city", "check_in", "check_out",
+             "hotel_name", "reference", "cancel_by", "payment_ref"])
+    store = Orders()
+    try:
+        rows, _ = store.search(kind, q, status if status in STATUSES else "", 100000, 0)
+    finally:
+        store.close()
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(cols)
+    for r in rows:
+        writer.writerow([r[c] for c in cols])
+    return Response(buf.getvalue(), media_type="text/csv", headers={
+        "Content-Disposition": f'attachment; filename="validflight-{kind}.csv"',
+        "Cache-Control": "no-store"})
 
 
 @app.post("/admin/login")
@@ -930,10 +1236,9 @@ def admin_logout():
 
 @app.get("/hotel")
 def hotel_form(request: Request):
-    if not current_user(request):
-        return _render(request, "hotel.html", need_account=True,
-                       min_date=date.today().isoformat())
-    return _render(request, "hotel.html", min_date=date.today().isoformat())
+    # bez nakonfigurovaného dodávateľa hotelov stránka len oznámi, že príde čoskoro
+    return _render(request, "hotel.html", hotels_enabled=hotelbooking.enabled(),
+                   min_date=date.today().isoformat())
 
 
 @app.post("/hotel/order")
@@ -942,13 +1247,17 @@ def hotel_order(request: Request, city: str = Form(...),
                 check_in: str = Form(...), check_out: str = Form(...),
                 email: str = Form(...), phone: str = Form(...),
                 given_name: list[str] = Form(...), family_name: list[str] = Form(...),
-                consent: str = Form(""), website: str = Form("")):
+                residency: str = Form(""), consent: str = Form(""), website: str = Form(""),
+                cf_turnstile_response: str = Form("", alias="cf-turnstile-response")):
     user = current_user(request)
-    if not user:
-        return _redirect("/register?next=hotel")
     ip = security.client_ip(request)
+    if not hotelbooking.enabled():
+        return _redirect("/hotel")
     if security.honeypot_tripped(website):
         return _redirect("/hotel")
+    if not user and not security.turnstile_ok(cf_turnstile_response, ip):
+        return _render(request, "message.html", heading="Anti-bot check failed",
+                       lines=["Please go back and try again."], back="/hotel")
     if security.rate_limited(f"hotel:{ip}", limit=12, window_s=3600):
         return _render(request, "message.html", heading="Slow down",
                        lines=["Too many requests. Please try again later."], back="/hotel")
@@ -975,6 +1284,9 @@ def hotel_order(request: Request, city: str = Form(...),
     if not consent:
         problems.append("Please confirm that you request immediate performance of the"
                         " service (see Terms, right of withdrawal).")
+    residency = residency.strip().lower()
+    if not re.fullmatch(r"[a-z]{2}", residency):
+        problems.append("Select the guest's nationality (passport country).")
     counts = {len(given_name), len(family_name)}
     if counts != {len(given_name)} or not 1 <= len(given_name) <= MAX_PAX:
         problems.append(f"Between 1 and {MAX_PAX} complete guests required.")
@@ -994,10 +1306,11 @@ def hotel_order(request: Request, city: str = Form(...),
 
     store = Orders()
     try:
+        owner = user or store.user_get_or_create(email.strip().lower())
         token = store.create_stay(email=email, phone=phone_e164, city=city,
                                   latitude=lat, longitude=lng, check_in=check_in,
                                   check_out=check_out, guests=guests, plan="basic",
-                                  user_id=user["id"])
+                                  user_id=owner["id"], residency=residency)
         if pay_link:
             return RedirectResponse(
                 f"{pay_link}?client_reference_id=hotel_{quote(token)}", status_code=303)
@@ -1042,4 +1355,14 @@ def hotel_voucher(token: str):
 
 @app.get("/health")
 def health():
+    """Pre monitoring (UptimeRobot a pod.): overí aj databázu."""
+    try:
+        store = Orders()
+        try:
+            store.conn.execute("SELECT 1 FROM orders LIMIT 1").fetchall()
+        finally:
+            store.close()
+    except Exception as e:
+        print(f"health: databáza nedostupná: {type(e).__name__}", flush=True)
+        return Response('{"ok": false}', status_code=503, media_type="application/json")
     return {"ok": True}

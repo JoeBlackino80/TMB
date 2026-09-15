@@ -2,42 +2,21 @@
 {% block content %}
 <div class="card" style="max-width:440px;margin:20px auto">
   <h2>{{ t['register_title'] }}</h2>
-  {% if next == 'order' %}<p class="note" style="margin:0 0 12px">{{ t['book_need_account_text'] }}</p>{% endif %}
+  <p class="note" style="margin:0 0 12px">{{ t['register_optional'] }}</p>
   {% if err %}<p class="bad">{{ err }}</p>{% endif %}
+  {% include "_google.html" %}
   <form method="post" action="/register">
     <input type="hidden" name="next" value="{{ next or '' }}">
-    <label>{{ t['email_lbl'] }}</label>
-    <input type="email" name="email" required>
-    <label>{{ t['password_lbl'] }}</label>
-    <input type="password" name="password" id="pw" minlength="8" required>
-    <ul id="pwrules" style="list-style:none;padding:0;margin:8px 0 0;font-size:13px">
-      <li data-rule="len">{{ t['pw_len'] }}</li>
-      <li data-rule="upper">{{ t['pw_upper'] }}</li>
-      <li data-rule="lower">{{ t['pw_lower'] }}</li>
-      <li data-rule="digit">{{ t['pw_digit'] }}</li>
-      <li data-rule="special">{{ t['pw_special'] }}</li>
-    </ul>
-    <div class="hp" aria-hidden="true"><input type="text" name="website"
-         tabindex="-1" autocomplete="off"></div>
-    {% if turnstile_key %}<div class="cf-turnstile" data-sitekey="{{ turnstile_key }}"
-         style="margin-top:14px"></div>{% endif %}
+    <label for="reg-email">{{ t['email_lbl'] }}</label>
+    <input type="email" id="reg-email" name="email" required autocomplete="email">
+    <label for="pw">{{ t['password_lbl'] }}</label>
+    <input type="password" name="password" id="pw" minlength="10" maxlength="128" required autocomplete="new-password">
+    {% include "_pwrules.html" %}
+    <div class="hp" aria-hidden="true"><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
+    {% if turnstile_key %}<div class="cf-turnstile" data-sitekey="{{ turnstile_key }}" style="margin-top:14px"></div>{% endif %}
     <button type="submit">{{ t['register_btn'] }}</button>
   </form>
   <p class="note" style="margin-top:14px">{{ t['have_account'] }}
     <a href="/login{% if next %}?next={{ next }}{% endif %}">{{ t['login_btn'] }}</a></p>
 </div>
-<script>
-  const pw = document.getElementById('pw');
-  const rules = {
-    len: v => v.length >= 8, upper: v => /[A-Z]/.test(v), lower: v => /[a-z]/.test(v),
-    digit: v => /[0-9]/.test(v), special: v => /[^A-Za-z0-9]/.test(v),
-  };
-  pw.addEventListener('input', () => {
-    for (const li of document.querySelectorAll('#pwrules li')) {
-      const ok = rules[li.dataset.rule](pw.value);
-      li.style.color = ok ? '#0a7d38' : '#8090a8';
-      li.textContent = (ok ? '✓ ' : '• ') + li.textContent.replace(/^[✓•] /, '');
-    }
-  });
-</script>
 {% endblock %}

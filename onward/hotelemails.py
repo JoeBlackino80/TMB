@@ -28,6 +28,7 @@ def confirmation(row: sqlite3.Row, guests: list[dict], summ: dict, brand: str,
         " It is held on a free-cancellation rate and will be released"
         " automatically before the cancellation deadline.",
         "",
+        *([summ["supplier_note"], ""] if summ.get("supplier_note") else []),
         f"Questions? Contact {config.contact_email()}",
     ])
     guest_html = "".join(f"<li>{_e(g['given_name'])} {_e(g['family_name'])}</li>"
@@ -59,6 +60,7 @@ def confirmation(row: sqlite3.Row, guests: list[dict], summ: dict, brand: str,
     <p style="font-size:12px;color:#667">Genuine, cancellable hotel reservation
       for visa applications and proof of accommodation. Held on a free-cancellation
       rate and released automatically before the cancellation deadline.</p>
+    {f"<p style='font-size:11px;color:#667'>{_e(summ['supplier_note'])}</p>" if summ.get('supplier_note') else ""}
     <p style="font-size:12px;color:#667">{_e(config.OPERATOR['name'])}, {_e(config.OPERATOR['address'])}
       · <a href="mailto:{_e(config.contact_email())}">{_e(config.contact_email())}</a></p>
   </div>

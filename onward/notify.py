@@ -12,7 +12,7 @@ def admin(subject: str, text: str) -> None:
 
 def failed_paid(kind: str, row, reason: str) -> None:
     """Hlási len zaplatené objednávky — v testovacom režime bez platby nie."""
-    if row["status"] != "paid":
+    if row["status"] not in ("paid", "scheduled"):
         return
     what = "Let" if kind == "order" else "Hotel"
     admin(f"{what} #{row['id']} zaplatený, ale nevybavený",

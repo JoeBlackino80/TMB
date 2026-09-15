@@ -9,16 +9,24 @@
 
   <h2>What we process</h2>
   <ul>
-    <li><b>Account:</b> e-mail address and password (stored only as a salted hash).</li>
+    <li><b>Account:</b> e-mail address and, if you set one, a password (stored only as a
+    salted hash). If you order without registering, we create an account for your e-mail
+    so you can sign in later with a one-time e-mail link. If you sign in with Google, we
+    receive only your verified e-mail address and a Google account identifier.</li>
     <li><b>Flight orders:</b> passenger title, name, gender and date of birth, contact
     e-mail and phone, route and dates, the reservation details (PNR, airline, flights)
     and a payment reference.</li>
-    <li><b>Hotel orders:</b> guest names, contact e-mail and phone, destination,
-    dates and the reservation details.</li>
+    <li><b>Hotel orders:</b> guest names, the guest's nationality (hotels price rates by
+    it), contact e-mail and phone, destination, dates and the reservation details.</li>
+    <li><b>Appointment date</b> (optional): the date your reservation must be valid.</li>
     <li><b>Saved travellers</b> (optional): the details above plus nationality and,
     if you choose, a passport number and its expiry.</li>
     <li><b>Technical data:</b> IP address, used briefly in memory to limit abuse, and
-    standard server logs.</li>
+    standard server logs. When you choose a password, its first five hash characters are
+    checked against the Have I Been Pwned breach list; the password itself never leaves
+    our server.</li>
+    <li><b>Visit statistics</b> (if enabled): aggregated page views counted by our own
+    Umami instance without cookies and without storing your IP address.</li>
   </ul>
   <p>Passenger and guest details in orders and passport numbers are stored
   encrypted.</p>
@@ -34,13 +42,18 @@
 
   <h2>Who receives the data</h2>
   <ul>
-    <li><b>Duffel Technology Ltd</b> (United Kingdom), our booking provider, and the
-    <b>airline or hotel</b> concerned, which may be located outside the EEA —
+    <li><b>Duffel Technology Ltd</b> (United Kingdom) for flights, and for hotels
+    <b>RateHawk / Emerging Travel Group</b> or <b>Hotelbeds (HBX Group)</b>, together
+    with the <b>airline or hotel</b> concerned, which may be located outside the EEA —
     the transfer is necessary to create the reservation you ordered
     (Art. 49(1)(b) GDPR).</li>
     <li><b>Stripe</b> for card payments; where you pay in cryptocurrency,
     <b>NOWPayments</b> or <b>Coinbase Commerce</b>. We never see your card number.</li>
-    <li><b>Cloudflare</b> (Turnstile) for the anti-bot check on sign-in forms.</li>
+    <li><b>Cloudflare</b> for network protection and the Turnstile anti-bot check.</li>
+    <li><b>Google</b>, only if you choose to sign in with Google.</li>
+    <li>Our e-mail delivery provider for sending itineraries and sign-in links.</li>
+    <li><b>Sentry</b> (if enabled) for error reports, configured not to send IP addresses,
+    cookies or form contents.</li>
     <li><b>Hetzner Online GmbH</b> (Germany) for hosting and <b>WebHouse</b>
     (Slovakia) for e-mail.</li>
   </ul>

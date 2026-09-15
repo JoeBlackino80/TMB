@@ -1,6 +1,6 @@
 """SQLite evidencia objednávok rezervácií.
 
-Stavy: new → paid → booked → expired; kedykoľvek failed / cancelled / refunded.
+Stavy: new → paid → (scheduled →) booked → expired; kedykoľvek failed / cancelled / refunded.
 Plány: basic (jeden hold 24–72 h) | week | twoweek — pri week/twoweek
 cron po prepadnutí holdu automaticky vytvorí nový (renew), kým platí
 `valid_until`.
@@ -57,6 +57,14 @@ CREATE TABLE IF NOT EXISTS saved_passengers (
     passport_enc TEXT NOT NULL DEFAULT '',
     passport_expiry TEXT NOT NULL DEFAULT ''
 );
+CREATE TABLE IF NOT EXISTS outbox (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at TEXT NOT NULL,
+    next_try TEXT NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    last_error TEXT NOT NULL DEFAULT '',
+    payload TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS stays (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     token TEXT UNIQUE NOT NULL,
@@ -90,6 +98,13 @@ MIGRATIONS = (  # migrácie starších databáz
     "ALTER TABLE orders ADD COLUMN booked_at TEXT NOT NULL DEFAULT ''",
     "ALTER TABLE stays ADD COLUMN payment_ref TEXT NOT NULL DEFAULT ''",
     "ALTER TABLE stays ADD COLUMN paid_at TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE users ADD COLUMN login_nonce TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE users ADD COLUMN google_sub TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE orders ADD COLUMN needed_on TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE orders ADD COLUMN book_at TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE stays ADD COLUMN provider TEXT NOT NULL DEFAULT 'duffel'",
+    "ALTER TABLE stays ADD COLUMN provider_ref TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE stays ADD COLUMN residency TEXT NOT NULL DEFAULT ''",
 )
 
 # schéma a migrácie sa spúšťajú raz za proces pre každú databázu, nie pri
@@ -131,7 +146,7 @@ class Orders:
 
     def create(self, *, email: str, phone: str, slices: list[dict],
                passengers: list[dict], plan: str, valid_until: str,
-               user_id: int | None = None) -> str:
+               user_id: int | None = None, needed_on: str = "", book_at: str = "") -> str:
         """`slices`: [{origin, destination, date}, ...] (1 = one-way,
         2 = spiatočný/multi, 3+ = multi-city);
         `passengers`: [{title, given_name, family_name, born_on, gender}, ...]"""
@@ -144,12 +159,12 @@ class Orders:
         self.conn.execute(
             "INSERT INTO orders (token, created_at, plan, valid_until, email, phone,"
             " origin, destination, depart_date, return_date, passengers_json,"
-            " slices_json, user_id)"
-            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            " slices_json, user_id, needed_on, book_at)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (token, utcnow(), plan, valid_until, email.strip(), phone.strip(),
              first["origin"].upper(), first["destination"].upper(), first["date"],
              return_date, auth.seal(json.dumps(passengers, ensure_ascii=False)),
-             json.dumps(slices, ensure_ascii=False), user_id))
+             json.dumps(slices, ensure_ascii=False), user_id, needed_on, book_at))
         self.conn.commit()
         return token
 
@@ -168,6 +183,28 @@ class Orders:
 
     def user_by_id(self, user_id: int) -> sqlite3.Row | None:
         return self.conn.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+
+    def user_get_or_create(self, email: str) -> sqlite3.Row:
+        """Účet pre objednávku bez registrácie. Nový účet nemá heslo — prihlási
+        sa odkazom z e-mailu alebo cez Google."""
+        user = self.user_by_email(email)
+        if user:
+            return user
+        try:
+            uid = self.create_user(email, auth.GUEST_PASSWORD_HASH)
+        except sqlite3.IntegrityError:  # súbežná objednávka s tým istým e-mailom
+            return self.user_by_email(email)
+        return self.user_by_id(uid)
+
+    def rotate_login_nonce(self, user_id: int) -> str:
+        nonce = secrets.token_urlsafe(8)
+        self.conn.execute("UPDATE users SET login_nonce=? WHERE id=?", (nonce, user_id))
+        self.conn.commit()
+        return nonce
+
+    def set_google_sub(self, user_id: int, sub: str):
+        self.conn.execute("UPDATE users SET google_sub=? WHERE id=?", (sub, user_id))
+        self.conn.commit()
 
     def set_user_password(self, user_id: int, password_hash: str):
         self.conn.execute("UPDATE users SET password_hash=? WHERE id=?",
@@ -209,15 +246,16 @@ class Orders:
 
     def create_stay(self, *, email: str, phone: str, city: str, latitude: float,
                     longitude: float, check_in: str, check_out: str,
-                    guests: list[dict], plan: str, user_id: int | None = None) -> str:
+                    guests: list[dict], plan: str, user_id: int | None = None,
+                    residency: str = "") -> str:
         token = secrets.token_urlsafe(16)
         self.conn.execute(
             "INSERT INTO stays (token, created_at, plan, email, phone, city,"
-            " latitude, longitude, check_in, check_out, guests_json, user_id)"
-            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            " latitude, longitude, check_in, check_out, guests_json, user_id, residency)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (token, utcnow(), plan, email.strip(), phone.strip(), city,
              latitude, longitude, check_in, check_out,
-             auth.seal(json.dumps(guests, ensure_ascii=False)), user_id))
+             auth.seal(json.dumps(guests, ensure_ascii=False)), user_id, residency))
         self.conn.commit()
         return token
 
@@ -236,11 +274,11 @@ class Orders:
         self.conn.commit()
 
     def set_stay_booking(self, token: str, *, hotel_name: str, reference: str,
-                         duffel_booking_id: str, cancel_by: str, summary: dict):
+                         provider: str, provider_ref: str, cancel_by: str, summary: dict):
         self.conn.execute(
-            "UPDATE stays SET status='booked', hotel_name=?, reference=?,"
-            " duffel_booking_id=?, cancel_by=?, summary_json=?, error='' WHERE token=?",
-            (hotel_name, reference, duffel_booking_id, cancel_by,
+            "UPDATE stays SET status='booked', hotel_name=?, reference=?, provider=?,"
+            " provider_ref=?, cancel_by=?, summary_json=?, error='' WHERE token=?",
+            (hotel_name, reference, provider, provider_ref, cancel_by,
              json.dumps(summary, ensure_ascii=False), token))
         self.conn.commit()
 
@@ -294,6 +332,13 @@ class Orders:
     def segments(self, row: sqlite3.Row) -> list[dict]:
         return json.loads(row["segments_json"]) if row["segments_json"] else []
 
+    def scheduled_due(self) -> list[sqlite3.Row]:
+        """Zaplatené objednávky s dátumom termínu, ktorým nastal čas vytvoriť
+        rezerváciu."""
+        return self.conn.execute(
+            "SELECT * FROM orders WHERE status='scheduled' AND book_at <= ?",
+            (utcnow(),)).fetchall()
+
     def booked_past_expiry(self) -> list[sqlite3.Row]:
         return self.conn.execute(
             "SELECT * FROM orders WHERE status='booked' AND hold_expires_at < ?",
@@ -301,6 +346,41 @@ class Orders:
 
     def all(self) -> list[sqlite3.Row]:
         return self.conn.execute("SELECT * FROM orders ORDER BY id DESC").fetchall()
+
+    def search(self, table: str, q: str = "", status: str = "",
+               limit: int = 100, offset: int = 0) -> tuple[list[sqlite3.Row], int]:
+        """Vyhľadávanie pre admin: e-mail, PNR/referencia, token, trasa/mesto."""
+        assert table in ("orders", "stays")
+        cols = (("email", "pnr", "token", "origin", "destination", "payment_ref")
+                if table == "orders" else
+                ("email", "reference", "token", "city", "hotel_name", "payment_ref"))
+        where, args = [], []
+        if q.strip():
+            like = f"%{q.strip()}%"
+            where.append("(" + " OR ".join(f"{c} LIKE ?" for c in cols) + ")")
+            args += [like] * len(cols)
+        if status:
+            where.append("status = ?")
+            args.append(status)
+        sql_where = (" WHERE " + " AND ".join(where)) if where else ""
+        total = self.conn.execute(f"SELECT COUNT(*) FROM {table}{sql_where}", args).fetchone()[0]
+        rows = self.conn.execute(
+            f"SELECT * FROM {table}{sql_where} ORDER BY id DESC LIMIT ? OFFSET ?",
+            [*args, limit, offset]).fetchall()
+        return rows, total
+
+    def stats(self) -> dict:
+        """Počty podľa stavu za posledných 30 dní (prehľad v admine)."""
+        cutoff = utc_in(days=-30)
+        out = {}
+        for table in ("orders", "stays"):
+            out[table] = dict(self.conn.execute(
+                f"SELECT status, COUNT(*) FROM {table} WHERE created_at >= ? GROUP BY status",
+                (cutoff,)).fetchall())
+        out["users_30d"] = self.conn.execute(
+            "SELECT COUNT(*) FROM users WHERE created_at >= ?", (cutoff,)).fetchone()[0]
+        out["outbox"] = self.conn.execute("SELECT COUNT(*) FROM outbox").fetchone()[0]
+        return out
 
     # -- platby -----------------------------------------------------------------
 
@@ -351,7 +431,7 @@ class Orders:
         for table in ("orders", "stays"):
             cur = self.conn.execute(
                 f"DELETE FROM {table} WHERE created_at < ?"
-                " AND status NOT IN ('new', 'paid', 'booked')", (cutoff,))
+                " AND status NOT IN ('new', 'paid', 'booked', 'scheduled')", (cutoff,))
             n += cur.rowcount
         self.conn.commit()
         return n

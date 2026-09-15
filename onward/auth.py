@@ -11,24 +11,55 @@ import base64
 import hashlib
 import hmac
 import os
-import re
 import secrets
 
 _PBKDF2_ROUNDS = 600_000
 
 
+MIN_PASSWORD = 10
+MAX_PASSWORD = 128
+GUEST_PASSWORD_HASH = "!guest"  # účet z objednávky bez registrácie — heslom sa neprihlási
+
+
+def pwned_count(password: str) -> int:
+    """Koľkokrát sa heslo objavilo v známych únikoch (Have I Been Pwned).
+
+    Posiela sa len prvých 5 znakov SHA-1 odtlačku (k-anonymita), heslo ani
+    celý odtlačok server neopustí. Pri výpadku služby vráti 0 — registráciu
+    kvôli tomu neblokujeme. Vypína sa ONWARD_HIBP=0.
+    """
+    if os.environ.get("ONWARD_HIBP", "1") == "0":
+        return 0
+    import urllib.request
+    digest = hashlib.sha1(password.encode()).hexdigest().upper()
+    prefix, suffix = digest[:5], digest[5:]
+    try:
+        req = urllib.request.Request(f"https://api.pwnedpasswords.com/range/{prefix}",
+                                     headers={"Add-Padding": "true",
+                                              "User-Agent": "ValidFlight"})
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            for line in resp.read().decode().splitlines():
+                tail, _, count = line.partition(":")
+                if tail == suffix:
+                    return int(count or 0)
+    except Exception:
+        return 0
+    return 0
+
+
 def password_problem(password: str) -> str:
-    """Vráti chybovú správu, alebo '' ak heslo spĺňa pravidlá."""
-    if len(password) < 8:
-        return "Password must be at least 8 characters long."
-    if not re.search(r"[A-Z]", password):
-        return "Password must contain an uppercase letter."
-    if not re.search(r"[a-z]", password):
-        return "Password must contain a lowercase letter."
-    if not re.search(r"[0-9]", password):
-        return "Password must contain a digit."
-    if not re.search(r"[^A-Za-z0-9]", password):
-        return "Password must contain a special character (e.g. ! ? # $)."
+    """Vráti chybovú správu, alebo '' ak heslo vyhovuje.
+
+    Dĺžka a kontrola proti uniknutým heslám (odporúčanie NIST SP 800-63B)
+    namiesto vynucovania veľkých písmen a špeciálnych znakov.
+    """
+    if len(password) < MIN_PASSWORD:
+        return f"Password must be at least {MIN_PASSWORD} characters long."
+    if len(password) > MAX_PASSWORD:
+        return f"Password must be at most {MAX_PASSWORD} characters long."
+    if pwned_count(password):
+        return ("This password has appeared in a known data breach."
+                " Please choose a different one.")
     return ""
 
 
@@ -58,6 +89,8 @@ def fingerprint(stored: str) -> str:
 
 
 def verify_password(password: str, stored: str) -> bool:
+    if not stored or stored.startswith("!"):
+        return False
     try:
         scheme, rounds, salt_b64, dk_b64 = stored.split("$")
         if scheme != "pbkdf2":

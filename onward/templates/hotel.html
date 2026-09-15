@@ -15,13 +15,12 @@
   <h2>{{ t['hotel_order_title'] }}</h2>
   <p style="margin:0 0 12px"><span class="price" style="font-size:23px;font-weight:800">€{{ prices['hotel'] }}</span>
     <span class="note">{{ t['hotel_price_note'] }} {{ t['vat_note'] }}</span></p>
-  {% if need_account %}
-  <p class="note" style="margin:0 0 14px">{{ t['book_need_account_text'] }}</p>
-  <div style="display:flex;gap:10px;flex-wrap:wrap">
-    <a class="btn" href="/register?next=hotel" style="text-decoration:none">{{ t['book_register_btn'] }}</a>
-    <a class="btn ghost" href="/login?next=hotel" style="text-decoration:none">{{ t['book_signin_btn'] }}</a>
-  </div>
+  {% if not hotels_enabled %}
+  <p style="margin:0 0 10px"><b>{{ t['hotel_soon_title'] }}</b></p>
+  <p class="note" style="margin:0">{{ t['hotel_soon_text'] }}</p>
   {% else %}
+  {% if not user %}<p class="note" style="margin:0 0 14px">{{ t['guest_order_text'] }}
+    <a href="/login?next=hotel">{{ t['nav_login'] }}</a></p>{% endif %}
   <form method="post" action="/hotel/order">
     <label>{{ t['city_lbl'] }}</label>
     <input id="cityin" autocomplete="off" placeholder="{{ t['placeholder_city'] }}" required>
@@ -36,10 +35,14 @@
     </div>
     <div class="row">
       <div><label>{{ t['email'] }}</label>
-        <input type="email" name="email" value="{{ user['email'] }}" required></div>
+        <input type="email" name="email" value="{{ user['email'] if user else '' }}" required autocomplete="email"></div>
       <div><label>{{ t['phone'] }}</label>
         <input name="phone" placeholder="+421900123456" required></div>
     </div>
+    <label for="residency">{{ t['residency_lbl'] }}</label>
+    <input id="residency" name="residency" maxlength="2" minlength="2" pattern="[A-Za-z]{2}"
+           placeholder="SK" required style="text-transform:uppercase;max-width:120px">
+    <p class="note" style="margin:4px 0 0">{{ t['residency_note'] }}</p>
     {% for i in range(max_pax) %}
     <fieldset class="pax" id="g{{ i }}" {% if i > 0 %}hidden disabled{% endif %}>
       <h3>{{ t['guest'] }} {{ i + 1 }}</h3>
@@ -51,6 +54,7 @@
     {% endfor %}
     <button type="button" class="linklike" id="addg">{{ t['add_guest'] }}</button>
     <div class="hp" aria-hidden="true"><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
+    {% if not user and turnstile_key %}<div class="cf-turnstile" data-sitekey="{{ turnstile_key }}" style="margin-top:14px"></div>{% endif %}
     <label class="consent"><input type="checkbox" name="consent" value="1" required>
       <span>{{ t['consent_html'] | safe }}</span></label>
     <button type="submit">{{ t['hotel_submit'] }}</button>
@@ -64,7 +68,7 @@
   {{ t['hotel_what_html'] | safe }}
 </div>
 
-{% if not need_account %}
+{% if hotels_enabled %}
 <script>
   const gboxes = [...document.querySelectorAll('fieldset.pax')];
   const addg = document.getElementById('addg');

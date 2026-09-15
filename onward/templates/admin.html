@@ -1,43 +1,88 @@
 {% extends "base.html" %}
 {% block content %}
-<div style="display:flex;justify-content:space-between;align-items:center">
-  <h1>Orders</h1>
-  <form method="post" action="/admin/logout" style="margin:0"><button type="submit" class="linklike">Sign out of admin</button></form>
+<style>
+  .adm-bar { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+  .adm-tabs a { margin-right:14px; font-weight:700; text-decoration:none; color:#5a6880; }
+  .adm-tabs a.on { color:#1c64f2; border-bottom:2px solid #1c64f2; }
+  .adm-stats { display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 16px; }
+  .adm-stats span { background:#fff; border:1px solid #e0e7f2; border-radius:8px; padding:6px 10px; font-size:13px; }
+  .adm-filter { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .adm-filter input, .adm-filter select { width:auto; min-width:0; padding:8px 10px; }
+  .adm-filter button { width:auto; margin:0; padding:9px 16px; font-size:14px; box-shadow:none; }
+  .adm-act { display:flex; gap:6px; }
+  .adm-act form { margin:0; }
+  .adm-act button { width:auto; margin:0; padding:4px 8px; font-size:12px; box-shadow:none; }
+  .adm-act button.warn { background:#b3261e; }
+  td.st-bad { color:#b3261e; font-weight:700; }
+  .flash { background:#eef3fe; border:1px solid #c8d8fb; padding:10px 14px; border-radius:8px; }
+</style>
+<div class="adm-bar">
+  <h1 style="margin:0">Admin</h1>
+  <form method="post" action="/admin/logout" style="margin:0"><button type="submit" class="linklike">Odhlásiť z adminu</button></form>
 </div>
-<div class="card" style="overflow-x:auto">
+{% if flash %}<p class="flash">{{ flash }}</p>{% endif %}
+
+<div class="adm-stats">
+  <span>Lety 30 dní: {% for st, n in stats['orders'].items() %}{{ st }} {{ n }}{{ ", " if not loop.last }}{% else %}0{% endfor %}</span>
+  <span>Hotely 30 dní: {% for st, n in stats['stays'].items() %}{{ st }} {{ n }}{{ ", " if not loop.last }}{% else %}0{% endfor %}</span>
+  <span>Nové účty 30 dní: {{ stats['users_30d'] }}</span>
+  <span {% if stats['outbox'] %}style="color:#b3261e;font-weight:700"{% endif %}>E-maily vo fronte: {{ stats['outbox'] }}</span>
+</div>
+
+<div class="adm-bar" style="margin-bottom:12px">
+  <div class="adm-tabs">
+    <a href="/admin?kind=orders" class="{{ 'on' if kind == 'orders' }}">Lety</a>
+    <a href="/admin?kind=stays" class="{{ 'on' if kind == 'stays' }}">Hotely</a>
+  </div>
+  <form class="adm-filter" method="get" action="/admin">
+    <input type="hidden" name="kind" value="{{ kind }}">
+    <input id="adm-q" name="q" value="{{ q }}" placeholder="e-mail, PNR, referencia, trasa">
+    <select id="adm-status" name="status">
+      <option value="">všetky stavy</option>
+      {% for st in statuses %}<option value="{{ st }}" {{ 'selected' if st == status }}>{{ st }}</option>{% endfor %}
+    </select>
+    <button type="submit">Hľadať</button>
+    <a class="note" href="/admin/export.csv?kind={{ kind }}&q={{ q|urlencode }}&status={{ status }}">Export CSV</a>
+  </form>
+</div>
+
+<p class="note">Nájdené: {{ total }}{% if pages > 1 %} · strana {{ page }} z {{ pages }}{% endif %}</p>
+<div class="card" style="overflow-x:auto;padding:12px">
   <table>
-    <tr><th>#</th><th>Created</th><th>Status</th><th>Plan</th><th>Route</th>
-        <th>Date</th><th>PNR</th><th>Expires</th><th>Renews</th><th>Payment</th><th>E-mail</th>
-        <th>Error</th></tr>
-    {% for o in orders %}
+  {% if kind == 'orders' %}
+    <tr><th>#</th><th>Vytvorené</th><th>Stav</th><th>Plán</th><th>Trasa</th><th>Odlet</th>
+        <th>Termín</th><th>PNR</th><th>Platí do</th><th>Obnovy</th><th>Platba</th><th>E-mail</th>
+        <th>Chyba</th><th></th></tr>
+    {% for o in rows %}
     <tr>
       <td>{{ o['id'] }}</td>
       <td>{{ o['created_at'][:16].replace('T',' ') }}</td>
-      <td class="{{ 'bad' if o['status'] in ('failed', 'refunded') or (o['status'] == 'paid') }}">{{ o['status'] }}</td>
+      <td class="{{ 'st-bad' if o['status'] in ('failed', 'refunded', 'paid') }}">{{ o['status'] }}</td>
       <td>{{ o['plan'] }}</td>
       <td>{{ o['origin'] }}→{{ o['destination'] }}{{ ' ⇄' if o['return_date'] }}</td>
       <td>{{ o['depart_date'] }}</td>
+      <td>{{ o['needed_on'] or '—' }}</td>
       <td><a href="/status/{{ o['token'] }}" rel="noreferrer">{{ o['pnr'] or '—' }}</a></td>
       <td>{{ (o['hold_expires_at'] or '')[:16].replace('T',' ') }}</td>
       <td>{{ o['renew_count'] }}</td>
       <td class="note">{{ o['payment_ref'] or '—' }}</td>
       <td>{{ o['email'] }}</td>
       <td class="note">{{ (o['error'] or '')[:80] }}</td>
+      <td><div class="adm-act">
+        {% if o['status'] == 'booked' %}<form method="post" action="/admin/orders/{{ o['token'] }}/resend"><button type="submit">Poslať znova</button></form>{% endif %}
+        {% if refunds_enabled and o['payment_ref'] and o['status'] != 'refunded' %}<form method="post" action="/admin/orders/{{ o['token'] }}/refund" onsubmit="return confirm('Vrátiť platbu a zrušiť objednávku #{{ o['id'] }}?')"><button type="submit" class="warn">Vrátiť platbu</button></form>{% endif %}
+      </div></td>
     </tr>
     {% endfor %}
-  </table>
-</div>
-
-<h1>Hotels</h1>
-<div class="card" style="overflow-x:auto">
-  <table>
-    <tr><th>#</th><th>Created</th><th>Status</th><th>City</th><th>Check-in</th>
-        <th>Hotel</th><th>Reference</th><th>Cancel by</th><th>Payment</th><th>E-mail</th><th>Error</th></tr>
-    {% for s in stays %}
+  {% else %}
+    <tr><th>#</th><th>Vytvorené</th><th>Stav</th><th>Dodávateľ</th><th>Mesto</th><th>Príchod</th>
+        <th>Hotel</th><th>Referencia</th><th>Storno do</th><th>Platba</th><th>E-mail</th><th>Chyba</th><th></th></tr>
+    {% for s in rows %}
     <tr>
       <td>{{ s['id'] }}</td>
       <td>{{ s['created_at'][:16].replace('T',' ') }}</td>
-      <td class="{{ 'bad' if s['status'] in ('failed', 'refunded', 'paid') }}">{{ s['status'] }}</td>
+      <td class="{{ 'st-bad' if s['status'] in ('failed', 'refunded', 'paid') }}">{{ s['status'] }}</td>
+      <td>{{ s['provider'] }}</td>
       <td>{{ s['city'] }}</td>
       <td>{{ s['check_in'] }}</td>
       <td>{{ s['hotel_name'] or '—' }}</td>
@@ -46,8 +91,17 @@
       <td class="note">{{ s['payment_ref'] or '—' }}</td>
       <td>{{ s['email'] }}</td>
       <td class="note">{{ (s['error'] or '')[:80] }}</td>
+      <td><div class="adm-act">
+        {% if s['status'] == 'booked' %}<form method="post" action="/admin/stays/{{ s['token'] }}/resend"><button type="submit">Poslať znova</button></form>{% endif %}
+        {% if refunds_enabled and s['payment_ref'] and s['status'] != 'refunded' %}<form method="post" action="/admin/stays/{{ s['token'] }}/refund" onsubmit="return confirm('Vrátiť platbu a zrušiť hotel #{{ s['id'] }}?')"><button type="submit" class="warn">Vrátiť platbu</button></form>{% endif %}
+      </div></td>
     </tr>
     {% endfor %}
+  {% endif %}
   </table>
 </div>
+{% if pages > 1 %}
+<p>{% if page > 1 %}<a href="/admin?kind={{ kind }}&q={{ q|urlencode }}&status={{ status }}&page={{ page - 1 }}">← predchádzajúca</a>{% endif %}
+   {% if page < pages %}<a style="margin-left:14px" href="/admin?kind={{ kind }}&q={{ q|urlencode }}&status={{ status }}&page={{ page + 1 }}">ďalšia →</a>{% endif %}</p>
+{% endif %}
 {% endblock %}

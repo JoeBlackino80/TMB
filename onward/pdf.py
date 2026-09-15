@@ -31,12 +31,15 @@ class Document(FPDF):
     """A4 dokument s pätičkou prevádzkovateľa; v testovacom režime cez každú
     stranu vodoznak, aby sa dokument nedal vydávať za skutočnú rezerváciu."""
 
+    watermark = ""
+
     def footer(self):
-        if config.test_mode():
-            self.set_font("helvetica", "B", 54)
+        mark = self.watermark or ("TEST - NOT VALID" if config.test_mode() else "")
+        if mark:
+            self.set_font("helvetica", "B", 54 if len(mark) <= 16 else 36)
             self.set_text_color(230, 150, 150)
             with self.rotation(35, self.w / 2, self.h / 2):
-                self.text(self.w / 2 - 95, self.h / 2, "TEST - NOT VALID")
+                self.text(self.w / 2 - self.get_string_width(mark) / 2, self.h / 2, mark)
         self.set_y(-12)
         self.set_font("helvetica", "", 7)
         self.set_text_color(*MUTED)
@@ -67,8 +70,9 @@ def _fmt_time(iso: str) -> str:
 
 
 def build_itinerary(order, passengers: list[dict], segments: list[dict],
-                    brand: str, status_url: str = "") -> bytes:
+                    brand: str, status_url: str = "", watermark: str = "") -> bytes:
     pdf = Document(format="A4")
+    pdf.watermark = watermark
     pdf.set_auto_page_break(auto=True, margin=18)
     pdf.add_page()
 

@@ -28,23 +28,9 @@
 <div class="card" style="margin-top:-34px">
   <h2><svg class="h2ic" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>{{ t['order_title'] }}</h2>
   {% if not user %}
-  <div class="plans" style="margin:0 0 16px">
-    <div class="plan" style="cursor:default"><b>{{ t['plan_basic'] }}</b><span class="price">€{{ prices['basic'] }}</span>
-      <small>{{ t['plan_basic_desc'] }}</small></div>
-    <div class="plan" style="cursor:default"><b>{{ t['plan_week'] }}</b><span class="price">€{{ prices['week'] }}</span>
-      <small>{{ t['plan_week_desc'] }}</small></div>
-    <div class="plan" style="cursor:default"><b>{{ t['plan_2week'] }}</b><span class="price">€{{ prices['twoweek'] }}</span>
-      <small>{{ t['plan_2week_desc'] }}</small></div>
-  </div>
-  <p class="note" style="margin:-6px 0 14px">{{ t['vat_note'] }}</p>
-  <p class="note" style="margin:0 0 14px">{{ t['book_need_account_text'] }}</p>
-  <div style="display:flex;gap:10px;flex-wrap:wrap">
-    <a class="btn" href="/register?next=order"
-       style="display:inline-block;text-decoration:none">{{ t['book_register_btn'] }}</a>
-    <a class="btn ghost" href="/login?next=order"
-       style="display:inline-block;text-decoration:none">{{ t['book_signin_btn'] }}</a>
-  </div>
-  {% else %}
+  <p class="note" style="margin:0 0 14px">{{ t['guest_order_text'] }}
+    <a href="/login?next=order">{{ t['nav_login'] }}</a></p>
+  {% endif %}
   <form method="post" action="/order">
     <label style="margin-bottom:2px">{{ t['validity'] }}</label>
     <div class="plans">
@@ -57,6 +43,12 @@
       <label class="plan"><input type="radio" name="plan" value="twoweek">
         <b>{{ t['plan_2week'] }}</b><span class="price">€{{ prices['twoweek'] }}</span>
         <small>{{ t['plan_2week_desc'] }}</small></label>
+    </div>
+
+    <div class="pax" id="neededbox" style="margin-top:14px">
+      <label for="needed_on">{{ t['needed_on_lbl'] }}</label>
+      <input type="date" id="needed_on" name="needed_on" min="{{ min_date }}">
+      <p class="note" id="needed_hint" style="margin:6px 0 0">{{ t['needed_on_note'] }}</p>
     </div>
 
     <label style="margin-top:16px">{{ t['trip_type'] }}</label>
@@ -109,7 +101,7 @@
 
     <div class="row">
       <div><label>{{ t['email'] }}</label>
-        <input type="email" name="email" value="{{ user['email'] }}" required></div>
+        <input type="email" name="email" value="{{ user['email'] if user else '' }}" required autocomplete="email"></div>
       <div><label>{{ t['phone'] }}</label>
         <input name="phone" placeholder="+421900123456" required></div>
     </div>
@@ -153,12 +145,12 @@
 
     <div class="hp" aria-hidden="true"><input type="text" name="website"
          tabindex="-1" autocomplete="off"></div>
+    {% if not user and turnstile_key %}<div class="cf-turnstile" data-sitekey="{{ turnstile_key }}" style="margin-top:14px"></div>{% endif %}
     <label class="consent"><input type="checkbox" name="consent" value="1" required>
       <span>{{ t['consent_html'] | safe }}</span></label>
     <button type="submit">{{ t['submit'] }}</button>
     <p class="note">{{ t['fee_note'] }} {{ t['vat_note'] }}</p>
   </form>
-  {% endif %}
 </div>
 
 <div class="card">
@@ -174,11 +166,11 @@
 <div class="card">
   <h2><svg class="h2ic" viewBox="0 0 24 24"><path d="M4 4h13l3 3v13H4z"/><path d="M8 3v4M16 8h-6M16 12H8M13 16H8"/></svg>{{ t['what_title'] }}</h2>
   {{ t['what_html'] | safe }}
+  <p><a class="btnlink" href="/sample-itinerary.pdf" target="_blank" rel="noopener">{{ t['sample_btn'] }}</a></p>
   <p>{{ t['more_faq'] | safe }}</p>
 </div>
 
 <script>
-{% if user %}
   const paxBoxes = [...document.querySelectorAll('fieldset.pax')]
     .filter(b => b.id.startsWith('pax'));
   const btn = document.getElementById('addpax');
@@ -251,6 +243,23 @@
         leg.disabled = (t !== 'multi');
       }
     }));
-{% endif %}
+
+  // odporúčanie plánu podľa dátumu termínu na ambasáde / odletu
+  const needed = document.getElementById('needed_on');
+  const neededHint = document.getElementById('needed_hint');
+  const neededBox = document.getElementById('neededbox');
+  const T = {{ {'basic': t['calc_basic'], 'week': t['calc_week'], 'twoweek': t['calc_twoweek'], 'note': t['needed_on_note']}|tojson }};
+  function planValue() { return document.querySelector('input[name=plan]:checked').value; }
+  function updateNeeded() {
+    const plan = planValue();
+    neededBox.hidden = plan !== 'basic';
+    needed.disabled = plan !== 'basic';
+    if (!needed.value) { neededHint.textContent = T.note; return; }
+    const days = Math.round((new Date(needed.value) - new Date(new Date().toDateString())) / 86400000);
+    neededHint.textContent = days <= 60 ? T.basic : T.twoweek;
+  }
+  needed.addEventListener('change', updateNeeded);
+  document.querySelectorAll('input[name=plan]').forEach(r => r.addEventListener('change', updateNeeded));
+  updateNeeded();
 </script>
 {% endblock %}
