@@ -1085,3 +1085,12 @@ def test_public_housekeeping_routes(client):
     assert client.get("/favicon.ico").headers["content-type"].startswith("image/svg")
     assert "Right of withdrawal" in client.get("/terms").text
     assert "Úrad na ochranu" in client.get("/privacy").text
+
+
+def test_client_ip_prefers_real_ip_from_caddy():
+    from onward import security
+
+    class Req:
+        headers = {"x-real-ip": "198.51.100.7", "x-forwarded-for": "1.2.3.4, 172.64.1.1"}
+        client = None
+    assert security.client_ip(Req()) == "198.51.100.7"

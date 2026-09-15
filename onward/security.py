@@ -16,12 +16,19 @@ _hits: dict[str, list[float]] = defaultdict(list)
 
 
 def client_ip(request) -> str:
-    """Reálna IP za jedným dôveryhodným reverzným proxy (Caddy).
+    """Reálna IP návštevníka za naším Caddy (a prípadne Cloudflare).
 
-    Berieme POSLEDNÚ hodnotu X-Forwarded-For — tú pridal náš Caddy a je
-    dôveryhodná. Prvé hodnoty si môže podvrhnúť klient (a tým obísť
-    rate-limit), preto ich ignorujeme.
+    X-Real-IP nastavuje Caddy (`header_up X-Real-IP {client_ip}`) a hodnotu od
+    klienta vždy prepíše. Za Cloudflare doň Caddy dá CF-Connecting-IP, ale len
+    pri požiadavke z adries Cloudflare (`trusted_proxies`), takže sa nedá
+    podvrhnúť priamym prístupom na server.
+
+    Bez X-Real-IP berieme POSLEDNÚ hodnotu X-Forwarded-For — tú pridal náš
+    Caddy. Prvé hodnoty si môže podvrhnúť klient (a tým obísť rate-limit).
     """
+    real = request.headers.get("x-real-ip", "").strip()
+    if real:
+        return real
     xff = request.headers.get("x-forwarded-for", "")
     if xff:
         return xff.split(",")[-1].strip()
