@@ -3,7 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ brand }} — flight reservation for visa &amp; onward travel</title>
+<title>{{ (page_title ~ ' — ' ~ brand) if page_title else (brand ~ ' — ' ~ t['meta_title']) }}</title>
+<meta name="description" content="{{ t['meta_description'] }}">
+{% if test_mode %}<meta name="robots" content="noindex">{% endif %}
+<link rel="canonical" href="{{ base_url }}{{ path }}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{ brand }}">
+<meta property="og:title" content="{{ brand }} — {{ t['meta_title'] }}">
+<meta property="og:description" content="{{ t['meta_description'] }}">
+<meta property="og:url" content="{{ base_url }}{{ path }}">
 <style>
   * { box-sizing:border-box; }
   body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
@@ -107,6 +116,16 @@
   .btnlink { display:inline-block; padding:10px 18px; background:#1c64f2; color:#fff;
              border-radius:9px; text-decoration:none; font-weight:700; font-size:14px; }
   .btnlink:hover { background:#174fc4; }
+  .testbar { background:#b3261e; color:#fff; padding:12px 20px; font-size:14px;
+             line-height:1.45; text-align:center; }
+  .testbar b { letter-spacing:.4px; }
+  .navform { display:inline; margin:0; }
+  .navform button { all:unset; color:#c7d4f2; margin-left:16px; font-size:14px; cursor:pointer; }
+  .navform button:hover { color:#fff; }
+  .consent { display:flex; gap:10px; align-items:flex-start; font-weight:400;
+             font-size:13px; color:#33405e; margin-top:16px; }
+  .consent input { width:auto; margin-top:2px; }
+  footer .op { margin-top:8px; line-height:1.5; }
 </style>
 {% if turnstile_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
 </head>
@@ -115,7 +134,7 @@
   <nav style="display:flex;align-items:center">
     <a href="/">{{ t['nav_order'] }}</a><a href="/hotel">{{ t['nav_hotel'] }}</a><a href="/faq">{{ t['nav_faq'] }}</a>
     {% if user %}<a href="/account">{{ t['nav_account'] }}</a>
-      <a href="/logout">{{ t['nav_logout'] }}</a>
+      <form method="post" action="/logout" class="navform"><button type="submit">{{ t['nav_logout'] }}</button></form>
     {% else %}<a href="/login">{{ t['nav_login'] }}</a>{% endif %}
     <span class="lang">
       <a href="?lang=en" class="{{ 'on' if lang == 'en' }}">EN</a>
@@ -123,10 +142,13 @@
     </span>
   </nav>
 </div></header>
+{% if test_mode %}<div class="testbar" role="alert"><b>{{ t['test_title'] }}</b> {{ t['test_text'] }}</div>{% endif %}
 {% block hero %}{% endblock %}
 <main>{% block content %}{% endblock %}</main>
 <footer>{{ brand }} {{ t['footer'] }}<br>
-<a href="/terms">{{ t['nav_terms'] }}</a> · <a href="/privacy">Privacy</a> ·
-<a href="/faq">FAQ</a></footer>
+<a href="/terms">{{ t['nav_terms'] }}</a> · <a href="/privacy">{{ t['nav_privacy'] }}</a> ·
+<a href="/faq">FAQ</a> · <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+<div class="op">{{ t['operated_by'] }} {{ operator['name'] }}, {{ operator['address'] }}<br>
+{{ t['company_id'] }} {{ operator['ico'] }} · {{ t['tax_id'] }} {{ operator['dic'] }} · {{ t['vat_id'] }} {{ operator['ic_dph'] }}</div></footer>
 </body>
 </html>

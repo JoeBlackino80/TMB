@@ -2,7 +2,7 @@
 {% block content %}
 <div class="card">
   {% if order['status'] == 'booked' %}
-    <h2 class="ok">{{ t['st_confirmed'] }}</h2>
+    <h2 class="{{ 'bad' if test_mode else 'ok' }}">{{ t['st_test_confirmed'] if test_mode else t['st_confirmed'] }}</h2>
     <div class="pnr">{{ order['pnr'] }}</div>
     <p style="text-align:center">{{ order['airline'] }}</p>
     <p><b>{{ t['st_passengers'] }}:</b>
@@ -23,7 +23,7 @@
     </table>
     <p><b>{{ t['st_valid'] }}
       {{ order['hold_expires_at'].replace('T',' ').replace('Z',' UTC') }}.</b>
-    {{ t['st_verify'] }} {{ order['email'] }}.</p>
+    {{ t['st_verify_short'] }}{% if owner %} {{ t['st_sent_to'] }} {{ order['email'] }}.{% endif %}</p>
     {% if order['plan'] != 'basic' %}
     <p class="note">{{ t['st_autorenew'] }} {{ order['valid_until'] }}.
     {% if order['renew_count'] %}({{ t['st_renewed'] }} {{ order['renew_count'] }}{{ t['st_renewed_sofar'] }}){% endif %}</p>
@@ -37,10 +37,12 @@
     <h2 class="bad">{{ t['st_expired'] }}</h2>
     <p>{{ order['pnr'] }} ({{ order['origin'] }} → {{ order['destination'] }})
     {{ t['st_expired_text'] }} <a href="/">{{ t['st_new_order'] }}</a>.</p>
+  {% elif order['status'] == 'refunded' %}
+    <h2 class="bad">{{ t['st_refunded'] }}</h2>
+    <p>{{ t['st_refunded_text'] }}</p>
   {% else %}
     <h2 class="bad">{{ t['st_failed'] }}</h2>
-    <p>{{ order['error'] or '' }}</p>
-    <p>{{ t['st_failed_text'] }}</p>
+    <p>{{ t['st_failed_text'] }} <a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>
   {% endif %}
 </div>
 {% endblock %}

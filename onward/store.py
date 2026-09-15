@@ -1,15 +1,18 @@
 """SQLite evidencia objednávok rezervácií.
 
-Stavy: new → paid → booked → expired; kedykoľvek failed / cancelled.
+Stavy: new → paid → booked → expired; kedykoľvek failed / cancelled / refunded.
 Plány: basic (jeden hold 24–72 h) | week | twoweek — pri week/twoweek
 cron po prepadnutí holdu automaticky vytvorí nový (renew), kým platí
 `valid_until`.
 """
 
 import json
+import os
 import secrets
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+
+from . import auth
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS orders (
@@ -79,24 +82,49 @@ CREATE TABLE IF NOT EXISTS stays (
 """
 
 
+MIGRATIONS = (  # migrácie starších databáz
+    "ALTER TABLE orders ADD COLUMN slices_json TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE orders ADD COLUMN user_id INTEGER",
+    "ALTER TABLE orders ADD COLUMN payment_ref TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE orders ADD COLUMN paid_at TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE orders ADD COLUMN booked_at TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE stays ADD COLUMN payment_ref TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE stays ADD COLUMN paid_at TEXT NOT NULL DEFAULT ''",
+)
+
+# schéma a migrácie sa spúšťajú raz za proces pre každú databázu, nie pri
+# každej požiadavke
+_initialized: set[str] = set()
+
+
+def _iso(dt: datetime) -> str:
+    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def utcnow() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return _iso(datetime.now(timezone.utc))
+
+
+def utc_in(**delta) -> str:
+    return _iso(datetime.now(timezone.utc) + timedelta(**delta))
 
 
 class Orders:
     def __init__(self, path: str | None = None):
-        import os
-        self.conn = sqlite3.connect(path or os.environ.get("ONWARD_DB_PATH", "onward.db"))
+        path = path or os.environ.get("ONWARD_DB_PATH", "onward.db")
+        # timeout: rezervácie bežia na pozadí súbežne s požiadavkami webu
+        self.conn = sqlite3.connect(path, timeout=30)
         self.conn.row_factory = sqlite3.Row
-        self.conn.executescript(SCHEMA)
-        for ddl in (  # migrácie starších databáz
-                "ALTER TABLE orders ADD COLUMN slices_json TEXT NOT NULL DEFAULT ''",
-                "ALTER TABLE orders ADD COLUMN user_id INTEGER"):
-            try:
-                self.conn.execute(ddl)
-                self.conn.commit()
-            except sqlite3.OperationalError:
-                pass
+        if path not in _initialized:
+            self.conn.execute("PRAGMA journal_mode=WAL")
+            self.conn.executescript(SCHEMA)
+            for ddl in MIGRATIONS:
+                try:
+                    self.conn.execute(ddl)
+                    self.conn.commit()
+                except sqlite3.OperationalError:
+                    pass
+            _initialized.add(path)
 
     def close(self):
         self.conn.close()
@@ -120,7 +148,7 @@ class Orders:
             " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (token, utcnow(), plan, valid_until, email.strip(), phone.strip(),
              first["origin"].upper(), first["destination"].upper(), first["date"],
-             return_date, json.dumps(passengers, ensure_ascii=False),
+             return_date, auth.seal(json.dumps(passengers, ensure_ascii=False)),
              json.dumps(slices, ensure_ascii=False), user_id))
         self.conn.commit()
         return token
@@ -189,7 +217,7 @@ class Orders:
             " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
             (token, utcnow(), plan, email.strip(), phone.strip(), city,
              latitude, longitude, check_in, check_out,
-             json.dumps(guests, ensure_ascii=False), user_id))
+             auth.seal(json.dumps(guests, ensure_ascii=False)), user_id))
         self.conn.commit()
         return token
 
@@ -197,7 +225,7 @@ class Orders:
         return self.conn.execute("SELECT * FROM stays WHERE token=?", (token,)).fetchone()
 
     def stay_guests(self, row: sqlite3.Row) -> list[dict]:
-        return json.loads(row["guests_json"])
+        return json.loads(auth.unseal(row["guests_json"]))
 
     def stay_summary(self, row: sqlite3.Row) -> dict:
         return json.loads(row["summary_json"]) if row["summary_json"] else {}
@@ -220,11 +248,12 @@ class Orders:
         return self.conn.execute(
             "SELECT * FROM stays WHERE user_id=? ORDER BY id DESC", (user_id,)).fetchall()
 
-    def stays_to_cancel(self) -> list[sqlite3.Row]:
-        """Rezervácie s bezplatným stornom, ktorých deadline sa blíži."""
+    def stays_to_cancel(self, margin_hours: int = 24) -> list[sqlite3.Row]:
+        """Rezervácie, ktorým do konca bezplatného storna ostáva menej než
+        `margin_hours` — rušia sa s rezervou, nie až po termíne."""
         return self.conn.execute(
             "SELECT * FROM stays WHERE status='booked' AND cancel_by != ''"
-            " AND cancel_by < ?", (utcnow(),)).fetchall()
+            " AND cancel_by < ?", (utc_in(hours=margin_hours),)).fetchall()
 
     def all_stays(self) -> list[sqlite3.Row]:
         return self.conn.execute("SELECT * FROM stays ORDER BY id DESC").fetchall()
@@ -252,14 +281,15 @@ class Orders:
                     hold_expires_at: str, segments: list[dict], renewed: bool = False):
         self.conn.execute(
             "UPDATE orders SET status='booked', pnr=?, airline=?, duffel_order_id=?,"
-            " hold_expires_at=?, segments_json=?, error='',"
+            " hold_expires_at=?, segments_json=?, error='', booked_at=?,"
             " renew_count = renew_count + ? WHERE token=?",
             (pnr, airline, duffel_order_id, hold_expires_at,
-             json.dumps(segments, ensure_ascii=False), 1 if renewed else 0, token))
+             json.dumps(segments, ensure_ascii=False), utcnow(),
+             1 if renewed else 0, token))
         self.conn.commit()
 
     def passengers(self, row: sqlite3.Row) -> list[dict]:
-        return json.loads(row["passengers_json"])
+        return json.loads(auth.unseal(row["passengers_json"]))
 
     def segments(self, row: sqlite3.Row) -> list[dict]:
         return json.loads(row["segments_json"]) if row["segments_json"] else []
@@ -271,3 +301,57 @@ class Orders:
 
     def all(self) -> list[sqlite3.Row]:
         return self.conn.execute("SELECT * FROM orders ORDER BY id DESC").fetchall()
+
+    # -- platby -----------------------------------------------------------------
+
+    def claim_paid(self, token: str, payment_ref: str = "") -> bool:
+        """Atomicky new → paid. False = objednávka neexistuje alebo ju už
+        vybavuje iná (opakovaná) notifikácia o platbe."""
+        cur = self.conn.execute(
+            "UPDATE orders SET status='paid', payment_ref=?, paid_at=?"
+            " WHERE token=? AND status='new'", (payment_ref, utcnow(), token))
+        self.conn.commit()
+        return cur.rowcount == 1
+
+    def claim_stay_paid(self, token: str, payment_ref: str = "") -> bool:
+        cur = self.conn.execute(
+            "UPDATE stays SET status='paid', payment_ref=?, paid_at=?"
+            " WHERE token=? AND status='new'", (payment_ref, utcnow(), token))
+        self.conn.commit()
+        return cur.rowcount == 1
+
+    def by_payment_ref(self, payment_ref: str):
+        """→ ('order', row) | ('stay', row) | None"""
+        if not payment_ref:
+            return None
+        for kind, table in (("order", "orders"), ("stay", "stays")):
+            row = self.conn.execute(f"SELECT * FROM {table} WHERE payment_ref=?",
+                                    (payment_ref,)).fetchone()
+            if row:
+                return kind, row
+        return None
+
+    def stuck_paid(self, minutes: int = 20) -> list[tuple[str, sqlite3.Row]]:
+        """Zaplatené objednávky, ktoré sa dlho nevybavili (spadnutý proces)."""
+        cutoff = utc_in(minutes=-minutes)
+        out = []
+        for kind, table in (("order", "orders"), ("stay", "stays")):
+            out += [(kind, r) for r in self.conn.execute(
+                f"SELECT * FROM {table} WHERE status='paid' AND paid_at != ''"
+                " AND paid_at < ?", (cutoff,)).fetchall()]
+        return out
+
+    # -- uchovávanie údajov -----------------------------------------------------
+
+    def purge_older_than(self, days: int) -> int:
+        """Zmaže uzavreté objednávky a hotely staršie než `days` dní
+        (sľub v Privacy policy). Rozpracované a platné nechá."""
+        cutoff = utc_in(days=-days)
+        n = 0
+        for table in ("orders", "stays"):
+            cur = self.conn.execute(
+                f"DELETE FROM {table} WHERE created_at < ?"
+                " AND status NOT IN ('new', 'paid', 'booked')", (cutoff,))
+            n += cur.rowcount
+        self.conn.commit()
+        return n

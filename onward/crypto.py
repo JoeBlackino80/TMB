@@ -10,6 +10,7 @@ import hmac
 import json
 import os
 import urllib.request
+from decimal import Decimal, InvalidOperation
 
 API_BASE = "https://api.commerce.coinbase.com"
 
@@ -43,7 +44,17 @@ def verify_signature(payload: bytes, signature: str, secret: str) -> bool:
     if not secret or not signature:
         return False
     expected = hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(expected, signature)
+    return hmac.compare_digest(expected.encode(), signature.encode())
+
+
+def paid_enough(event: dict, expected_eur: str) -> bool:
+    """Charge bol na správnu sumu v EUR (pricing.local)."""
+    local = (event.get("event", {}).get("data", {}).get("pricing", {}) or {}).get("local", {}) or {}
+    try:
+        amount = Decimal(str(local.get("amount")))
+    except (InvalidOperation, TypeError):
+        return False
+    return local.get("currency") == "EUR" and amount >= Decimal(expected_eur)
 
 
 def confirmed_token(event: dict) -> str:

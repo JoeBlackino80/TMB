@@ -1,5 +1,19 @@
 # Reverse proxy s automatickým HTTPS (Let's Encrypt).
-# apt install caddy && cat tento súbor >> /etc/caddy/Caddyfile && systemctl reload caddy
-validflight.com, www.validflight.com {
-    reverse_proxy 127.0.0.1:8100
+# Blok nahradí existujúci blok validflight.com v /etc/caddy/Caddyfile.
+www.validflight.com {
+    redir https://validflight.com{uri} permanent
+}
+
+validflight.com {
+    encode zstd gzip
+
+    # dokumentácia API sa nezverejňuje (appka ju má vypnutú, toto je poistka)
+    @apidocs path /docs /docs/* /redoc /openapi.json
+    respond @apidocs 404
+
+    header -Server
+
+    reverse_proxy 127.0.0.1:8100 {
+        header_down -Server
+    }
 }

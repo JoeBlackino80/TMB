@@ -3,14 +3,13 @@
 from io import BytesIO
 
 import qrcode
-from fpdf import FPDF
 
-from .pdf import _latin, INK, MUTED, LIGHT
+from .pdf import Document, _latin, test_band, INK, MUTED, LIGHT
 
 
 def build_voucher(row, guests: list[dict], summ: dict, brand: str,
                   status_url: str = "") -> bytes:
-    pdf = FPDF(format="A4")
+    pdf = Document(format="A4")
     pdf.set_auto_page_break(auto=True, margin=18)
     pdf.add_page()
 
@@ -25,6 +24,7 @@ def build_voucher(row, guests: list[dict], summ: dict, brand: str,
     pdf.cell(0, 9, "Hotel reservation", align="R")
     pdf.set_y(32)
     pdf.set_text_color(*INK)
+    test_band(pdf)
 
     ref = summ.get("reference", "") or (row["reference"] or "")
     pdf.set_fill_color(*LIGHT)
@@ -45,8 +45,8 @@ def build_voucher(row, guests: list[dict], summ: dict, brand: str,
     pdf.set_text_color(*INK)
     pdf.ln(2)
     pdf.set_font("helvetica", "", 11)
-    pdf.cell(0, 6, f"Check-in:  {row['check_in']}", new_x="LMARGIN", new_y="NEXT")
-    pdf.cell(0, 6, f"Check-out: {row['check_out']}", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, _latin(f"Check-in:  {row['check_in']}"), new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, _latin(f"Check-out: {row['check_out']}"), new_x="LMARGIN", new_y="NEXT")
     pdf.ln(3)
 
     pdf.set_font("helvetica", "B", 12)

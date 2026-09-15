@@ -2,18 +2,68 @@
 {% block content %}
 <h1>Privacy policy</h1>
 <div class="card">
-  <p>To create a reservation we process the passenger data you provide:
-  name, title, gender, date of birth, e-mail address and phone number.</p>
+  <h2>Controller</h2>
+  <p><b>{{ operator['name'] }}</b>, {{ operator['address'] }}, Company ID (IČO)
+  {{ operator['ico'] }}. Contact for all privacy matters:
+  <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.</p>
+
+  <h2>What we process</h2>
   <ul>
-    <li><b>Purpose:</b> creating the airline reservation, delivering the
-    itinerary, auto-renewals and customer support.</li>
-    <li><b>Sharing:</b> passenger data is transmitted to our booking provider
-    (Duffel) and the operating airline as required to create the reservation,
-    and payment data is handled by Stripe — we never see your card number.</li>
-    <li><b>Retention:</b> order data is kept for 12 months for support and
-    accounting, then deleted.</li>
-    <li><b>Your rights (GDPR):</b> access, rectification, erasure and
-    portability — contact us at the e-mail address in your itinerary.</li>
+    <li><b>Account:</b> e-mail address and password (stored only as a salted hash).</li>
+    <li><b>Flight orders:</b> passenger title, name, gender and date of birth, contact
+    e-mail and phone, route and dates, the reservation details (PNR, airline, flights)
+    and a payment reference.</li>
+    <li><b>Hotel orders:</b> guest names, contact e-mail and phone, destination,
+    dates and the reservation details.</li>
+    <li><b>Saved travellers</b> (optional): the details above plus nationality and,
+    if you choose, a passport number and its expiry.</li>
+    <li><b>Technical data:</b> IP address, used briefly in memory to limit abuse, and
+    standard server logs.</li>
   </ul>
+  <p>Passenger and guest details in orders and passport numbers are stored
+  encrypted.</p>
+
+  <h2>Why, and on what legal basis</h2>
+  <ul>
+    <li>Creating, renewing and delivering reservations, and customer support —
+    performance of the contract (Art. 6(1)(b) GDPR).</li>
+    <li>Accounting and tax records — legal obligation (Art. 6(1)(c) GDPR).</li>
+    <li>Protecting the service against fraud and bots — our legitimate interest
+    (Art. 6(1)(f) GDPR).</li>
+  </ul>
+
+  <h2>Who receives the data</h2>
+  <ul>
+    <li><b>Duffel Technology Ltd</b> (United Kingdom), our booking provider, and the
+    <b>airline or hotel</b> concerned, which may be located outside the EEA —
+    the transfer is necessary to create the reservation you ordered
+    (Art. 49(1)(b) GDPR).</li>
+    <li><b>Stripe</b> for card payments; where you pay in cryptocurrency,
+    <b>NOWPayments</b> or <b>Coinbase Commerce</b>. We never see your card number.</li>
+    <li><b>Cloudflare</b> (Turnstile) for the anti-bot check on sign-in forms.</li>
+    <li><b>Hetzner Online GmbH</b> (Germany) for hosting and <b>WebHouse</b>
+    (Slovakia) for e-mail.</li>
+  </ul>
+
+  <h2>How long we keep it</h2>
+  <ul>
+    <li>Closed flight and hotel orders are deleted {{ retention_days }} days after
+    they were created.</li>
+    <li>Your account and saved travellers are kept until you ask us to delete them.</li>
+    <li>Invoices and other accounting records are kept for 10 years as required by
+    the Slovak Accounting Act (No. 431/2002 Coll.).</li>
+  </ul>
+
+  <h2>Cookies</h2>
+  <p>We use only cookies necessary for the site to work: your sign-in session, your
+  language choice and, for staff, the admin session. We do not use analytics or
+  advertising cookies.</p>
+
+  <h2>Your rights</h2>
+  <p>You have the right of access, rectification, erasure, restriction, portability
+  and objection. Write to <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.
+  You may also lodge a complaint with the supervisory authority: Úrad na ochranu
+  osobných údajov Slovenskej republiky, Hraničná 12, 820 07 Bratislava,
+  <a href="https://dataprotection.gov.sk" rel="noopener">dataprotection.gov.sk</a>.</p>
 </div>
 {% endblock %}

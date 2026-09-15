@@ -4,15 +4,17 @@
   <h1>{{ t['hotel_hero_title'] }}</h1>
   <p>{{ t['hotel_hero_sub'] | safe }}</p>
   <div class="badges">
-    <span>&#9962; {{ t['badge1'] }}</span>
-    <span>&#9201; {{ t['badge2'] }}</span>
-    <span>&#128196; {{ t['badge3'] }}</span>
+    <span><svg class="ic" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> {{ t['hotel_badge1'] }}</span>
+    <span><svg class="ic" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> {{ t['badge2'] }}</span>
+    <span><svg class="ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> {{ t['hotel_badge3'] }}</span>
   </div>
 </div></div>
 {% endblock %}
 {% block content %}
 <div class="card" style="margin-top:-34px">
   <h2>{{ t['hotel_order_title'] }}</h2>
+  <p style="margin:0 0 12px"><span class="price" style="font-size:23px;font-weight:800">€{{ prices['hotel'] }}</span>
+    <span class="note">{{ t['hotel_price_note'] }} {{ t['vat_note'] }}</span></p>
   {% if need_account %}
   <p class="note" style="margin:0 0 14px">{{ t['book_need_account_text'] }}</p>
   <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -49,6 +51,8 @@
     {% endfor %}
     <button type="button" class="linklike" id="addg">{{ t['add_guest'] }}</button>
     <div class="hp" aria-hidden="true"><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
+    <label class="consent"><input type="checkbox" name="consent" value="1" required>
+      <span>{{ t['consent_html'] | safe }}</span></label>
     <button type="submit">{{ t['hotel_submit'] }}</button>
     <p class="note">{{ t['fee_note'] }}</p>
   </form>
@@ -57,10 +61,7 @@
 
 <div class="card">
   <h2>{{ t['what_title'] }}</h2>
-  <p>You receive a <b>real, cancellable hotel reservation</b> with a confirmation
-  number — held on a free-cancellation rate, so it can be verified as genuine and
-  is released automatically before the cancellation deadline. It is supporting
-  documentation for visa applications and proof of accommodation, not a paid stay.</p>
+  {{ t['hotel_what_html'] | safe }}
 </div>
 
 {% if not need_account %}

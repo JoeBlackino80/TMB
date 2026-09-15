@@ -4,6 +4,8 @@ import os
 import smtplib
 from email.message import EmailMessage
 
+from . import config
+
 
 def _env(name: str) -> str:
     return os.environ.get(f"ONWARD_{name}", "") or os.environ.get(name, "")
@@ -25,6 +27,8 @@ def send(to: str, subject: str, text: str, html: str = "",
     msg["Subject"] = subject
     msg["From"] = _env("SMTP_USER")
     msg["To"] = to
+    # odpovede na noreply adresu by sa stratili — smeruj ich na podporu
+    msg["Reply-To"] = config.contact_email()
     msg.set_content(text)
     if html:
         msg.add_alternative(html, subtype="html")
@@ -52,5 +56,7 @@ def send(to: str, subject: str, text: str, html: str = "",
         return True
     except Exception as e:
         # do žurnálu služby — odoslanie je best-effort, objednávku nezhadzuje
-        print(f"SMTP chyba pri odosielaní na {to}: {type(e).__name__}: {e}", flush=True)
+        # adresu do logu nepíšeme celú (osobný údaj)
+        masked = to[:2] + "***@" + to.partition("@")[2]
+        print(f"SMTP chyba pri odosielaní na {masked}: {type(e).__name__}: {e}", flush=True)
         return False

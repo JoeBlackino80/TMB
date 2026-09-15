@@ -95,8 +95,8 @@
 
 <div style="display:flex;gap:12px;flex-wrap:wrap">
   <a href="/" class="btnlink">{{ t['new_order_btn'] }}</a>
-  <a href="/logout" class="btnlink"
-     style="background:#e6ebf4;color:#16213a">{{ t['nav_logout'] }}</a>
+  <form method="post" action="/logout" style="margin:0"><button type="submit" class="btnlink"
+     style="background:#e6ebf4;color:#16213a;width:auto;margin:0;box-shadow:none;font-size:14px;padding:10px 18px">{{ t['nav_logout'] }}</button></form>
 </div>
 
 <script>

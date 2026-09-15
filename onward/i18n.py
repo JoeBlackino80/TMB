@@ -7,6 +7,39 @@ Použitie: šablóny dostanú slovník `t` podľa jazyka požiadavky
 
 STRINGS = {
     "en": {
+        "nav_privacy": "Privacy",
+        "meta_title": "flight & hotel reservations for visa applications",
+        "meta_description": "Unticketed flight reservations (PNR) and cancellable hotel"
+            " reservations for visa applications and proof of onward travel, delivered"
+            " by e-mail with a printable PDF.",
+        "test_title": "TEST MODE.",
+        "test_text": "Reservations created on this site are currently fictitious"
+            " sandbox bookings: they do not exist in any airline's or hotel's system,"
+            " cannot be verified and must NOT be used for a visa application. No"
+            " payment is taken.",
+        "operated_by": "Operated by", "company_id": "Company ID", "tax_id": "Tax ID",
+        "vat_id": "VAT ID",
+        "vat_note": "Prices include VAT.",
+        "consent_html": "I request that the service starts immediately and acknowledge"
+            " that I lose my right of withdrawal once the reservation has been"
+            " delivered. I agree to the <a href='/terms'>Terms</a> and have read the"
+            " <a href='/privacy'>Privacy policy</a>.",
+        "hotel_badge1": "Real, cancellable reservation",
+        "hotel_badge3": "PDF voucher + QR",
+        "hotel_price_note": "per reservation, regardless of the number of nights.",
+        "hotel_what_html": "<p>You receive a <b>real, cancellable hotel reservation</b>"
+            " with a booking reference — held on a free-cancellation rate and released"
+            " automatically before the cancellation deadline. It is supporting"
+            " documentation for visa applications and proof of accommodation,"
+            " <b>not a paid stay</b>.</p>",
+        "st_verify_short": "Verify it on the airline's website under “Manage booking”"
+            " with the PNR and passenger surname.",
+        "st_sent_to": "The documents were also sent to",
+        "st_test_confirmed": "TEST reservation — not valid, not verifiable",
+        "st_refunded": "Reservation cancelled",
+        "st_refunded_text": "The payment for this reservation was refunded or disputed,"
+            " so the reservation was cancelled and will not be renewed.",
+        "hotel_released": "was released before the free-cancellation deadline.",
         "nav_order": "Order", "nav_faq": "FAQ", "nav_terms": "Terms",
         "nav_login": "Sign in", "nav_account": "My account", "nav_logout": "Sign out",
         "nav_hotel": "Hotel",
@@ -115,10 +148,10 @@ STRINGS = {
                      " auto-renew options keep a live PNR in your inbox for the"
                      " whole processing window.</p>",
         "more_faq": "More questions? See the <a href='/faq'>FAQ</a>.",
-        "footer": "sells genuine, airline-verifiable flight reservations"
-                  " (no ticket issued) for visa applications and proof of"
-                  " onward travel. A reservation is not a flight ticket and"
-                  " cannot be used to board.",
+        "footer": "provides unticketed flight reservations and cancellable hotel"
+                  " reservations for visa applications and proof of onward"
+                  " travel. A reservation is not a flight ticket or a paid stay"
+                  " and cannot be used to board.",
         "st_confirmed": "Reservation confirmed",
         "st_passengers": "Passengers",
         "th_flight": "Flight", "th_route": "Route",
@@ -141,8 +174,8 @@ STRINGS = {
                            " the airline. Need a fresh one?",
         "st_new_order": "Place a new order",
         "st_failed": "We could not complete this reservation",
-        "st_failed_text": "If you already paid, reply to your confirmation"
-                          " e-mail and we will make it right or refund you.",
+        "st_failed_text": "If you already paid, we will make it right or refund"
+                          " you in full. Questions:",
         "back": "Back",
         "faq_title": "Frequently asked questions",
         "faq_html": """
@@ -174,6 +207,39 @@ a verifiable reservation, you get a full refund — no questions asked. See
 <a href="/terms">Terms</a>.</p></div>""",
     },
     "es": {
+        "nav_privacy": "Privacidad",
+        "meta_title": "reservas de vuelo y hotel para visados",
+        "meta_description": "Reservas de vuelo sin billete (PNR) y reservas de hotel"
+            " cancelables para solicitudes de visado y prueba de salida, enviadas por"
+            " e-mail con un PDF imprimible.",
+        "test_title": "MODO DE PRUEBA.",
+        "test_text": "Las reservas creadas en este sitio son por ahora reservas"
+            " ficticias de prueba: no existen en el sistema de ninguna aerolínea ni"
+            " hotel, no se pueden verificar y NO deben usarse para solicitar un"
+            " visado. No se cobra ningún pago.",
+        "operated_by": "Operado por", "company_id": "IČO", "tax_id": "DIČ",
+        "vat_id": "IVA",
+        "vat_note": "Precios con IVA incluido.",
+        "consent_html": "Solicito que el servicio comience de inmediato y acepto que"
+            " pierdo mi derecho de desistimiento una vez entregada la reserva. Acepto"
+            " los <a href='/terms'>Términos</a> y he leído la"
+            " <a href='/privacy'>Política de privacidad</a>.",
+        "hotel_badge1": "Reserva real y cancelable",
+        "hotel_badge3": "Bono PDF + QR",
+        "hotel_price_note": "por reserva, sin importar el número de noches.",
+        "hotel_what_html": "<p>Recibes una <b>reserva de hotel real y cancelable</b>"
+            " con código de reserva — con tarifa de cancelación gratuita y liberada"
+            " automáticamente antes del plazo de cancelación. Es documentación de"
+            " apoyo para visados y prueba de alojamiento, <b>no una estancia"
+            " pagada</b>.</p>",
+        "st_verify_short": "Verifícala en la web de la aerolínea en “Gestionar"
+            " reserva” con el PNR y los apellidos del pasajero.",
+        "st_sent_to": "Los documentos también se enviaron a",
+        "st_test_confirmed": "Reserva de PRUEBA — no válida, no verificable",
+        "st_refunded": "Reserva cancelada",
+        "st_refunded_text": "El pago de esta reserva fue reembolsado o impugnado, por lo"
+            " que la reserva se canceló y no se renovará.",
+        "hotel_released": "fue liberada antes del plazo de cancelación gratuita.",
         "nav_order": "Reservar", "nav_faq": "FAQ", "nav_terms": "Términos",
         "nav_login": "Entrar", "nav_account": "Mi cuenta", "nav_logout": "Salir",
         "nav_hotel": "Hotel",
@@ -285,10 +351,10 @@ a verifiable reservation, you get a full refund — no questions asked. See
                      " de visado; las opciones de renovación automática"
                      " mantienen un PNR activo durante todo el trámite.</p>",
         "more_faq": "¿Más preguntas? Consulta las <a href='/faq'>FAQ</a>.",
-        "footer": "vende reservas de vuelo genuinas y verificables con la"
-                  " aerolínea (sin emisión de billete) para solicitudes de"
-                  " visado y prueba de vuelo de salida. Una reserva no es un"
-                  " billete y no permite embarcar.",
+        "footer": "ofrece reservas de vuelo sin billete y reservas de hotel"
+                  " cancelables para solicitudes de visado y prueba de salida."
+                  " Una reserva no es un billete ni una estancia pagada y no"
+                  " permite embarcar.",
         "st_confirmed": "Reserva confirmada",
         "st_passengers": "Pasajeros",
         "th_flight": "Vuelo", "th_route": "Ruta",
@@ -311,8 +377,8 @@ a verifiable reservation, you get a full refund — no questions asked. See
                            " aerolínea. ¿Necesitas una nueva?",
         "st_new_order": "Haz un nuevo pedido",
         "st_failed": "No pudimos completar esta reserva",
-        "st_failed_text": "Si ya pagaste, responde al e-mail de confirmación y"
-                          " lo solucionaremos o te devolveremos el dinero.",
+        "st_failed_text": "Si ya pagaste, lo solucionaremos o te devolveremos"
+                          " el importe completo. Consultas:",
         "back": "Volver",
         "faq_title": "Preguntas frecuentes",
         "faq_html": """

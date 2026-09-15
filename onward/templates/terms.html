@@ -2,33 +2,88 @@
 {% block content %}
 <h1>Terms of service</h1>
 <div class="card">
-  <h2>1. What we sell</h2>
-  <p>{{ brand }} provides a service that creates a genuine, unticketed
-  airline reservation (a &ldquo;hold&rdquo; booking with a PNR code) in the
-  customer's name, delivered as an e-mail itinerary and PDF. The fee covers
-  this service only; no flight ticket is purchased and the reservation
-  cannot be used to board a flight.</p>
+  <h2>1. Who we are</h2>
+  <p>{{ brand }} is operated by <b>{{ operator['name'] }}</b>, {{ operator['address'] }},
+  Company ID (IČO) {{ operator['ico'] }}, Tax ID (DIČ) {{ operator['dic'] }},
+  VAT ID {{ operator['ic_dph'] }}, registered in the {{ operator['register'] }}
+  (&ldquo;we&rdquo;). Contact: <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.</p>
 
-  <h2>2. Validity</h2>
-  <p>A reservation remains valid until the airline's hold deadline (typically
-  24–72 hours). With auto-renew plans we recreate the reservation with a new
-  PNR each time it is released, until the end of the purchased period or the
-  departure date, whichever comes first. Each renewal produces a new PNR;
-  the old one becomes invalid.</p>
+  {% if test_mode %}
+  <p class="bad">The service is currently running in <b>test mode</b>. Reservations
+  created now are fictitious sandbox bookings: they do not exist in any airline's or
+  hotel's system, cannot be verified and must not be used for a visa application or
+  any other official purpose. No payment is taken in test mode.</p>
+  {% endif %}
 
-  <h2>3. Refunds</h2>
-  <p>If we fail to deliver a verifiable reservation, we refund the full fee.
-  Otherwise the fee is non-refundable once the reservation has been
-  delivered.</p>
+  <h2>2. What we sell</h2>
+  <p>For a service fee we create, in the customer's name:</p>
+  <ul>
+    <li>a genuine, <b>unticketed airline reservation</b> (a &ldquo;hold&rdquo;
+    booking with a PNR code), delivered as an e-mail itinerary and PDF; and/or</li>
+    <li>a genuine, <b>cancellable hotel reservation</b> on a free-cancellation
+    rate, delivered as an e-mail confirmation and PDF voucher.</li>
+  </ul>
+  <p>The fee covers this service only. No flight ticket is purchased, the airline
+  and the hotel are never paid, a flight reservation cannot be used to board and a
+  hotel reservation is not a paid stay.</p>
 
-  <h2>4. Acceptable use</h2>
-  <p>The document is intended as supporting documentation (visa application,
-  proof of onward travel). You must not present it as a paid flight ticket.
-  Whether a reservation satisfies a particular embassy, airline or border
-  authority is outside our control and remains your responsibility.</p>
+  <h2>3. Prices and payment</h2>
+  <p>Prices are shown in euros and <b>include VAT</b>. You pay by card through
+  Stripe or, where offered, in cryptocurrency through our payment provider. The
+  contract is concluded when your payment is confirmed; we then create the
+  reservation, usually within minutes.</p>
 
-  <h2>5. Liability</h2>
-  <p>Our liability is limited to the fee paid. We are not liable for visa
-  refusals, denied boarding or other decisions of third parties.</p>
+  <h2>4. Validity</h2>
+  <p>A flight reservation remains valid until the airline's hold deadline (typically
+  24–72 hours). With the 7-day and 14-day plans we recreate the reservation with a
+  new PNR each time it is released, until the end of the purchased period or the
+  departure date, whichever comes first. Each renewal produces a new PNR and the old
+  one becomes invalid; a renewal may use a different flight if the original is no
+  longer available.</p>
+  <p>A hotel reservation is cancelled by us at least 24 hours before the end of its
+  free-cancellation period.</p>
+
+  <h2>5. Right of withdrawal</h2>
+  <p>If you are a consumer, you may withdraw from the contract within 14 days of its
+  conclusion without giving a reason, by e-mail to
+  <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.</p>
+  <p>Because the reservation is delivered within minutes, when ordering you
+  <b>expressly request that we start performing the service immediately</b> and
+  acknowledge that you <b>lose the right of withdrawal once the service has been
+  fully performed</b>, i.e. once the reservation has been delivered. If you withdraw
+  before delivery, we refund the full fee. If you withdraw during a 7-day or 14-day
+  plan, we refund the part of the fee corresponding to the remaining period.</p>
+
+  <h2>6. Refunds</h2>
+  <p>If we fail to deliver a reservation, we refund the full fee. Refunds are made
+  to the original payment method within 14 days. Otherwise the fee is
+  non-refundable once the reservation has been delivered.</p>
+
+  <h2>7. Acceptable use</h2>
+  <p>The document is intended as supporting documentation (visa application, proof
+  of onward travel or accommodation). You must not present it as a paid flight
+  ticket or a paid hotel stay. Whether a reservation satisfies a particular embassy,
+  airline or border authority is outside our control and remains your
+  responsibility. You must provide passenger and guest details accurately.</p>
+
+  <h2>8. Liability</h2>
+  <p>To the extent permitted by law, our liability is limited to the fee paid. We are
+  not liable for visa refusals, denied boarding or other decisions of third parties.
+  Nothing in these terms limits liability that cannot be limited by law.</p>
+
+  <h2>9. Complaints and disputes</h2>
+  <p>Send complaints to <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>;
+  we will respond within 30 days. If you are a consumer and are not satisfied with
+  how we handled your complaint, you may turn to the alternative dispute resolution
+  body Slovenská obchodná inšpekcia (Slovak Trade Inspection), Bajkalská 21/A,
+  827 99 Bratislava, <a href="https://www.soi.sk" rel="noopener">www.soi.sk</a>,
+  which also supervises consumer protection.</p>
+
+  <h2>10. Governing law</h2>
+  <p>These terms are governed by the law of the Slovak Republic. If you are a
+  consumer, you keep the protection of the mandatory rules of the country where you
+  live.</p>
+
+  <p class="note">Personal data: see our <a href="/privacy">Privacy policy</a>.</p>
 </div>
 {% endblock %}

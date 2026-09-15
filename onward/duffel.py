@@ -66,13 +66,26 @@ def search_offers(slices: list[dict], passengers: int = 1,
     return sorted(offers, key=lambda o: float(o.get("total_amount") or "inf"))
 
 
-def pick_hold_offer(offers: list[dict]) -> dict | None:
-    """Najlacnejšia ponuka, ktorú možno rezervovať bez okamžitej platby."""
+def _flight_numbers(order_or_offer: dict) -> list[str]:
+    return [s["flight"] for s in segments(order_or_offer)]
+
+
+def pick_hold_offer(offers: list[dict], prefer_flights: list[str] | None = None) -> dict | None:
+    """Najlacnejšia ponuka, ktorú možno rezervovať bez okamžitej platby.
+
+    `prefer_flights`: čísla letov predchádzajúcej rezervácie — pri obnove
+    zákazník dostane tie isté lety, ak ich aerolinka ešte ponúka.
+    """
+    holdable = []
     for offer in sorted(offers, key=lambda o: float(o.get("total_amount") or "inf")):
         req = offer.get("payment_requirements") or {}
         if req.get("requires_instant_payment") is False and req.get("payment_required_by"):
-            return offer
-    return None
+            holdable.append(offer)
+    if prefer_flights:
+        for offer in holdable:
+            if _flight_numbers(offer) == prefer_flights:
+                return offer
+    return holdable[0] if holdable else None
 
 
 def create_hold_order(offer: dict, passengers: list[dict]) -> dict:

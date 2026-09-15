@@ -17,6 +17,7 @@ niektoré pole pomenuje inak, uprav len tento súbor (zvyšok appky ho nevidí).
 """
 
 import datetime as _dt
+from decimal import Decimal, InvalidOperation
 
 from .duffel import _request, DuffelError  # zdieľaný HTTP klient + výnimka
 
@@ -44,18 +45,33 @@ def fetch_rates(search_result_id: str) -> dict:
     )["data"]
 
 
-def _is_free_cancellation(rate: dict) -> str:
-    """Ak sadzba umožňuje bezplatné storno, vráti deadline (ISO), inak ''."""
-    conditions = rate.get("conditions") or []
-    for c in conditions:
-        # Duffel: podmienka typu 'cancellation' s refund_amount == total → free
-        if "cancellation" in (c.get("type", "") or "").lower():
-            return c.get("deadline") or c.get("valid_until") or ""
-    cp = rate.get("cancellation_timeline") or []
-    for step in cp:
-        if str(step.get("refund_amount", "")).replace(".", "", 1) == \
-                str(rate.get("total_amount", "")).replace(".", "", 1):
-            return step.get("before", "") or step.get("after", "")
+def _amount(value) -> Decimal | None:
+    try:
+        return Decimal(str(value))
+    except (InvalidOperation, TypeError):
+        return None
+
+
+def _is_free_cancellation(rate: dict, min_hours_ahead: int = 48) -> str:
+    """Ak sadzba umožňuje storno s vrátením CELEJ sumy a do termínu ostáva
+    aspoň `min_hours_ahead` hodín, vráti termín (ISO), inak ''.
+
+    Duffel: `cancellation_timeline` = [{refund_amount, currency, before}] —
+    `before` je posledná chvíľa, kedy sa ešte vráti `refund_amount`.
+    """
+    total = _amount(rate.get("total_amount"))
+    if total is None:
+        return ""
+    earliest = (_dt.datetime.now(_dt.timezone.utc)
+                + _dt.timedelta(hours=min_hours_ahead)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    for step in rate.get("cancellation_timeline") or []:
+        refund = _amount(step.get("refund_amount"))
+        before = step.get("before", "") or ""
+        if refund is not None and refund >= total and before:
+            # porovnávame ISO reťazce v UTC; iný formát radšej odmietneme
+            normalized = before.replace("+00:00", "Z")
+            if normalized.endswith("Z") and normalized > earliest:
+                return normalized
     return ""
 
 
@@ -67,7 +83,7 @@ def pick_free_cancellation_rate(accommodation: dict) -> tuple[dict, str] | None:
             deadline = _is_free_cancellation(rate)
             if not deadline:
                 continue
-            amt = float(rate.get("total_amount") or "inf")
+            amt = _amount(rate.get("total_amount"))
             if best is None or amt < best[0]:
                 best = (amt, rate, deadline)
     return (best[1], best[2]) if best else None
@@ -121,12 +137,3 @@ def summary(booking_or_quote: dict) -> dict:
         "confirmation": (booking_or_quote.get("supplier_reference", "")
                          or booking_or_quote.get("accommodation_reference", "")),
     }
-
-
-def default_cancel_deadline(check_in: str) -> str:
-    """Fallback: ak Duffel nedá deadline, zruš deň pred check-inom."""
-    try:
-        d = _dt.date.fromisoformat(check_in) - _dt.timedelta(days=1)
-        return d.isoformat() + "T00:00:00Z"
-    except ValueError:
-        return ""

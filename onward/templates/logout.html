@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width:440px;margin:20px auto">
+  <h2>{{ t['nav_logout'] }}</h2>
+  <form method="post" action="/logout"><button type="submit">{{ t['nav_logout'] }}</button></form>
+</div>
+{% endblock %}

@@ -2,7 +2,7 @@
 {% block content %}
 <div class="card">
   {% if stay['status'] == 'booked' %}
-    <h2 class="ok">{{ t['hotel_confirmed'] }}</h2>
+    <h2 class="{{ 'bad' if test_mode else 'ok' }}">{{ t['st_test_confirmed'] if test_mode else t['hotel_confirmed'] }}</h2>
     <div style="text-align:center;font-size:26px;font-weight:800;letter-spacing:2px">
       {{ stay['reference'] }}</div>
     <p style="text-align:center">{{ stay['hotel_name'] }}</p>
@@ -13,7 +13,7 @@
     </table>
     <p><b>{{ t['st_passengers'] }}:</b>
       {% for g in guests %}{{ g['given_name'] }} {{ g['family_name'] }}{{ ", " if not loop.last }}{% endfor %}</p>
-    <p class="note">The reservation was also sent to {{ stay['email'] }}.</p>
+    {% if owner %}<p class="note">{{ t['st_sent_to'] }} {{ stay['email'] }}.</p>{% endif %}
     <p><a href="/hotel/voucher/{{ stay['token'] }}.pdf"><b>{{ t['hotel_download'] }}</b></a></p>
     <a href="/hotel" class="btnlink">{{ t['nav_hotel'] }}</a>
   {% elif stay['status'] in ('new', 'paid') %}
@@ -22,12 +22,13 @@
     <meta http-equiv="refresh" content="10">
   {% elif stay['status'] == 'cancelled' %}
     <h2>{{ t['st_expired'] }}</h2>
-    <p>Reservation {{ stay['reference'] }} was released before the free-cancellation
-    deadline. <a href="/hotel">{{ t['st_new_order'] }}</a>.</p>
+    <p>{{ stay['reference'] }} — {{ t['hotel_released'] }} <a href="/hotel">{{ t['st_new_order'] }}</a>.</p>
+  {% elif stay['status'] == 'refunded' %}
+    <h2 class="bad">{{ t['st_refunded'] }}</h2>
+    <p>{{ t['st_refunded_text'] }}</p>
   {% else %}
     <h2 class="bad">{{ t['st_failed'] }}</h2>
-    <p>{{ stay['error'] or '' }}</p>
-    <p>{{ t['st_failed_text'] }}</p>
+    <p>{{ t['st_failed_text'] }} <a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>
   {% endif %}
 </div>
 {% endblock %}

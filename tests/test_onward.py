@@ -58,7 +58,8 @@ def _form_data(**over):
     base = dict(email="a@b.sk", phone="+421900000000", trip_type="oneway",
                 origin="vie", destination="bkk", depart_date=TOMORROW,
                 plan="basic", title=["mr"], given_name=["Jan"],
-                family_name=["Novak"], born_on=["1990-01-01"], gender=["m"])
+                family_name=["Novak"], born_on=["1990-01-01"], gender=["m"],
+                consent="1")
     base.update(over)
     return base
 
@@ -244,6 +245,8 @@ def test_renewal_creates_fresh_pnr(tmp_path, monkeypatch):
     store.set_booking(token, pnr="OLD111", airline="Duffel Airways",
                       duffel_order_id="ord_0", hold_expires_at="2020-01-01T00:00:00Z",
                       segments=[])
+    store.conn.execute("UPDATE orders SET booked_at='2020-01-01T00:00:00Z'")
+    store.conn.commit()
     row = store.booked_past_expiry()[0]
     assert booking.renew_or_expire(store, row) == "renewed"
     row = store.by_token(token)
@@ -273,8 +276,12 @@ def test_admin_requires_key(client, monkeypatch):
     assert client.get("/admin").status_code == 404
     from onward import app as onward_app
     monkeypatch.setattr(onward_app, "ADMIN_KEY", "tajne")
-    assert client.get("/admin", params={"key": "zle"}).status_code == 404
-    assert client.get("/admin", params={"key": "tajne"}).status_code == 200
+    # kľúč v URL už nič neotvorí — len prihlasovací formulár
+    page = client.get("/admin", params={"key": "tajne"})
+    assert page.status_code == 200 and "Admin key" in page.text
+    assert "Wrong key" in client.post("/admin/login", data={"key": "zle"}).text
+    ok = client.post("/admin/login", data={"key": "tajne"}, follow_redirects=True)
+    assert ok.status_code == 200 and "Hotels" in ok.text
 
 
 def test_airports_json(client):
@@ -478,7 +485,7 @@ def test_delete_passenger_is_user_scoped(client, monkeypatch):
     pid_a = store.saved_passengers(uid_a)[0]["id"]
     store.close()
     # user B sa prihlási a skúsi zmazať pasažiera user A
-    client.get("/logout")
+    client.post("/logout")
     client.post("/register", data={"email": "b1@x.sk", "password": "Heslo123!"})
     client.post(f"/account/passenger/{pid_a}/delete")
     store = Orders(os.environ["ONWARD_DB_PATH"])
@@ -489,7 +496,7 @@ def test_delete_passenger_is_user_scoped(client, monkeypatch):
 def test_password_reset_flow(client, monkeypatch):
     # založ účet
     client.post("/register", data={"email": "reset@x.sk", "password": "Heslo123!"})
-    client.get("/logout")
+    client.post("/logout")
     # zachyť reset e-mail
     sent = {}
     from onward import app as A
@@ -600,7 +607,8 @@ RATES_DATA = {
                              "country_code": "TH"}},
     "rooms": [{"rates": [
         {"id": "rate_cheap", "total_amount": "120.00",
-         "conditions": [{"type": "cancellation", "deadline": "2099-01-01T00:00:00Z"}]},
+         "cancellation_timeline": [{"refund_amount": "120.00", "currency": "EUR",
+                                    "before": "2099-01-01T00:00:00Z"}]},
     ]}],
 }
 STAY_BOOKING = {"id": "bk_1", "reference": "HOTELREF1"}
@@ -611,7 +619,7 @@ def _hotel_form(**over):
                 check_in=TOMORROW,
                 check_out=(date.today() + timedelta(days=3)).isoformat(),
                 email="buyer@x.sk", phone="+421900123456",
-                given_name=["Jan"], family_name=["Novak"])
+                given_name=["Jan"], family_name=["Novak"], consent="1")
     base.update(over)
     return base
 
@@ -710,3 +718,370 @@ def test_order_crypto_prefers_nowpayments(client, monkeypatch):
     r = client.post("/order", data=_form_data(pay="crypto"), follow_redirects=False)
     assert r.status_code == 303
     assert r.headers["location"].startswith("https://nowpayments.io/")
+
+
+# ---- Opravy z bezpečnostnej kontroly (september 2026) ----
+
+import hashlib as _hashlib
+import hmac as _hmac
+import json as _json
+import time as _time
+
+
+def _stripe_post(client, monkeypatch, event: dict):
+    from onward import app as A
+    monkeypatch.setattr(A, "STRIPE_WEBHOOK_SECRET", "whsec_test")
+    body = _json.dumps(event).encode()
+    t = str(int(_time.time()))
+    sig = _hmac.new(b"whsec_test", f"{t}.".encode() + body, _hashlib.sha256).hexdigest()
+    return client.post("/stripe/webhook", content=body,
+                       headers={"stripe-signature": f"t={t},v1={sig}"})
+
+
+def _new_order(plan="basic") -> str:
+    import os
+    store = Orders(os.environ["ONWARD_DB_PATH"])
+    token = store.create(**_store_kwargs(plan=plan))
+    store.close()
+    return token
+
+
+def _session_event(ref, amount, status="paid", currency="eur", livemode=False):
+    return {"type": "checkout.session.completed", "livemode": livemode,
+            "data": {"object": {"id": "cs_1", "client_reference_id": ref,
+                                "payment_status": status, "amount_total": amount,
+                                "currency": currency, "payment_intent": "pi_1"}}}
+
+
+def test_test_mode_is_announced_everywhere(client, monkeypatch):
+    monkeypatch.delenv("DUFFEL_API_KEY", raising=False)
+    page = client.get("/").text
+    assert "TEST MODE" in page and 'name="robots" content="noindex"' in page
+    assert "AMREXO" in page and "support@validflight.com" in page
+    _auth(client)
+    _mock_duffel(monkeypatch)
+    captured = {}
+    from onward import booking
+    monkeypatch.setattr(booking.mailer, "send",
+                        lambda to, subject, text, html="", attachments=None,
+                        inline_images=None: captured.update(subject=subject, text=text,
+                                                            html=html) or True)
+    resp = client.post("/order", data=_form_data(), follow_redirects=True)
+    assert "TEST reservation" in resp.text
+    assert captured["subject"].startswith("[TEST")
+    assert "NOT a real reservation" in captured["text"] and "TEST MODE" in captured["html"]
+
+
+def test_live_mode_hides_test_banner(client, monkeypatch):
+    monkeypatch.setenv("DUFFEL_API_KEY", "duffel_live_x")
+    assert "TEST MODE" not in client.get("/").text
+
+
+def test_live_mode_startup_requires_payment_settings(monkeypatch):
+    from onward import config
+    monkeypatch.setenv("DUFFEL_API_KEY", "duffel_live_x")
+    for env in (*config.STRIPE_LINK_ENVS, "ONWARD_SECRET", "ONWARD_STRIPE_WEBHOOK_SECRET"):
+        monkeypatch.delenv(env, raising=False)
+    problems = config.startup_problems()
+    assert any("STRIPE_LINK_ONWARD " in p or p.startswith("STRIPE_LINK_ONWARD chýba")
+               for p in problems)
+    assert any("ONWARD_SECRET" in p for p in problems)
+    monkeypatch.setenv("DUFFEL_API_KEY", "duffel_test_x")
+    assert config.startup_problems() == []
+
+
+def test_live_mode_never_books_without_payment(client, monkeypatch):
+    monkeypatch.setenv("DUFFEL_API_KEY", "duffel_live_x")
+    for env in ("STRIPE_LINK_ONWARD", "STRIPE_LINK_ONWARD_WEEK", "STRIPE_LINK_ONWARD_2WEEK"):
+        monkeypatch.delenv(env, raising=False)
+    calls = _mock_duffel(monkeypatch)
+    _auth(client)
+    resp = client.post("/order", data=_form_data())
+    assert resp.status_code == 503 and not calls
+
+
+def test_plan_link_does_not_fall_back_to_cheaper_plan(client, monkeypatch):
+    monkeypatch.setenv("STRIPE_LINK_ONWARD", "https://buy.stripe.com/basic")
+    monkeypatch.delenv("STRIPE_LINK_ONWARD_2WEEK", raising=False)
+    monkeypatch.setenv("DUFFEL_API_KEY", "duffel_live_x")
+    _auth(client)
+    resp = client.post("/order", data=_form_data(plan="twoweek"), follow_redirects=False)
+    assert resp.status_code == 503
+
+
+def test_order_requires_consent(client, monkeypatch):
+    _mock_duffel(monkeypatch)
+    _auth(client)
+    assert "immediate performance" in client.post("/order", data=_form_data(consent="")).text
+
+
+def test_stripe_webhook_rejects_wrong_amount_and_unpaid(client, monkeypatch):
+    calls = _mock_duffel(monkeypatch)
+    _mock_mailer(monkeypatch)
+    from onward import notify
+    monkeypatch.setattr(notify, "admin", lambda *a: None)
+    token = _new_order(plan="twoweek")
+    # zaplatené cez lacnejší link
+    assert _stripe_post(client, monkeypatch, _session_event(token, 990)).status_code == 200
+    # neuhradený bankový prevod
+    _stripe_post(client, monkeypatch, _session_event(token, 2490, status="unpaid"))
+    # iná mena
+    _stripe_post(client, monkeypatch, _session_event(token, 2490, currency="usd"))
+    import os
+    store = Orders(os.environ["ONWARD_DB_PATH"])
+    assert store.by_token(token)["status"] == "new" and not calls
+    store.close()
+
+
+def test_stripe_webhook_books_once(client, monkeypatch):
+    calls = _mock_duffel(monkeypatch)
+    _mock_mailer(monkeypatch)
+    token = _new_order(plan="twoweek")
+    event = _session_event(token, 2490)
+    _stripe_post(client, monkeypatch, event)
+    _stripe_post(client, monkeypatch, event)  # Stripe notifikáciu zopakuje
+    import os
+    store = Orders(os.environ["ONWARD_DB_PATH"])
+    row = store.by_token(token)
+    assert row["status"] == "booked" and row["payment_ref"] == "pi_1"
+    assert len(calls) == 1
+    store.close()
+
+
+def test_live_stripe_webhook_rejects_test_payment(client, monkeypatch):
+    calls = _mock_duffel(monkeypatch)
+    monkeypatch.setenv("DUFFEL_API_KEY", "duffel_live_x")
+    token = _new_order()
+    _stripe_post(client, monkeypatch, _session_event(token, 990, livemode=False))
+    assert not calls
+
+
+def test_refund_stops_renewals(client, monkeypatch):
+    _mock_duffel(monkeypatch)
+    _mock_mailer(monkeypatch)
+    from onward import duffel as D, notify
+    monkeypatch.setattr(D, "cancel_order", lambda oid: {})
+    monkeypatch.setattr(notify, "admin", lambda *a: None)
+    token = _new_order(plan="week")
+    _stripe_post(client, monkeypatch, _session_event(token, 1690))
+    _stripe_post(client, monkeypatch, {"type": "charge.refunded", "livemode": False,
+                                       "data": {"object": {"payment_intent": "pi_1"}}})
+    import os
+    store = Orders(os.environ["ONWARD_DB_PATH"])
+    assert store.by_token(token)["status"] == "refunded"
+    assert store.booked_past_expiry() == []
+    store.close()
+
+
+def test_nowpayments_amount_check():
+    from onward import nowpayments
+    assert nowpayments.paid_enough({"price_amount": 24.9, "price_currency": "eur"}, "24.90")
+    assert not nowpayments.paid_enough({"price_amount": 9.9, "price_currency": "eur"}, "24.90")
+    assert not nowpayments.paid_enough({"price_amount": 24.9, "price_currency": "usd"}, "24.90")
+
+
+def test_booking_crash_marks_failed_and_alerts(client, monkeypatch):
+    def boom(*a, **k):
+        raise KeyError("unexpected")
+    monkeypatch.setattr(duffel, "search_offers", boom)
+    alerts = []
+    from onward import notify
+    monkeypatch.setattr(notify, "admin", lambda subject, text: alerts.append(subject))
+    token = _new_order(plan="twoweek")
+    _stripe_post(client, monkeypatch, _session_event(token, 2490))
+    import os
+    store = Orders(os.environ["ONWARD_DB_PATH"])
+    assert store.by_token(token)["status"] == "failed"
+    store.close()
+    assert alerts and "zaplatený" in alerts[0]
+
+
+def test_hotel_cancelled_with_margin_before_deadline(tmp_path, monkeypatch):
+    from onward import hotelbooking, stays as S
+    from onward.store import utc_in
+    monkeypatch.setattr(S, "cancel_booking", lambda bid: {"id": bid})
+    store = Orders(str(tmp_path / "o.db"))
+    for token_hours in (12, 72):
+        token = store.create_stay(email="a@b.sk", phone="+421900000000", city="X",
+                                  latitude=1.0, longitude=1.0, check_in=TOMORROW,
+                                  check_out=TOMORROW, guests=[{"given_name": "A",
+                                                                "family_name": "B"}],
+                                  plan="basic")
+        store.set_stay_booking(token, hotel_name="H", reference=f"R{token_hours}",
+                               duffel_booking_id="bk", cancel_by=utc_in(hours=token_hours),
+                               summary={})
+    assert hotelbooking.cancel_due(store) == 1
+    statuses = {r["reference"]: r["status"] for r in store.all_stays()}
+    assert statuses == {"R12": "cancelled", "R72": "booked"}
+    store.close()
+
+
+def test_rate_needs_full_refund_and_time_margin():
+    from onward import stays
+    from onward.store import utc_in
+    partial = {"id": "r1", "total_amount": "100.00", "cancellation_timeline": [
+        {"refund_amount": "50.00", "before": "2099-01-01T00:00:00Z"}]}
+    too_soon = {"id": "r2", "total_amount": "100.00", "cancellation_timeline": [
+        {"refund_amount": "100.00", "before": utc_in(hours=10)}]}
+    ok = {"id": "r3", "total_amount": "100.00", "cancellation_timeline": [
+        {"refund_amount": "100.00", "before": utc_in(days=5)}]}
+    picked = stays.pick_free_cancellation_rate({"rooms": [{"rates": [partial, too_soon, ok]}]})
+    assert picked[0]["id"] == "r3"
+
+
+def test_hotel_limits(client, monkeypatch):
+    _mock_stays(monkeypatch); _auth(client)
+    far = (date.today() + timedelta(days=60)).isoformat()
+    assert "at most 30 nights" in client.post("/hotel/order", data=_hotel_form(check_out=far)).text
+    assert "pick a city" in client.post("/hotel/order",
+                                        data=_hotel_form(latitude="nan")).text
+
+
+def test_quick_expiry_is_not_renewed_again(tmp_path, monkeypatch):
+    monkeypatch.setenv("ONWARD_DB_PATH", str(tmp_path / "onward.db"))
+    calls = _mock_duffel(monkeypatch)
+    _mock_mailer(monkeypatch)
+    from onward import booking
+    far = (date.today() + timedelta(days=30)).isoformat()
+    store = Orders()
+    token = store.create(**_store_kwargs(
+        plan="week", slices=[{"origin": "VIE", "destination": "BKK", "date": far}],
+        valid_until=(date.today() + timedelta(days=7)).isoformat()))
+    # hold, ktorý prepadol hneď po vytvorení (booked_at = teraz)
+    store.set_booking(token, pnr="OLD111", airline="A", duffel_order_id="o",
+                      hold_expires_at="", segments=[])
+    assert booking.renew_or_expire(store, store.by_token(token)) == "expired"
+    assert not calls
+    store.close()
+
+
+def test_renewal_prefers_same_flights():
+    other = dict(SAMPLE_ORDER, id="off_other", total_amount="50.00",
+                 payment_requirements={"requires_instant_payment": False,
+                                       "payment_required_by": "2099-01-01T00:00:00Z"},
+                 slices=[{"segments": [dict(SAMPLE_ORDER["slices"][0]["segments"][0],
+                                            marketing_carrier_flight_number="9999")]}])
+    same = dict(SAMPLE_ORDER, id="off_same", total_amount="80.00",
+                payment_requirements={"requires_instant_payment": False,
+                                      "payment_required_by": "2099-01-01T00:00:00Z"})
+    assert duffel.pick_hold_offer([other, same])["id"] == "off_other"
+    assert duffel.pick_hold_offer([other, same], prefer_flights=["ZZ0001"])["id"] == "off_same"
+
+
+def test_expire_continues_after_bad_row(tmp_path, monkeypatch):
+    monkeypatch.setenv("ONWARD_DB_PATH", str(tmp_path / "onward.db"))
+    from onward import booking, expire, hotelbooking
+    store = Orders()
+    for _ in range(2):
+        t = store.create(**_store_kwargs())
+        store.set_booking(t, pnr="P", airline="A", duffel_order_id="o",
+                          hold_expires_at="2020-01-01T00:00:00Z", segments=[])
+    store.close()
+    seen = []
+
+    def flaky(store, row):
+        seen.append(row["id"])
+        if len(seen) == 1:
+            raise RuntimeError("boom")
+        return "expired"
+    monkeypatch.setattr(booking, "renew_or_expire", flaky)
+    cancel_ran = []
+    monkeypatch.setattr(hotelbooking, "cancel_due", lambda s: cancel_ran.append(1) or 0)
+    expire.main()
+    assert len(seen) == 2 and cancel_ran
+
+
+def test_passengers_encrypted_at_rest(tmp_path, monkeypatch):
+    from cryptography.fernet import Fernet
+    monkeypatch.setenv("ONWARD_DATA_KEY", Fernet.generate_key().decode())
+    store = Orders(str(tmp_path / "o.db"))
+    token = store.create(**_store_kwargs())
+    raw = store.conn.execute("SELECT passengers_json FROM orders").fetchone()[0]
+    assert raw.startswith("enc1:") and "Novak" not in raw
+    assert store.passengers(store.by_token(token)) == PAX
+    store.close()
+
+
+def test_purge_old_closed_orders(tmp_path):
+    store = Orders(str(tmp_path / "o.db"))
+    old, fresh, active = (store.create(**_store_kwargs()) for _ in range(3))
+    store.set_status(old, "expired")
+    store.set_status(fresh, "expired")
+    store.conn.execute("UPDATE orders SET created_at='2020-01-01T00:00:00Z' WHERE token IN (?, ?)",
+                       (old, active))
+    store.conn.commit()
+    assert store.purge_older_than(365) == 1
+    assert store.by_token(old) is None and store.by_token(fresh) and store.by_token(active)
+    store.close()
+
+
+def test_password_change_revokes_sessions_and_reset_link(client, monkeypatch):
+    client.post("/register", data={"email": "s@x.sk", "password": "Heslo123!"})
+    assert client.get("/account", follow_redirects=False).status_code == 200
+    old_cookie = client.cookies.get("session")
+    sent = {}
+    from onward import app as A
+    monkeypatch.setattr(A.mailer, "send",
+                        lambda to, subject, text, html="": sent.update(text=text) or True)
+    client.post("/forgot", data={"email": "s@x.sk"})
+    import re as _re
+    token = _re.search(r"/reset\?token=([\w=\-]+)", sent["text"]).group(1)
+    assert "Password changed" in client.post(
+        "/reset", data={"token": token, "password": "NoveHeslo1!"}).text
+    # ten istý odkaz druhýkrát nefunguje
+    assert "Invalid or expired" in client.post(
+        "/reset", data={"token": token, "password": "IneHeslo1!"}).text
+    # staré prihlásenie (napr. na inom zariadení) prestalo platiť
+    client.cookies.set("session", old_cookie)
+    assert client.get("/account", follow_redirects=False).status_code == 303
+
+
+def test_cross_site_post_blocked(client):
+    r = client.post("/login", data={"email": "a@b.sk", "password": "x"},
+                    headers={"origin": "https://evil.example"})
+    assert r.status_code == 403
+    r = client.post("/login", data={"email": "a@b.sk", "password": "x"},
+                    headers={"sec-fetch-site": "cross-site"})
+    assert r.status_code == 403
+
+
+def test_logout_needs_post(client):
+    _auth(client)
+    client.get("/logout")
+    assert client.get("/account", follow_redirects=False).status_code == 200
+    client.post("/logout")
+    assert client.get("/account", follow_redirects=False).status_code == 303
+
+
+def test_email_list_rejected(client, monkeypatch):
+    _mock_duffel(monkeypatch)
+    _auth(client)
+    assert "Invalid e-mail" in client.post("/order", data=_form_data(email="a@b.sk, c@d.sk")).text
+
+
+def test_status_page_hides_email_and_errors_from_strangers(client, monkeypatch):
+    _auth(client)
+    _mock_duffel(monkeypatch)
+    _mock_mailer(monkeypatch)
+    resp = client.post("/order", data=_form_data(email="owner@x.sk"), follow_redirects=True)
+    assert "owner@x.sk" in resp.text
+    url = resp.url.path
+    client.post("/logout")
+    assert "owner@x.sk" not in client.get(url).text
+    import os
+    store = Orders(os.environ["ONWARD_DB_PATH"])
+    store.set_status(url.rsplit("/", 1)[-1], "failed", "Duffel 422 secret details")
+    store.close()
+    assert "secret details" not in client.get(url).text
+    assert client.get("/status/nonexistent").status_code == 404
+
+
+def test_public_housekeeping_routes(client):
+    assert client.get("/docs").status_code == 404
+    assert client.get("/openapi.json").status_code == 404
+    assert client.head("/").status_code == 200
+    assert "Sitemap:" in client.get("/robots.txt").text
+    assert "<urlset" in client.get("/sitemap.xml").text
+    assert client.get("/favicon.ico").headers["content-type"].startswith("image/svg")
+    assert "Right of withdrawal" in client.get("/terms").text
+    assert "Úrad na ochranu" in client.get("/privacy").text

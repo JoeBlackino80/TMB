@@ -10,6 +10,8 @@ from io import BytesIO
 import qrcode
 from fpdf import FPDF
 
+from . import config
+
 INK = (22, 33, 58)
 MUTED = (90, 104, 128)
 ACCENT = (28, 100, 242)
@@ -25,13 +27,48 @@ def _latin(text: str) -> str:
         return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
 
 
+class Document(FPDF):
+    """A4 dokument s pätičkou prevádzkovateľa; v testovacom režime cez každú
+    stranu vodoznak, aby sa dokument nedal vydávať za skutočnú rezerváciu."""
+
+    def footer(self):
+        if config.test_mode():
+            self.set_font("helvetica", "B", 54)
+            self.set_text_color(230, 150, 150)
+            with self.rotation(35, self.w / 2, self.h / 2):
+                self.text(self.w / 2 - 95, self.h / 2, "TEST - NOT VALID")
+        self.set_y(-12)
+        self.set_font("helvetica", "", 7)
+        self.set_text_color(*MUTED)
+        op = config.OPERATOR
+        self.cell(0, 4, _latin(f"Issued by {op['name']}, {op['address']},"
+                               f" Company ID {op['ico']} - {config.contact_email()}"),
+                  align="C")
+
+
+def test_band(pdf: FPDF) -> None:
+    """Výrazný červený pás pod hlavičkou dokumentu v testovacom režime."""
+    if not config.test_mode():
+        return
+    pdf.set_fill_color(179, 38, 30)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("helvetica", "B", 10)
+    pdf.multi_cell(0, 5.5,
+        "TEST MODE - THIS IS NOT A REAL RESERVATION. Created in a booking sandbox;"
+        " it does not exist in the airline's or hotel's system, cannot be verified"
+        " and must NOT be used for a visa application or any official purpose.",
+        fill=True, align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(4)
+    pdf.set_text_color(*INK)
+
+
 def _fmt_time(iso: str) -> str:
-    return iso.replace("T", " ").replace("Z", " UTC")[:22]
+    return iso.replace("T", " ").replace("Z", " UTC")[:23]
 
 
 def build_itinerary(order, passengers: list[dict], segments: list[dict],
                     brand: str, status_url: str = "") -> bytes:
-    pdf = FPDF(format="A4")
+    pdf = Document(format="A4")
     pdf.set_auto_page_break(auto=True, margin=18)
     pdf.add_page()
 
@@ -47,6 +84,7 @@ def build_itinerary(order, passengers: list[dict], segments: list[dict],
     pdf.cell(0, 9, "Flight reservation / itinerary", align="R")
     pdf.set_y(32)
     pdf.set_text_color(*INK)
+    test_band(pdf)
 
     # PNR box
     pdf.set_fill_color(*LIGHT)

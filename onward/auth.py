@@ -1,8 +1,10 @@
 """Autentifikácia klientov: hashovanie hesiel + šifrovanie čísla pasu.
 
-Heslá: PBKDF2-HMAC-SHA256 (stdlib, bez závislostí).
+Heslá: PBKDF2-HMAC-SHA256 (stdlib, bez závislostí), 600 000 iterácií podľa
+OWASP; staršie hashe sa pri prihlásení prepočítajú.
 Číslo pasu: Fernet (cryptography) — kľúč z ONWARD_DATA_KEY. Bez kľúča sa
 pasové polia neukladajú (bezpečný default — radšej nič než plaintext).
+Údaje pasažierov a hostí v objednávkach šifruje `seal()` tým istým kľúčom.
 """
 
 import base64
@@ -12,7 +14,7 @@ import os
 import re
 import secrets
 
-_PBKDF2_ROUNDS = 200_000
+_PBKDF2_ROUNDS = 600_000
 
 
 def password_problem(password: str) -> str:
@@ -34,6 +36,25 @@ def hash_password(password: str) -> str:
     salt = secrets.token_bytes(16)
     dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, _PBKDF2_ROUNDS)
     return f"pbkdf2${_PBKDF2_ROUNDS}${base64.b64encode(salt).decode()}${base64.b64encode(dk).decode()}"
+
+
+def needs_rehash(stored: str) -> bool:
+    try:
+        return int(stored.split("$")[1]) < _PBKDF2_ROUNDS
+    except (IndexError, ValueError):
+        return True
+
+
+def dummy_verify(password: str) -> None:
+    """Rovnako dlhý výpočet pre neexistujúci účet — prihlásenie tak časom
+    odpovede neprezradí, či e-mail má účet."""
+    hashlib.pbkdf2_hmac("sha256", password.encode(), b"0" * 16, _PBKDF2_ROUNDS)
+
+
+def fingerprint(stored: str) -> str:
+    """Krátky odtlačok hashu hesla. Je súčasťou podpisu session a reset
+    tokenu, takže zmena hesla zneplatní staré prihlásenia aj použitý odkaz."""
+    return hashlib.sha256(stored.encode()).hexdigest()[:16]
 
 
 def verify_password(password: str, stored: str) -> bool:
@@ -77,3 +98,24 @@ def decrypt_passport(token: str) -> str:
         return f.decrypt(token.encode()).decode()
     except Exception:
         return ""
+
+
+_SEAL_PREFIX = "enc1:"
+
+
+def seal(text: str) -> str:
+    """Zašifruje text (JSON pasažierov), ak je nastavený ONWARD_DATA_KEY."""
+    f = _fernet()
+    if not f:
+        return text
+    return _SEAL_PREFIX + f.encrypt(text.encode()).decode()
+
+
+def unseal(text: str) -> str:
+    """Opak `seal`; staré nešifrované záznamy vráti bez zmeny."""
+    if not text or not text.startswith(_SEAL_PREFIX):
+        return text
+    f = _fernet()
+    if not f:
+        raise RuntimeError("ONWARD_DATA_KEY chýba — údaje pasažierov sa nedajú dešifrovať")
+    return f.decrypt(text[len(_SEAL_PREFIX):].encode()).decode()

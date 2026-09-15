@@ -7,11 +7,14 @@
     <p class="note"><a href="/login">{{ t['login_btn'] }}</a></p>
   {% else %}
     <p class="note">{{ t['forgot_text'] }}</p>
+    {% if err %}<p class="bad">{{ err }}</p>{% endif %}
     <form method="post" action="/forgot">
       <label>{{ t['email_lbl'] }}</label>
       <input type="email" name="email" required>
       <div class="hp" aria-hidden="true"><input type="text" name="website"
            tabindex="-1" autocomplete="off"></div>
+      {% if turnstile_key %}<div class="cf-turnstile" data-sitekey="{{ turnstile_key }}"
+           style="margin-top:14px"></div>{% endif %}
       <button type="submit">{{ t['forgot_btn'] }}</button>
     </form>
     <p class="note" style="margin-top:14px"><a href="/login">{{ t['back'] }}</a></p>

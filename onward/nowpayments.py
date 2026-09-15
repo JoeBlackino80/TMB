@@ -14,6 +14,7 @@ import hmac
 import json
 import os
 import urllib.request
+from decimal import Decimal, InvalidOperation
 
 API_BASE = "https://api.nowpayments.io/v1"
 
@@ -56,7 +57,7 @@ def verify_ipn(payload: bytes, signature: str) -> bool:
     sorted_json = json.dumps(data, separators=(",", ":"), sort_keys=True)
     expected = hmac.new(secret.encode(), sorted_json.encode(),
                         hashlib.sha512).hexdigest()
-    return hmac.compare_digest(expected, signature)
+    return hmac.compare_digest(expected.encode(), signature.encode())
 
 
 def confirmed_order_id(event: dict) -> str:
@@ -64,3 +65,13 @@ def confirmed_order_id(event: dict) -> str:
     if event.get("payment_status") in ("finished", "confirmed"):
         return event.get("order_id", "")
     return ""
+
+
+def paid_enough(event: dict, expected_eur: str) -> bool:
+    """Invoice bol vystavený na správnu sumu v EUR."""
+    try:
+        amount = Decimal(str(event.get("price_amount")))
+    except (InvalidOperation, TypeError):
+        return False
+    return (str(event.get("price_currency", "")).lower() == "eur"
+            and amount >= Decimal(expected_eur))

@@ -28,6 +28,15 @@
 <div class="card" style="margin-top:-34px">
   <h2><svg class="h2ic" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>{{ t['order_title'] }}</h2>
   {% if not user %}
+  <div class="plans" style="margin:0 0 16px">
+    <div class="plan" style="cursor:default"><b>{{ t['plan_basic'] }}</b><span class="price">€{{ prices['basic'] }}</span>
+      <small>{{ t['plan_basic_desc'] }}</small></div>
+    <div class="plan" style="cursor:default"><b>{{ t['plan_week'] }}</b><span class="price">€{{ prices['week'] }}</span>
+      <small>{{ t['plan_week_desc'] }}</small></div>
+    <div class="plan" style="cursor:default"><b>{{ t['plan_2week'] }}</b><span class="price">€{{ prices['twoweek'] }}</span>
+      <small>{{ t['plan_2week_desc'] }}</small></div>
+  </div>
+  <p class="note" style="margin:-6px 0 14px">{{ t['vat_note'] }}</p>
   <p class="note" style="margin:0 0 14px">{{ t['book_need_account_text'] }}</p>
   <div style="display:flex;gap:10px;flex-wrap:wrap">
     <a class="btn" href="/register?next=order"
@@ -144,8 +153,10 @@
 
     <div class="hp" aria-hidden="true"><input type="text" name="website"
          tabindex="-1" autocomplete="off"></div>
+    <label class="consent"><input type="checkbox" name="consent" value="1" required>
+      <span>{{ t['consent_html'] | safe }}</span></label>
     <button type="submit">{{ t['submit'] }}</button>
-    <p class="note">{{ t['fee_note'] }}</p>
+    <p class="note">{{ t['fee_note'] }} {{ t['vat_note'] }}</p>
   </form>
   {% endif %}
 </div>
