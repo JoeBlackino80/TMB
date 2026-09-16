@@ -17,8 +17,8 @@ OPERATOR = {
     "ico": "52095827",
     "dic": "2120886867",
     "ic_dph": "SK2120886867",
-    "register": "Commercial Register of the District Court Žilina,"
-                " section Sro, file no. 71299/L",
+    "register": "Commercial Register of the Municipal Court Bratislava III,"
+                " section Sro, file no. 142552/B",
 }
 
 # plán → env so Stripe linkom; hotel má vlastný
