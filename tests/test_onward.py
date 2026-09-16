@@ -803,7 +803,7 @@ def test_test_mode_is_announced_everywhere(client, monkeypatch):
     monkeypatch.delenv("DUFFEL_API_KEY", raising=False)
     page = client.get("/").text
     assert "TEST MODE" in page and 'name="robots" content="noindex"' in page
-    assert "AMREXO" in page and "support@validflight.com" in page
+    assert "SORB XT" in page and "support@validflight.com" in page
     _auth(client)
     _mock_duffel(monkeypatch)
     captured = {}

@@ -12,13 +12,13 @@ a aplikácia v ostrom režime vtedy odmietne naštartovať.
 import os
 
 OPERATOR = {
-    "name": "AMREXO s. r. o.",
-    "address": "Perličková 12490/17, 821 06 Bratislava – Podunajské Biskupice, Slovakia",
-    "ico": "57338159",
-    "dic": "2122687633",
-    "ic_dph": "SK2122687633",
-    "register": "Commercial Register of the Municipal Court Bratislava III,"
-                " section Sro, file no. 196373/B",
+    "name": "SORB XT s.r.o.",
+    "address": "Karpatské námestie 10A, 831 06 Bratislava, Slovakia",
+    "ico": "52095827",
+    "dic": "2120886867",
+    "ic_dph": "SK2120886867",
+    "register": "Commercial Register of the District Court Žilina,"
+                " section Sro, file no. 71299/L",
 }
 
 # plán → env so Stripe linkom; hotel má vlastný
